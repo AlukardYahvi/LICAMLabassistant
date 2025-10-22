@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LICAM Asistente de Laboratorio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            border-color: #3b82f6;
+            background-color: #3b82f6;
+            color: white;
+        }
+        .well {
+            transition: all 0.2s ease;
+            border: 2px solid #d1d5db;
+        }
+        .well.selected {
+            background-color: #93c5fd;
+            border-color: #3b82f6;
+            transform: scale(1.1);
+        }
+        .well:not(.configured) .well-label {
+            opacity: 0.5;
+        }
+        .well.configured .well-label {
+            font-weight: bold;
+        }
+        /* Well Type Colors */
+        .well.control { border-color: #10b981; } /* Green 500 */
+        .well.experimental { border-color: #ef4444; } /* Red 500 */
+        .well.blanco { border-color: #6366f1; } /* Indigo 500 */
+        .well.tratamiento-1 { border-color: #f97316; } /* Orange 500 */
+        .well.tratamiento-2 { border-color: #8b5cf6; } /* Violet 500 */
+
+        .modal {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .toast {
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s 0.5s, opacity 0.5s linear;
+        }
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+            transition: opacity 0.5s linear;
+        }
+        .sub-calc {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-600">LICAM Asistente de Laboratorio</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4 md:p-6">
+        <!-- Tabs -->
+        <div class="mb-6 border-b border-gray-200">
+            <nav class="flex space-x-2" aria-label="Tabs">
+                <button onclick="changeTab('planner')" id="tab-planner" class="tab-button active text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600">Organizador de Cultivo</button>
+                <button onclick="changeTab('report')" id="tab-report" class="tab-button text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600">Reporte del Experimento</button>
+                <button onclick="changeTab('calculators')" id="tab-calculators" class="tab-button text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600">Calculadoras Rápidas</button>
+                <button onclick="changeTab('about')" id="tab-about" class="tab-button text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600">Acerca del Proyecto</button>
+            </nav>
+        </div>
+
+        <!-- Planner Tab Content -->
+        <div id="content-planner" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Plate Setup -->
+                <div class="md:col-span-1 bg-white p-6 rounded-2xl shadow-lg">
+                    <h2 class="text-xl font-bold mb-4 border-b pb-2">1. Configuración del Experimento</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="exp-name" class="block text-sm font-medium text-gray-700">Nombre del Experimento:</label>
+                            <input type="text" id="exp-name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Ej: Curva de dosis PMA/LPS">
+                        </div>
+                        <div>
+                            <label for="plate-type" class="block text-sm font-medium text-gray-700">Tipo de Placa:</label>
+                            <select id="plate-type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                <option value="6">6 Pozos</option>
+                                <option value="12">12 Pozos</option>
+                                <option value="24" selected>24 Pozos</option>
+                                <option value="48">48 Pozos</option>
+                                <option value="96">96 Pozos</option>
+                            </select>
+                        </div>
+                        <button onclick="generatePlate()" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Generar Placa</button>
+                    </div>
+                    <div class="mt-6 pt-4 border-t">
+                        <h3 class="text-lg font-bold mb-2">Guardar / Cargar</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="saveExperiment()" class="flex-1 bg-green-600 text-white font-bold py-2 px-3 text-sm rounded-md hover:bg-green-700">Guardar Experimento</button>
+                            <label for="load-exp-input" class="flex-1 bg-gray-600 text-white font-bold py-2 px-3 text-sm rounded-md hover:bg-gray-700 cursor-pointer text-center">Cargar Experimento</label>
+                            <input type="file" id="load-exp-input" class="hidden" accept=".json">
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t">
+                        <h3 class="text-lg font-bold mb-2">Controles de Selección</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="selectAllWells()" class="flex-1 bg-gray-200 text-gray-800 py-2 px-3 text-sm rounded-md hover:bg-gray-300">Seleccionar Todos</button>
+                            <button onclick="clearSelection()" class="flex-1 bg-gray-200 text-gray-800 py-2 px-3 text-sm rounded-md hover:bg-gray-300">Limpiar Selección</button>
+                        </div>
+                         <button onclick="openWellConfigModal()" class="mt-4 w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">Configurar Pozo(s)</button>
+                    </div>
+                </div>
+
+                <!-- Plate Layout -->
+                <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-lg">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-xl font-bold">2. Diseño de la Placa</h2>
+                        <div class="flex space-x-4 text-xs items-center">
+                            <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-white border-2 border-green-500 mr-1"></span>Control</span>
+                            <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-white border-2 border-red-500 mr-1"></span>Experimental</span>
+                             <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-white border-2 border-indigo-500 mr-1"></span>Blanco</span>
+                        </div>
+                    </div>
+                    <div id="plate-layout-container" class="p-4 bg-gray-100 rounded-lg overflow-x-auto">
+                        <div id="plate-layout" class="grid gap-2" style="grid-template-columns: repeat(6, 1fr); display:none;">
+                            <!-- Wells will be generated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Master Mix Section -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                 <h2 class="text-xl font-bold mb-4 border-b pb-2">3. Cálculo de Mezcla Maestra (conjunto de elementos de stock de cultivo)</h2>
+                 <div class="flex items-center space-x-4 mb-4">
+                    <button onclick="calculateMasterMix()" class="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-300">Calcular Master Mix para Pozos Seleccionados</button>
+                    <div class="flex items-center">
+                         <label for="extra-volume" class="mr-2 text-sm font-medium">Volumen extra (%):</label>
+                         <input type="number" id="extra-volume" value="10" class="w-20 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                 </div>
+                 <div id="master-mix-results" class="p-4 bg-gray-50 rounded-lg">
+                    <p class="text-gray-500">Los resultados del cálculo para la mezcla maestra aparecerán aquí.</p>
+                 </div>
+            </div>
+
+             <!-- Protocol Schedule Section -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">4. Cronograma del Protocolo</h2>
+                <div class="text-sm text-gray-600 mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <b>Nota sobre Notificaciones:</b> Las alertas se mostrarán en esta computadora siempre y cuando esta página web permanezca abierta. Para recibir notificaciones por correo o celular se requiere un servidor (backend), lo cual es una funcionalidad más avanzada.
+                </div>
+                <div id="protocol-schedule-container" class="space-y-2">
+                    <p class="text-gray-500">Los eventos del protocolo para los pozos configurados aparecerán aquí.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Tab Content -->
+        <div id="content-report" class="hidden space-y-6 bg-white p-8 rounded-2xl shadow-lg">
+            <h2 class="text-2xl font-bold text-gray-800 border-b pb-4">Reporte del Experimento</h2>
+            <div class="flex space-x-4">
+                <button onclick="generateReport()" class="bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700">Generar Reporte Completo</button>
+                <button onclick="exportReportCSV()" id="export-csv-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 hidden">Descargar Reporte (CSV)</button>
+            </div>
+            <div id="report-output" class="prose max-w-none mt-4 border-t pt-4">
+                <p class="text-gray-500">Haz clic en el botón para generar un resumen de tu experimento.</p>
+            </div>
+        </div>
+
+        <!-- Calculators Tab Content -->
+        <div id="content-calculators" class="hidden space-y-6">
+            <!-- Molarity Calculator -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-xl font-bold mb-4">Calculadora de Molaridad y Masa Molar</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="chem-formula" class="block text-sm font-medium text-gray-700">Fórmula Química:</label>
+                        <input type="text" id="chem-formula" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Ej: C6H12O6, NaCl">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">&nbsp;</label>
+                        <button onclick="calculateMolarMass()" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Calcular Masa Molar</button>
+                    </div>
+                </div>
+                <div id="molar-mass-result" class="mt-4 p-4 bg-gray-100 rounded-lg font-mono"></div>
+            </div>
+
+            <!-- Unit Conversion -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-xl font-bold mb-4">Conversor de Unidades</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                     <div>
+                        <label for="uc-value" class="block text-sm font-medium text-gray-700">Valor:</label>
+                        <input type="number" id="uc-value" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    </div>
+                    <div>
+                        <label for="uc-from" class="block text-sm font-medium text-gray-700">Desde:</label>
+                        <select id="uc-from" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select>
+                    </div>
+                    <div>
+                        <label for="uc-to" class="block text-sm font-medium text-gray-700">Hasta:</label>
+                        <select id="uc-to" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select>
+                    </div>
+                    <button onclick="convertUnits()" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Convertir</button>
+                </div>
+                 <div id="uc-result" class="mt-4 p-4 bg-gray-100 rounded-lg font-mono"></div>
+            </div>
+
+            <!-- Dilution Calculator -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-xl font-bold mb-4">Calculadora de Dilución (C1V1 = C2V2)</h2>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <label for="c1" class="block text-sm font-medium text-gray-700">C1 (Stock):</label>
+                            <input type="number" id="c1" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Conc. inicial">
+                        </div>
+                         <div>
+                            <label for="c1-unit" class="block text-sm font-medium text-gray-700">Unidad C1:</label>
+                            <select id="c1-unit" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select>
+                        </div>
+                         <div>
+                            <label for="v1" class="block text-sm font-medium text-gray-700">V1 (Stock):</label>
+                            <input type="number" id="v1" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Vol. inicial">
+                        </div>
+                         <div>
+                            <label for="v1-unit" class="block text-sm font-medium text-gray-700">Unidad V1:</label>
+                            <select id="v1-unit" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="c2" class="block text-sm font-medium text-gray-700">C2 (Final):</label>
+                            <input type="number" id="c2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Conc. final">
+                        </div>
+                         <div>
+                            <label for="c2-unit" class="block text-sm font-medium text-gray-700">Unidad C2:</label>
+                            <select id="c2-unit" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select>
+                        </div>
+                         <div>
+                            <label for="v2" class="block text-sm font-medium text-gray-700">V2 (Final):</label>
+                            <input type="number" id="v2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Vol. final">
+                        </div>
+                         <div>
+                            <label for="v2-unit" class="block text-sm font-medium text-gray-700">Unidad V2:</label>
+                            <select id="v2-unit" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button onclick="calculateDilution()" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Calcular Valor Faltante</button>
+                </div>
+                <div id="dilution-result" class="mt-4 p-4 bg-gray-100 rounded-lg font-mono"></div>
+            </div>
+        </div>
+
+        <!-- About Tab Content -->
+        <div id="content-about" class="hidden space-y-6 bg-white p-8 rounded-2xl shadow-lg">
+            <h2 class="text-2xl font-bold text-gray-800 border-b pb-4">Información del Proyecto y Colaboradores</h2>
+            <div class="prose max-w-none">
+                <p>Esta aplicación es una herramienta de apoyo desarrollada como parte de un proyecto de tesis.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+                    <div>
+                        <h3 class="font-bold text-lg text-blue-600">Presenta y Asesoría</h3>
+                        <ul class="list-disc list-inside mt-2 space-y-1">
+                            <li><b>Tesista:</b> Edsel Yahvi Méndez Hernández</li>
+                            <li><b>Asesora Externa:</b> Dra. Nayelli Nájera García</li>
+                            <li><b>Asesor Interno (Docente):</b> Dr. Bustos García Juan Roberto Israel</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-blue-600">Institución y Laboratorio</h3>
+                         <ul class="list-disc list-inside mt-2 space-y-1">
+                            <li><b>Institución:</b> Escuela Superior de Medicina (ESM) - IPN</li>
+                            <li><b>Laboratorio Colaborador (LICAM):</b> Investigación Integral Cardiometabólica (IPN)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mt-8 pt-6 border-t">
+                     <h3 class="font-bold text-lg text-blue-600">Contacto y Ubicación (LICAM)</h3>
+                     <p class="mt-2"><b>Dirección:</b> Plan de San Luis y Díaz Mirón s/n Col. Casco de Santo Tomás, Miguel Hidalgo, 11340, Ciudad de México, CDMX.</p>
+                     <p><b>Correo:</b> nnajerag@ipn.mx</p>
+                     <p><b>Teléfono:</b> 55 5729 6300 ext 62820</p>
+                     <p class="mt-2">
+                        <b>Sitios de Interés:</b>
+                        <a href="https://cemiztli.wixsite.com/cardiometabolismo" target="_blank" class="text-blue-500 hover:underline">Website</a> | 
+                        <a href="#" class="text-blue-500 hover:underline">Facebook</a> | 
+                        <a href="#" class="text-blue-500 hover:underline">Instagram</a>
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Well Configuration Modal -->
+    <div id="well-config-modal" class="modal fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-8">
+            <div class="flex justify-between items-center border-b pb-4 mb-6">
+                <h2 class="text-2xl font-bold">Configurar Pozo(s): <span id="well-ids-display" class="text-blue-600"></span></h2>
+                <button onclick="closeWellConfigModal()" class="text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- General -->
+                <div>
+                    <h3 class="font-bold text-lg mb-2 text-gray-700">Parámetros Generales</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-gray-50">
+                        <div>
+                            <label for="well-type" class="block text-sm font-medium text-gray-700">Tipo de Pozo:</label>
+                             <select id="well-type" class="mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                <option value="default">No Asignado</option>
+                                <option value="control">Control</option>
+                                <option value="experimental">Experimental</option>
+                                <option value="blanco">Blanco</option>
+                                <option value="tratamiento-1">Tratamiento 1</option>
+                                <option value="tratamiento-2">Tratamiento 2</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="well-total-volume" class="block text-sm font-medium text-gray-700">Volumen Total Final (µL):</label>
+                            <input type="number" id="well-total-volume" class="mt-1 w-full border-gray-300 rounded-md shadow-sm" placeholder="Ej: 2000">
+                        </div>
+                        <div class="space-y-2">
+                             <label class="block text-sm font-medium text-gray-700">Células por Pozo:</label>
+                             <div class="flex items-center space-x-2">
+                                <input type="number" id="well-cell-count" class="w-full border-gray-300 rounded-md shadow-sm" placeholder="Ej: 200000">
+                                <button onclick="toggleSubCalc('cell-calc')" class="bg-gray-200 p-2 rounded-md hover:bg-gray-300">⚙️</button>
+                             </div>
+                             <div id="cell-calc" class="sub-calc p-3 border rounded-md bg-white mt-2 space-y-2">
+                                <div class="space-y-2">
+                                     <p class="text-xs font-semibold">Calcular volumen de stock celular:</p>
+                                     <div class="flex items-center space-x-2">
+                                         <input type="number" id="cell-stock-conc" placeholder="Conc. stock" class="w-full text-sm border-gray-300 rounded-md">
+                                         <select id="cell-stock-conc-unit" class="text-sm border-gray-300 rounded-md">
+                                             <option value="1">células/mL</option>
+                                             <option value="1000">células/µL</option>
+                                         </select>
+                                     </div>
+                                     <button onclick="calculateCellVolume()" class="w-full text-sm bg-blue-500 text-white py-1 rounded-md">Calcular Volumen (µL)</button>
+                                     <p id="cell-volume-result" class="text-sm font-medium text-blue-700"></p>
+                                </div>
+                                <div class="mt-4 pt-4 border-t space-y-2">
+                                    <p class="text-xs font-semibold">Calculadora Cámara de Neubauer:</p>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <input type="number" id="neubauer-q1" placeholder="Cuadrante 1" class="w-full text-sm border-gray-300 rounded-md">
+                                        <input type="number" id="neubauer-q2" placeholder="Cuadrante 2" class="w-full text-sm border-gray-300 rounded-md">
+                                        <input type="number" id="neubauer-q3" placeholder="Cuadrante 3" class="w-full text-sm border-gray-300 rounded-md">
+                                        <input type="number" id="neubauer-q4" placeholder="Cuadrante 4" class="w-full text-sm border-gray-300 rounded-md">
+                                    </div>
+                                    <button onclick="calculateNeubauer()" class="w-full text-sm bg-teal-500 text-white py-1 rounded-md">Calcular Concentración</button>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Variables -->
+                <div>
+                    <h3 class="font-bold text-lg mb-2 text-gray-700">Variables / Reactivos</h3>
+                    <div id="variables-container" class="space-y-4">
+                        <!-- Variable templates will be cloned here -->
+                    </div>
+                     <button onclick="addVariable()" class="mt-4 text-sm bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">+ Añadir Variable</button>
+                </div>
+
+                <!-- Protocol -->
+                <div>
+                    <h3 class="font-bold text-lg mb-2 text-gray-700">Pasos del Protocolo</h3>
+                    <div class="p-4 border rounded-lg bg-gray-50 space-y-4">
+                        <div id="protocol-steps-container" class="space-y-2">
+                            <!-- Protocol step templates will be cloned here -->
+                        </div>
+                        <button onclick="addProtocolStep()" class="text-sm bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">+ Añadir Paso</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t flex justify-end space-x-4">
+                <button onclick="closeWellConfigModal()" class="bg-gray-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-600">Cancelar</button>
+                <button onclick="saveWellConfig()" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Variable Template -->
+    <div id="variable-template" class="hidden p-4 border rounded-lg bg-gray-50">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-2 items-center">
+            <div class="md:col-span-12 flex justify-between items-center">
+                <input type="text" class="variable-name w-1/3 border-0 bg-transparent font-semibold" placeholder="Nombre (Ej: PMA)">
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold">Eliminar</button>
+            </div>
+
+            <!-- Concentration -->
+            <label class="md:col-span-2 text-sm font-medium">Concentración Final:</label>
+            <div class="md:col-span-4">
+                <input type="number" class="variable-final-conc w-full border-gray-300 rounded-md shadow-sm" placeholder="Valor">
+            </div>
+            <div class="md:col-span-4">
+                 <select class="variable-final-conc-unit w-full border-gray-300 rounded-md shadow-sm"></select>
+            </div>
+             <div class="md:col-span-2">
+                <button onclick="toggleSubCalc(this.dataset.target)" data-target="stock-calc-X" class="stock-calc-toggle bg-gray-200 p-2 rounded-md hover:bg-gray-300 w-full">⚙️ Calcular Stock</button>
+            </div>
+
+            <!-- Sub-calculator for stock -->
+            <div class="sub-calc md:col-span-12 p-3 border rounded-md bg-white mt-2 space-y-2">
+                <p class="text-xs font-semibold">Calcular volumen de stock del reactivo:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <input type="number" class="variable-stock-conc" placeholder="Conc. stock" class="w-full text-sm border-gray-300 rounded-md">
+                    <select class="variable-stock-conc-unit w-full text-sm border-gray-300 rounded-md"></select>
+                </div>
+                <button onclick="calculateStockVolume(this)" class="w-full text-sm bg-blue-500 text-white py-1 rounded-md">Calcular Volumen (µL)</button>
+                <p class="variable-stock-volume-result text-sm font-medium text-blue-700"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Protocol Step Template -->
+     <div id="protocol-step-template" class="hidden p-3 border rounded-md bg-white">
+         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+             <input type="text" class="protocol-step-name" placeholder="Nombre (Ej: Incubación PMA)">
+             <div class="flex items-center space-x-2">
+                <input type="number" class="protocol-step-duration w-full" placeholder="Duración">
+                <select class="protocol-step-unit">
+                    <option value="3600000">horas</option>
+                    <option value="60000">minutos</option>
+                    <option value="86400000">días</option>
+                </select>
+            </div>
+            <div class="md:col-span-2 flex justify-end">
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold">Eliminar</button>
+            </div>
+         </div>
+     </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="toast fixed bottom-5 right-5 bg-green-500 text-white py-3 px-6 rounded-lg shadow-xl">
+        <p id="toast-message"></p>
+    </div>
+
+    <script>
+        // --- DATA & STATE MANAGEMENT ---
+        const ATOMIC_WEIGHTS = {
+            'H': 1.008, 'He': 4.0026, 'Li': 6.94, 'Be': 9.0122, 'B': 10.81, 'C': 12.011, 'N': 14.007,
+            'O': 15.999, 'F': 18.998, 'Ne': 20.180, 'Na': 22.990, 'Mg': 24.305, 'Al': 26.982, 'Si': 28.085,
+            'P': 30.974, 'S': 32.06, 'Cl': 35.45, 'Ar': 39.948, 'K': 39.098, 'Ca': 40.078, 'Sc': 44.956,
+            'Ti': 47.867, 'V': 50.942, 'Cr': 51.996, 'Mn': 54.938, 'Fe': 55.845, 'Co': 58.933, 'Ni': 58.693,
+            'Cu': 63.546, 'Zn': 65.38, 'Ga': 69.723, 'Ge': 72.630, 'As': 74.922, 'Se': 78.971, 'Br': 79.904,
+            'Kr': 83.798, 'Rb': 85.468, 'Sr': 87.62, 'Y': 88.906, 'Zr': 91.224, 'Nb': 92.906, 'Mo': 95.96,
+            'Tc': 98, 'Ru': 101.07, 'Rh': 102.91, 'Pd': 106.42, 'Ag': 107.87, 'Cd': 112.41, 'In': 114.82,
+            'Sn': 118.71, 'Sb': 121.76, 'Te': 127.60, 'I': 126.90, 'Xe': 131.29, 'Cs': 132.91, 'Ba': 137.33,
+        };
+
+        const CONVERSION_FACTORS = {
+            'mass': { 'g': 1, 'mg': 1e-3, 'µg': 1e-6, 'ng': 1e-9, 'pg': 1e-12 },
+            'volume': { 'L': 1, 'mL': 1e-3, 'µL': 1e-6, 'nL': 1e-9 },
+            'concentration': { 'M': 1, 'mM': 1e-3, 'µM': 1e-6, 'nM': 1e-9 },
+        };
+        
+        let wellData = {}; 
+        let selectedWells = new Set();
+        let variableCounter = 0;
+        let runningTimers = {};
+
+        // --- TABS & NAVIGATION ---
+        function changeTab(tabName) {
+            const contents = ['planner', 'report', 'calculators', 'about'];
+            contents.forEach(content => {
+                document.getElementById(`content-${content}`).style.display = content === tabName ? 'block' : 'none';
+                document.getElementById(`tab-${content}`).classList.toggle('active', content === tabName);
+            });
+        }
+
+        // --- QUICK CALCULATORS ---
+        function parseFormula(formula) {
+            const regex = /([A-Z][a-z]*)(\d*)|(\()|(\))(\d*)/g;
+            let match;
+            const stack = [{}];
+            while ((match = regex.exec(formula))) {
+                const [, element, count, openParen, closeParen, parenCount] = match;
+                if (element) {
+                    const currentGroup = stack[stack.length - 1];
+                    currentGroup[element] = (currentGroup[element] || 0) + (count ? parseInt(count) : 1);
+                } else if (openParen) {
+                    stack.push({});
+                } else if (closeParen) {
+                    const completedGroup = stack.pop();
+                    const multiplier = parenCount ? parseInt(parenCount) : 1;
+                    const currentGroup = stack[stack.length - 1];
+                    for (const el in completedGroup) {
+                        currentGroup[el] = (currentGroup[el] || 0) + completedGroup[el] * multiplier;
+                    }
+                }
+            }
+            return stack[0];
+        }
+
+        function calculateMolarMass() {
+            const formula = document.getElementById('chem-formula').value;
+            const resultDiv = document.getElementById('molar-mass-result');
+            if (!formula) {
+                resultDiv.innerHTML = `<span class="text-red-500">Por favor, introduce una fórmula.</span>`;
+                return;
+            }
+            try {
+                const composition = parseFormula(formula);
+                let totalMass = 0;
+                let breakdown = [];
+                for (const element in composition) {
+                    if (!ATOMIC_WEIGHTS[element]) {
+                        throw new Error(`Elemento desconocido: ${element}`);
+                    }
+                    const mass = ATOMIC_WEIGHTS[element] * composition[element];
+                    totalMass += mass;
+                    breakdown.push(`<b>${element}</b>: ${composition[element]} x ${ATOMIC_WEIGHTS[element]} = ${mass.toFixed(4)}`);
+                }
+                resultDiv.innerHTML = `<b>Masa Molar Total: <span class="text-blue-600">${totalMass.toFixed(4)} g/mol</span></b><br><small>${breakdown.join('<br>')}</small>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+            }
+        }
+        
+        function getUnitType(unit) {
+            if (!unit) return null;
+            if (CONVERSION_FACTORS.mass[unit]) return 'mass';
+            if (CONVERSION_FACTORS.volume[unit]) return 'volume';
+            if (CONVERSION_FACTORS.concentration[unit]) return 'concentration';
+            if (unit.includes('/')) return 'combined';
+            return null;
+        }
+
+        function _pureConvertCombinedUnits(value, from, to) {
+            const [fromMass, fromVol] = from.split('/');
+            const [toMass, toVol] = to.split('/');
+
+            if (!CONVERSION_FACTORS.mass[fromMass] || !CONVERSION_FACTORS.volume[fromVol] || !CONVERSION_FACTORS.mass[toMass] || !CONVERSION_FACTORS.volume[toVol]) {
+                 return NaN;
+            }
+            const valueInG = value * CONVERSION_FACTORS.mass[fromMass];
+            const fromVolInL = 1 * CONVERSION_FACTORS.volume[fromVol];
+            const valueInGL = valueInG / fromVolInL;
+            const finalValueMass = valueInGL / CONVERSION_FACTORS.mass[toMass];
+            const toVolInL = 1 * CONVERSION_FACTORS.volume[toVol];
+            const finalValue = finalValueMass * toVolInL;
+            return finalValue;
+        }
+
+        function _pureConvertUnits(value, from, to) {
+            if (isNaN(value) || !from || !to) return NaN;
+            if (from === to) return value;
+
+            const fromType = getUnitType(from);
+            const toType = getUnitType(to);
+            
+            if (fromType === 'combined' && toType === 'combined') {
+                 return _pureConvertCombinedUnits(value, from, to);
+            }
+            
+            if (fromType !== toType || !fromType) {
+                return NaN;
+            }
+            
+            const baseValue = value * CONVERSION_FACTORS[fromType][from];
+            const finalValue = baseValue / CONVERSION_FACTORS[toType][to];
+            return finalValue;
+        }
+
+
+        function convertUnits() {
+            const value = parseFloat(document.getElementById('uc-value').value);
+            const from = document.getElementById('uc-from').value;
+            const to = document.getElementById('uc-to').value;
+            const resultDiv = document.getElementById('uc-result');
+
+            const finalValue = _pureConvertUnits(value, from, to);
+            
+            if (isNaN(finalValue)) {
+                 resultDiv.innerHTML = `<span class="text-red-500">No se puede convertir entre estas unidades.</span>`;
+            } else {
+                 resultDiv.textContent = `${value} ${from} = ${finalValue.toExponential(4)} ${to}`;
+            }
+        }
+
+        function calculateDilution() {
+            const fields = {
+                c1: { val: parseFloat(document.getElementById('c1').value), unit: document.getElementById('c1-unit').value },
+                v1: { val: parseFloat(document.getElementById('v1').value), unit: document.getElementById('v1-unit').value },
+                c2: { val: parseFloat(document.getElementById('c2').value), unit: document.getElementById('c2-unit').value },
+                v2: { val: parseFloat(document.getElementById('v2').value), unit: document.getElementById('v2-unit').value },
+            };
+
+            const resultDiv = document.getElementById('dilution-result');
+            const emptyFields = Object.keys(fields).filter(k => isNaN(fields[k].val));
+
+            if (emptyFields.length !== 1) {
+                resultDiv.innerHTML = `<span class="text-red-500">Por favor, introduce exactamente 3 valores numéricos.</span>`;
+                return;
+            }
+
+            const missingVar = emptyFields[0];
+            let result;
+            let resultUnit;
+
+            try {
+                const c2_conv = _pureConvertUnits(fields.c2.val, fields.c2.unit, fields.c1.unit);
+                const v2_conv = _pureConvertUnits(fields.v2.val, fields.v2.unit, fields.v1.unit);
+                
+                if (isNaN(c2_conv) && !isNaN(fields.c2.val)) throw new Error(`No se puede convertir la unidad de C2 (${fields.c2.unit}) a la de C1 (${fields.c1.unit}).`);
+                if (isNaN(v2_conv) && !isNaN(fields.v2.val)) throw new Error(`No se puede convertir la unidad de V2 (${fields.v2.unit}) a la de V1 (${fields.v1.unit}).`);
+
+                let c1_val = fields.c1.val;
+                let v1_val = fields.v1.val;
+
+                switch (missingVar) {
+                    case 'c1':
+                        result = (c2_conv * v2_conv) / v1_val;
+                        resultUnit = fields.c1.unit;
+                        break;
+                    case 'v1':
+                        result = (c2_conv * v2_conv) / c1_val;
+                        resultUnit = fields.v1.unit;
+                        break;
+                    case 'c2':
+                        const c2_in_c1_units = (c1_val * v1_val) / v2_conv;
+                        result = _pureConvertUnits(c2_in_c1_units, fields.c1.unit, fields.c2.unit);
+                        resultUnit = fields.c2.unit;
+                        break;
+                    case 'v2':
+                        const v2_in_v1_units = (c1_val * v1_val) / c2_conv;
+                        result = _pureConvertUnits(v2_in_v1_units, fields.v1.unit, fields.v2.unit);
+                        resultUnit = fields.v2.unit;
+                        break;
+                }
+
+                if (isNaN(result) || !isFinite(result)) {
+                    throw new Error("El resultado es inválido. Revisa los valores.");
+                }
+
+                resultDiv.textContent = `Resultado: ${missingVar.toUpperCase()} = ${result.toPrecision(4)} ${resultUnit}`;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+            }
+        }
+
+        // --- PLATE PLANNER ---
+        function generatePlate(restoringData = null) {
+            const plateType = restoringData ? restoringData.plateType : document.getElementById('plate-type').value;
+            document.getElementById('plate-type').value = plateType;
+            const layout = document.getElementById('plate-layout');
+            layout.innerHTML = '';
+            
+            if (!restoringData) {
+                wellData = {};
+            }
+            selectedWells.clear();
+
+            const plateConfigs = {
+                '6': { rows: 2, cols: 3 }, '12': { rows: 3, cols: 4 },
+                '24': { rows: 4, cols: 6 }, '48': { rows: 6, cols: 8 },
+                '96': { rows: 8, cols: 12 },
+            };
+            const config = plateConfigs[plateType];
+            layout.style.gridTemplateColumns = `repeat(${config.cols}, minmax(0, 1fr))`;
+            layout.style.display = 'grid';
+
+            for (let r = 0; r < config.rows; r++) {
+                for (let c = 0; c < config.cols; c++) {
+                    const rowLabel = String.fromCharCode(65 + r);
+                    const colLabel = c + 1;
+                    const wellId = `${rowLabel}${colLabel}`;
+                    
+                    const well = document.createElement('div');
+                    well.id = `well-${wellId}`;
+                    well.className = 'well w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center cursor-pointer bg-white';
+                    well.dataset.id = wellId;
+                    
+                    const label = document.createElement('span');
+                    label.className = 'well-label text-sm md:text-base font-semibold';
+                    label.textContent = wellId;
+                    well.appendChild(label);
+
+                    well.addEventListener('click', () => toggleWellSelection(wellId));
+                    layout.appendChild(well);
+
+                    if (restoringData && restoringData.wellData[wellId]) {
+                        const data = restoringData.wellData[wellId];
+                        well.classList.add('configured');
+                        if (data.wellType && data.wellType !== 'default') {
+                            well.classList.add(data.wellType);
+                        }
+                    }
+                }
+            }
+            updateProtocolSchedule();
+        }
+
+
+        function toggleWellSelection(wellId) {
+            const wellEl = document.getElementById(`well-${wellId}`);
+            if (selectedWells.has(wellId)) {
+                selectedWells.delete(wellId);
+                wellEl.classList.remove('selected');
+            } else {
+                selectedWells.add(wellId);
+                wellEl.classList.add('selected');
+            }
+        }
+
+        function selectAllWells() {
+            document.querySelectorAll('.well').forEach(well => {
+                const wellId = well.dataset.id;
+                if (!selectedWells.has(wellId)) {
+                    selectedWells.add(wellId);
+                    well.classList.add('selected');
+                }
+            });
+        }
+        
+        function clearSelection() {
+            selectedWells.forEach(wellId => {
+                document.getElementById(`well-${wellId}`).classList.remove('selected');
+            });
+            selectedWells.clear();
+        }
+
+        function openWellConfigModal() {
+            if (selectedWells.size === 0) {
+                showToast('Por favor, selecciona al menos un pozo para configurar.', 'error');
+                return;
+            }
+            const wellIds = Array.from(selectedWells).sort();
+            document.getElementById('well-ids-display').textContent = wellIds.join(', ');
+            
+            const firstWellId = wellIds[0];
+            if (wellData[firstWellId]) {
+                loadConfigToModal(wellData[firstWellId]);
+            } else {
+                resetModal();
+            }
+
+            document.getElementById('well-config-modal').style.display = 'flex';
+        }
+
+        function closeWellConfigModal() {
+            document.getElementById('well-config-modal').style.display = 'none';
+        }
+        
+        function resetModal() {
+            document.getElementById('well-type').value = 'default';
+            document.getElementById('well-total-volume').value = '';
+            document.getElementById('well-cell-count').value = '';
+            document.getElementById('variables-container').innerHTML = '';
+            document.getElementById('protocol-steps-container').innerHTML = '';
+            variableCounter = 0;
+            addVariable(); 
+            addProtocolStep();
+        }
+
+        function loadConfigToModal(data) {
+            resetModal();
+            document.getElementById('well-type').value = data.wellType || 'default';
+            document.getElementById('well-total-volume').value = data.totalVolume || '';
+            document.getElementById('well-cell-count').value = data.cells.count || '';
+            
+            const variablesContainer = document.getElementById('variables-container');
+            variablesContainer.innerHTML = ''; 
+            if (data.variables && data.variables.length > 0) {
+                data.variables.forEach(v => addVariable(v));
+            } else {
+                addVariable();
+            }
+            
+            const stepsContainer = document.getElementById('protocol-steps-container');
+            stepsContainer.innerHTML = '';
+            if (data.protocol && data.protocol.steps.length > 0) {
+                data.protocol.steps.forEach(s => addProtocolStep(s));
+            } else {
+                addProtocolStep();
+            }
+        }
+
+        function saveWellConfig() {
+            const wellType = document.getElementById('well-type').value;
+            const totalVolume = parseFloat(document.getElementById('well-total-volume').value);
+            const cellCount = parseFloat(document.getElementById('well-cell-count').value);
+
+            const variables = [];
+            document.querySelectorAll('#variables-container > div.p-4').forEach(varDiv => {
+                const variable = {
+                    id: varDiv.dataset.id,
+                    name: varDiv.querySelector('.variable-name').value,
+                    finalConc: parseFloat(varDiv.querySelector('.variable-final-conc').value),
+                    finalConcUnit: varDiv.querySelector('.variable-final-conc-unit').value,
+                };
+                if (variable.name && !isNaN(variable.finalConc)) {
+                    variables.push(variable);
+                }
+            });
+            
+            const protocolSteps = [];
+            document.querySelectorAll('#protocol-steps-container > div').forEach(stepDiv => {
+                const step = {
+                    name: stepDiv.querySelector('.protocol-step-name').value,
+                    duration: parseFloat(stepDiv.querySelector('.protocol-step-duration').value),
+                    unit: parseInt(stepDiv.querySelector('.protocol-step-unit').value)
+                };
+                if (step.name && !isNaN(step.duration)) {
+                    protocolSteps.push(step);
+                }
+            });
+
+            const configData = {
+                wellType,
+                totalVolume,
+                cells: { count: cellCount },
+                variables,
+                protocol: {
+                    steps: protocolSteps
+                }
+            };
+            
+            selectedWells.forEach(wellId => {
+                wellData[wellId] = JSON.parse(JSON.stringify(configData));
+                const wellEl = document.getElementById(`well-${wellId}`);
+                wellEl.classList.remove('control', 'experimental', 'blanco', 'tratamiento-1', 'tratamiento-2', 'default');
+                if(wellType !== 'default') {
+                    wellEl.classList.add(wellType);
+                }
+                wellEl.classList.add('configured');
+                wellEl.classList.remove('selected');
+            });
+            
+            updateProtocolSchedule();
+            clearSelection();
+            closeWellConfigModal();
+            showToast('Configuración guardada para los pozos seleccionados.');
+        }
+        
+        function addVariable(data = null) {
+            const template = document.getElementById('variable-template');
+            const clone = template.cloneNode(true);
+            clone.id = '';
+            clone.classList.remove('hidden');
+            
+            const uniqueId = `var-${variableCounter++}`;
+            clone.dataset.id = uniqueId;
+
+            populateUnitDropdowns(clone);
+            
+            const stockCalcToggle = clone.querySelector('.stock-calc-toggle');
+            const subCalcDiv = clone.querySelector('.sub-calc');
+            const subCalcId = `stock-calc-${uniqueId}`;
+            stockCalcToggle.dataset.target = subCalcId;
+            subCalcDiv.id = subCalcId;
+            
+            if (data) {
+                 clone.querySelector('.variable-name').value = data.name || '';
+                 clone.querySelector('.variable-final-conc').value = data.finalConc || '';
+                 clone.querySelector('.variable-final-conc-unit').value = data.finalConcUnit || 'µM';
+            }
+
+            document.getElementById('variables-container').appendChild(clone);
+        }
+
+        function addProtocolStep(data = null) {
+            const template = document.getElementById('protocol-step-template');
+            const clone = template.cloneNode(true);
+            clone.id = '';
+            clone.classList.remove('hidden');
+            if (data) {
+                clone.querySelector('.protocol-step-name').value = data.name || '';
+                clone.querySelector('.protocol-step-duration').value = data.duration || '';
+                clone.querySelector('.protocol-step-unit').value = data.unit || '3600000';
+            }
+            document.getElementById('protocol-steps-container').appendChild(clone);
+        }
+
+        function calculateCellVolume() {
+            const cellCount = parseFloat(document.getElementById('well-cell-count').value);
+            let stockConc = parseFloat(document.getElementById('cell-stock-conc').value); // in cells/mL or cells/uL
+            const stockUnit = parseFloat(document.getElementById('cell-stock-conc-unit').value);
+            const resultEl = document.getElementById('cell-volume-result');
+
+            if (isNaN(cellCount) || isNaN(stockConc) || stockConc === 0) {
+                resultEl.textContent = 'Inputs inválidos.';
+                return;
+            }
+            
+            // Convert stock to cells/mL for consistent calculation
+            const stockConcInMl = stockConc * stockUnit;
+
+            const volumeInMicroL = (cellCount / stockConcInMl) * 1000;
+            resultEl.textContent = `Tomar: ${volumeInMicroL.toFixed(2)} µL`;
+        }
+
+        function calculateNeubauer() {
+            const q1 = parseFloat(document.getElementById('neubauer-q1').value) || 0;
+            const q2 = parseFloat(document.getElementById('neubauer-q2').value) || 0;
+            const q3 = parseFloat(document.getElementById('neubauer-q3').value) || 0;
+            const q4 = parseFloat(document.getElementById('neubauer-q4').value) || 0;
+
+            const sum = q1 + q2 + q3 + q4;
+            if (sum === 0) {
+                showToast("Introduce los conteos de los cuadrantes.", "error");
+                return;
+            }
+            const avg = sum / 4;
+            const concentration = avg * 10000; // cells/mL
+            
+            document.getElementById('cell-stock-conc-unit').value = "1"; // Set unit to cells/mL
+            document.getElementById('cell-stock-conc').value = concentration;
+            showToast(`Concentración calculada: ${concentration.toExponential(2)} células/mL.`);
+        }
+
+        function calculateStockVolume(button) {
+            const parent = button.closest('.grid');
+            const finalConc = parseFloat(parent.querySelector('.variable-final-conc').value);
+            const finalConcUnit = parent.querySelector('.variable-final-conc-unit').value;
+            const stockConc = parseFloat(parent.querySelector('.variable-stock-conc').value);
+            const stockConcUnit = parent.querySelector('.variable-stock-conc-unit').value;
+            const totalVolume = parseFloat(document.getElementById('well-total-volume').value); // in µL
+            const resultEl = parent.querySelector('.variable-stock-volume-result');
+
+            if (isNaN(finalConc) || isNaN(stockConc) || isNaN(totalVolume) || stockConc === 0) {
+                 resultEl.textContent = 'Inputs inválidos.';
+                 return;
+            }
+            
+            const finalConcConverted = _pureConvertUnits(finalConc, finalConcUnit, stockConcUnit);
+            if (isNaN(finalConcConverted)) {
+                 resultEl.textContent = 'Error de conversión de unidad.';
+                 return;
+            }
+
+            const V2_in_uL = totalVolume;
+            const V1_in_uL = (finalConcConverted * V2_in_uL) / stockConc;
+
+            resultEl.textContent = `Tomar: ${V1_in_uL.toFixed(3)} µL`;
+        }
+        
+        function calculateMasterMix() {
+            if (selectedWells.size === 0) {
+                showToast("Selecciona los pozos para los que quieres calcular la mezcla.", 'error');
+                return;
+            }
+            
+            const numWells = selectedWells.size;
+            const extraVolFactor = 1 + (parseFloat(document.getElementById('extra-volume').value) || 0) / 100;
+            const totalWellsToPrep = numWells * extraVolFactor;
+
+            const masterMix = {};
+            let firstWellId = Array.from(selectedWells)[0];
+            const baseConfig = wellData[firstWellId];
+
+            if (!baseConfig) {
+                showToast("El primer pozo seleccionado no está configurado.", 'error');
+                return;
+            }
+
+            masterMix['Células'] = { 
+                total: `${(baseConfig.cells.count * totalWellsToPrep).toExponential(2)} células`,
+                note: 'El volumen a tomar depende de la concentración de tu stock celular.'
+            };
+            
+            baseConfig.variables.forEach(v => {
+                 masterMix[v.name] = {
+                     total: `Añadir para una concentración final de ${v.finalConc} ${v.finalConcUnit}`,
+                     note: 'El volumen a tomar depende de la concentración de tu reactivo stock.'
+                 };
+            });
+            
+            let html = `<h3 class="font-bold mb-2">Receta para ${numWells} pozos (+${(extraVolFactor-1)*100}% extra):</h3>`;
+            html += `<table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-100"><tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Componente</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Cantidad Total / Objetivo</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Notas</th>
+                        </tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+
+            for(const component in masterMix) {
+                html += `<tr>
+                            <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">${component}</td>
+                            <td class="px-4 py-2 whitespace-nowrap text-sm">${masterMix[component].total}</td>
+                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">${masterMix[component].note}</td>
+                         </tr>`;
+            }
+            
+             html += `<tr><td class="px-4 py-2 text-sm font-bold">Medio de cultivo (completar hasta)</td>
+                          <td class="px-4 py-2 text-sm font-bold">${(baseConfig.totalVolume * totalWellsToPrep).toFixed(2)} µL</td><td></td></tr>`;
+
+            html += `</tbody></table><p class="text-xs mt-2 text-gray-500">Usa las sub-calculadoras en la configuración de pozos para determinar los volúmenes exactos a tomar de tus stocks.</p>`;
+            document.getElementById('master-mix-results').innerHTML = html;
+        }
+
+        function updateProtocolSchedule() {
+            const scheduleContainer = document.getElementById('protocol-schedule-container');
+            scheduleContainer.innerHTML = '';
+            let allSteps = [];
+
+            for (const wellId in wellData) {
+                const data = wellData[wellId];
+                if (!data.protocol || !data.protocol.steps) continue;
+                
+                data.protocol.steps.forEach((step, index) => {
+                    allSteps.push({ ...step, wellId, stepIndex: index + 1, eventId: `${wellId}-${step.name.replace(/\s/g, '')}-${index}` });
+                });
+            }
+            
+            const uniqueSteps = Object.values(allSteps.reduce((acc, cur) => {
+                const key = `${cur.name}-${cur.duration}-${cur.unit}-${cur.stepIndex}`;
+                if (!acc[key]) {
+                    acc[key] = { ...cur, wells: [cur.wellId] };
+                } else {
+                    acc[key].wells.push(cur.wellId);
+                }
+                return acc;
+            }, {}));
+            
+            uniqueSteps.sort((a,b) => a.stepIndex - b.stepIndex);
+
+
+            if (uniqueSteps.length === 0) {
+                scheduleContainer.innerHTML = '<p class="text-gray-500">No hay pasos de protocolo configurados.</p>';
+                return;
+            }
+
+            uniqueSteps.forEach((step) => {
+                const durationMs = step.duration * step.unit;
+                const unitText = step.unit === 3600000 ? 'horas' : step.unit === 60000 ? 'minutos' : 'días';
+
+                const eventEl = document.createElement('div');
+                eventEl.className = 'flex items-center justify-between p-3 bg-gray-100 rounded-lg';
+                eventEl.innerHTML = `
+                    <div>
+                        <span class="font-bold">Paso ${step.stepIndex}: ${step.name}</span>
+                        <span class="text-sm text-gray-600 ml-2">(${step.duration} ${unitText})</span>
+                        <p class="text-xs text-blue-600">Pozos: ${step.wells.join(', ')}</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span id="timer-display-${step.eventId}" class="font-mono text-lg">--:--:--</span>
+                        <button id="timer-btn-${step.eventId}" class="bg-green-500 text-white text-sm font-semibold py-1 px-3 rounded-md hover:bg-green-600">Iniciar</button>
+                    </div>
+                `;
+                scheduleContainer.appendChild(eventEl);
+                
+                document.getElementById(`timer-btn-${step.eventId}`).addEventListener('click', (e) => {
+                    handleTimerClick(e, step, durationMs);
+                });
+            });
+        }
+        
+        function handleTimerClick(e, event, durationMs) {
+            const btn = e.target;
+            const timerId = `timer-btn-${event.eventId}`;
+            const displayId = `timer-display-${event.eventId}`;
+
+            if (runningTimers[timerId]) { // Stop timer
+                clearInterval(runningTimers[timerId].interval);
+                delete runningTimers[timerId];
+                btn.textContent = 'Iniciar';
+                btn.classList.add('bg-green-500', 'hover:bg-green-600');
+                btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                document.getElementById(displayId).textContent = '--:--:--';
+            } else { // Start timer
+                const endTime = Date.now() + durationMs;
+                btn.textContent = 'Detener';
+                btn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                btn.classList.add('bg-red-500', 'hover:bg-red-600');
+
+                const interval = setInterval(() => {
+                    const remaining = endTime - Date.now();
+                    if (remaining <= 0) {
+                        clearInterval(interval);
+                        document.getElementById(displayId).textContent = '00:00:00';
+                        const notificationMessage = `¡Paso finalizado: ${event.name}!`;
+                        showToast(notificationMessage);
+                        new Notification(notificationMessage);
+                        btn.textContent = 'Finalizado';
+                        btn.disabled = true;
+                        btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                    } else {
+                        const h = String(Math.floor(remaining / 3600000)).padStart(2, '0');
+                        const m = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0');
+                        const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
+                        document.getElementById(displayId).textContent = `${h}:${m}:${s}`;
+                    }
+                }, 1000);
+                runningTimers[timerId] = { interval, endTime };
+            }
+        }
+        
+        function toggleSubCalc(targetId) {
+            const el = document.getElementById(targetId);
+            if(el) {
+                el.style.display = el.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+        
+        // --- UTILITIES ---
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.className = 'toast show fixed bottom-5 right-5 text-white py-3 px-6 rounded-lg shadow-xl';
+            toast.classList.add(type === 'error' ? 'bg-red-500' : 'bg-green-500');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        function populateUnitDropdowns(context = document) {
+            const massUnits = Object.keys(CONVERSION_FACTORS.mass);
+            const volUnits = Object.keys(CONVERSION_FACTORS.volume);
+            const concUnits = Object.keys(CONVERSION_FACTORS.concentration);
+            const combinedUnits = [];
+            massUnits.forEach(m => volUnits.forEach(v => combinedUnits.push(`${m}/${v}`)));
+            const allConcUnits = [...concUnits, ...combinedUnits];
+
+            const ucFrom = context.querySelector('#uc-from');
+            if (ucFrom) { 
+                const allUnits = [...massUnits, ...volUnits, ...allConcUnits];
+                ucFrom.innerHTML = allUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+                context.querySelector('#uc-to').innerHTML = allUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+                
+                document.getElementById('c1-unit').innerHTML = allConcUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+                document.getElementById('c2-unit').innerHTML = allConcUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+                document.getElementById('v1-unit').innerHTML = volUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+                document.getElementById('v2-unit').innerHTML = volUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+
+            }
+            
+            const finalConcUnitSelects = context.querySelectorAll('.variable-final-conc-unit');
+            const stockConcUnitSelects = context.querySelectorAll('.variable-stock-conc-unit');
+            
+            finalConcUnitSelects.forEach(select => {
+                select.innerHTML = allConcUnits.map(u => `<option value="${u}" ${u==='µM' ? 'selected':''}>${u}</option>`).join('');
+            });
+            stockConcUnitSelects.forEach(select => {
+                select.innerHTML = allConcUnits.map(u => `<option value="${u}" ${u==='mM' ? 'selected':''}>${u}</option>`).join('');
+            });
+        }
+        
+        // --- SAVE / LOAD ---
+        function saveExperiment() {
+            const experimentState = {
+                experimentName: document.getElementById('exp-name').value,
+                plateType: document.getElementById('plate-type').value,
+                wellData: wellData,
+            };
+
+            const jsonString = JSON.stringify(experimentState, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            const fileName = (experimentState.experimentName || 'experimento').replace(/\s+/g, '_');
+            a.download = `${fileName}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Experimento guardado exitosamente.');
+        }
+
+        function loadExperiment(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const loadedState = JSON.parse(e.target.result);
+                    
+                    document.getElementById('exp-name').value = loadedState.experimentName || '';
+                    wellData = loadedState.wellData || {};
+                    generatePlate(loadedState);
+                    showToast('Experimento cargado exitosamente.');
+                } catch (error) {
+                    showToast('Error al cargar el archivo. Asegúrate de que es un archivo de experimento válido.', 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; 
+        }
+
+        // --- REPORTING ---
+        function generateReport() {
+            const output = document.getElementById('report-output');
+            const expName = document.getElementById('exp-name').value || 'Sin nombre';
+            const plateType = document.getElementById('plate-type').value;
+
+            if (Object.keys(wellData).length === 0) {
+                output.innerHTML = '<p class="text-red-500">No hay datos de experimento para reportar. Por favor, configura al menos un pozo.</p>';
+                document.getElementById('export-csv-btn').style.display = 'none';
+                return;
+            }
+
+            let html = `<h3>Información General</h3>
+                        <ul>
+                            <li><strong>Nombre del Experimento:</strong> ${expName}</li>
+                            <li><strong>Tipo de Placa:</strong> ${plateType} pozos</li>
+                        </ul>`;
+
+            const groupedWells = {};
+            for (const wellId in wellData) {
+                const configKey = JSON.stringify(wellData[wellId]);
+                if (!groupedWells[configKey]) {
+                    groupedWells[configKey] = {
+                        config: wellData[wellId],
+                        wells: []
+                    };
+                }
+                groupedWells[configKey].wells.push(wellId);
+            }
+
+            html += `<h3>Configuración de Pozos</h3>`;
+            Object.values(groupedWells).forEach((group, index) => {
+                const config = group.config;
+                html += `<div class="p-4 mb-4 border rounded-lg">
+                            <h4><strong>Grupo ${index + 1}:</strong> Pozos ${group.wells.join(', ')}</h4>
+                            <ul>
+                                <li><strong>Tipo:</strong> ${config.wellType}</li>
+                                <li><strong>Volumen Total:</strong> ${config.totalVolume || 'N/A'} µL</li>
+                                <li><strong>Células:</strong> ${config.cells?.count || 'N/A'}</li>
+                            </ul>`;
+                if (config.variables && config.variables.length > 0) {
+                    html += `<h5>Variables:</h5>
+                             <table class="min-w-full text-sm">
+                                <thead class="bg-gray-100"><tr><th>Nombre</th><th>Conc. Final</th></tr></thead>
+                                <tbody>`;
+                    config.variables.forEach(v => {
+                        html += `<tr><td>${v.name}</td><td>${v.finalConc} ${v.finalConcUnit}</td></tr>`;
+                    });
+                    html += `</tbody></table>`;
+                }
+                 if (config.protocol && config.protocol.steps.length > 0) {
+                    html += `<h5>Protocolo:</h5><ul>`;
+                    config.protocol.steps.forEach((step, i) => {
+                         const unitText = {3600000:'horas', 60000:'minutos', 86400000:'días'}[step.unit];
+                        html += `<li><strong>Paso ${i+1}:</strong> ${step.name} (${step.duration} ${unitText})</li>`;
+                    });
+                    html += `</ul>`;
+                }
+                html += `</div>`;
+            });
+            
+            output.innerHTML = html;
+            document.getElementById('export-csv-btn').style.display = 'inline-block';
+        }
+
+        function exportReportCSV() {
+            const expName = document.getElementById('exp-name').value || 'Sin nombre';
+            const plateType = document.getElementById('plate-type').value;
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            const escapeCSV = (str) => `"${(str || '').toString().replace(/"/g, '""')}"`;
+
+            csvContent += "Sección,Parámetro,Valor\n";
+            csvContent += `Información General,Nombre del Experimento,${escapeCSV(expName)}\n`;
+            csvContent += `Información General,Tipo de Placa,${plateType} pozos\n\n`;
+
+            const headers = ['Pozo', 'Tipo de Pozo', 'Volumen Total (uL)', 'Cantidad de Células'];
+            const allVars = new Set();
+            const allSteps = new Set();
+            let maxSteps = 0;
+
+            Object.values(wellData).forEach(d => {
+                d.variables.forEach(v => allVars.add(v.name));
+                if(d.protocol?.steps.length > maxSteps) maxSteps = d.protocol.steps.length;
+            });
+            const varColumns = Array.from(allVars);
+            varColumns.forEach(v => headers.push(`Variable: ${v} (Conc. Final)`));
+            for(let i=1; i<= maxSteps; i++) {
+                headers.push(`Paso ${i}: Nombre`);
+                headers.push(`Paso ${i}: Duración`);
+            }
+            csvContent += headers.join(',') + '\n';
+            
+            for (const wellId in wellData) {
+                const d = wellData[wellId];
+                const row = [
+                    wellId,
+                    d.wellType,
+                    d.totalVolume,
+                    d.cells?.count
+                ];
+                varColumns.forEach(varName => {
+                    const variable = d.variables.find(v => v.name === varName);
+                    row.push(variable ? `${variable.finalConc} ${variable.finalConcUnit}` : '');
+                });
+
+                for(let i=0; i< maxSteps; i++) {
+                    const step = d.protocol?.steps[i];
+                    if (step) {
+                        const unitText = {3600000:'horas', 60000:'minutos', 86400000:'días'}[step.unit];
+                        row.push(step.name);
+                        row.push(`${step.duration} ${unitText}`);
+                    } else {
+                        row.push('');
+                        row.push('');
+                    }
+                }
+                csvContent += row.map(escapeCSV).join(',') + '\n';
+            }
+            csvContent += '\n';
+
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            const fileName = (expName || 'reporte').replace(/\s+/g, '_');
+            link.setAttribute("download", `${fileName}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            generatePlate();
+            populateUnitDropdowns();
+            if (Notification.permission !== 'granted') {
+                Notification.requestPermission();
+            }
+            changeTab('planner');
+            document.getElementById('load-exp-input').addEventListener('change', loadExperiment);
+        };
+
+    </script>
+</body>
+</html>
+
