@@ -62,6 +62,22 @@
         .sub-calc {
             display: none;
         }
+        /* Styles for animal model data table */
+        #model-data-table th, #model-data-table td {
+             border: 1px solid #e5e7eb;
+             padding: 8px;
+             text-align: left;
+        }
+        #model-data-table th {
+            background-color: #f3f4f6;
+        }
+        /* Prose styles for guide */
+         .prose h3 { margin-top: 1.5em; margin-bottom: 0.5em; font-weight: 600; }
+         .prose p { margin-bottom: 1em; }
+         .prose ul { list-style-type: disc; margin-left: 1.5em; margin-bottom: 1em; }
+         .prose li { margin-bottom: 0.5em; }
+         .prose strong { font-weight: 600; }
+         .prose code { background-color: #e5e7eb; padding: 0.2em 0.4em; border-radius: 3px; font-size: 0.9em;}
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -77,16 +93,83 @@
     <main class="container mx-auto p-4 md:p-6">
         <!-- Tabs -->
         <div class="mb-6 border-b border-gray-200">
-            <nav class="flex space-x-2" aria-label="Tabs">
-                <button onclick="changeTab('planner')" id="tab-planner" class="tab-button active text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600">Organizador de Cultivo</button>
-                <button onclick="changeTab('report')" id="tab-report" class="tab-button text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600">Reporte del Experimento</button>
-                <button onclick="changeTab('calculators')" id="tab-calculators" class="tab-button text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600">Calculadoras Rápidas</button>
-                <button onclick="changeTab('about')" id="tab-about" class="tab-button text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600">Acerca del Proyecto</button>
+            <nav class="flex space-x-2 overflow-x-auto pb-2" aria-label="Tabs">
+                 <button onclick="changeTab('guide')" id="tab-guide" class="tab-button active text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600 flex-shrink-0">Guía de Uso</button>
+                <button onclick="changeTab('planner')" id="tab-planner" class="tab-button text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600 flex-shrink-0">Organizador de Cultivo</button>
+                <button onclick="changeTab('models')" id="tab-models" class="tab-button text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600 flex-shrink-0">Modelos Animales</button>
+                <button onclick="changeTab('protocols')" id="tab-protocols" class="tab-button text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600 flex-shrink-0">Protocolos y Recursos</button>
+                <button onclick="changeTab('report')" id="tab-report" class="tab-button text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600 flex-shrink-0">Reporte del Experimento</button>
+                <button onclick="changeTab('calculators')" id="tab-calculators" class="tab-button text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600 flex-shrink-0">Calculadoras Rápidas</button>
+                <button onclick="changeTab('about')" id="tab-about" class="tab-button text-sm font-medium py-2 px-4 rounded-t-lg border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600 flex-shrink-0">Acerca del Proyecto</button>
             </nav>
         </div>
 
+        <!-- Guide Tab Content -->
+        <div id="content-guide" class="space-y-6 bg-white p-8 rounded-2xl shadow-lg">
+             <h2 class="text-2xl font-bold text-gray-800 border-b pb-4">Guía de Uso Rápido</h2>
+             <div class="prose max-w-none">
+                 <p>¡Bienvenido/a al Asistente de Laboratorio LICAM! Esta guía te ayudará a usar las funciones principales.</p>
+                 <h3>Organizador de Cultivo</h3>
+                 <p>Esta es la sección principal para planificar tus experimentos en placas.</p>
+                 <ul>
+                     <li><strong>1. Configuración del Experimento:</strong> Dale un nombre a tu experimento y selecciona el tipo de placa (6, 12, 24, 48, 96 pozos). Haz clic en "Generar Placa".</li>
+                     <li><strong>Guardar/Cargar Experimento:</strong> Usa los botones verdes y grises para guardar tu progreso en un archivo <code>.json</code> o cargar un experimento previamente guardado.</li>
+                     <li><strong>2. Diseño de la Placa:</strong> Haz clic en los pozos para seleccionarlos (se pondrán azules). Puedes seleccionar varios. Usa "Seleccionar Todos" o "Limpiar Selección" para ayudarte.</li>
+                     <li><strong>Configurar Pozo(s):</strong> Con los pozos seleccionados, haz clic en "Configurar Pozo(s)". Se abrirá una ventana:
+                        <ul>
+                            <li><strong>Parámetros Generales:</strong> Define el Tipo de Pozo (Control, Experimental, etc. - esto cambia el color del borde), el Volumen Total Final y la Cantidad de Células por pozo. Usa el icono ⚙️ junto a Células para:
+                                <ul>
+                                    <li>Calcular el volumen a tomar de tu stock celular (necesitas la concentración de tu stock).</li>
+                                    <li>O usar la calculadora de Cámara de Neubauer: introduce los conteos de 4 cuadrantes y haz clic en "Calcular Concentración" para obtener la concentración de tu stock en células/mL.</li>
+                                </ul>
+                            </li>
+                             <li><strong>Variables/Reactivos:</strong> Añade los reactivos (PMA, LPS, etc.) que usarás. Define la Concentración Final deseada. Usa el icono ⚙️ para calcular cuánto volumen tomar de tu reactivo stock (necesitas la concentración del stock).</li>
+                             <li><strong>Pasos del Protocolo:</strong> Define los pasos secuenciales de tu experimento (Ej. Paso 1: Incubación PMA, Duración: 24 horas; Paso 2: Lavado + LPS, Duración: 12 horas). Añade tantos pasos como necesites.</li>
+                        </ul>
+                     </li>
+                     <li><strong>3. Creador de Stock General:</strong> Selecciona los pozos que tendrán la misma mezcla (usualmente réplicas) y haz clic en "Calcular Stock...". Indica un porcentaje extra si lo deseas. La tabla te mostrará cuánto necesitas preparar en total de células y el objetivo para cada reactivo. <strong>Nota:</strong> Los volúmenes exactos de cada componente dependen de tus concentraciones de stock, que puedes calcular con las herramientas ⚙️.</li>
+                     <li><strong>4. Cronograma del Protocolo:</strong> Aquí aparecerán todos los Pasos del Protocolo que definiste. Cada paso tendrá su propio temporizador. Haz clic en "Iniciar" para comenzar la cuenta regresiva. Recibirás una notificación en tu computadora cuando termine (si la página está abierta y diste permiso para notificaciones).</li>
+                 </ul>
+
+                 <h3>Modelos Animales</h3>
+                 <p>Sección para llevar un registro de datos de modelos animales y calcular dosis.</p>
+                 <ul>
+                     <li><strong>Añadir Modelo:</strong> Escribe un ID único para tu modelo (ej. Ratón-01) y haz clic en "Añadir Modelo".</li>
+                     <li><strong>Registrar Datos:</strong> Para cada modelo, puedes añadir entradas de datos haciendo clic en "+ Añadir Registro". Introduce Peso (g), Talla (cm), Glucosa (mg/dL), Fuerza de Agarre (gf) y Notas. La fecha se guarda automáticamente.</li>
+                     <li><strong>Guardar/Cargar Datos Modelos:</strong> Usa los botones al principio para guardar todos los datos de los modelos en un archivo <code>.json</code> o cargar datos previamente guardados.</li>
+                     <li><strong>Calculadora de Dosificación:</strong> Introduce la Dosis deseada (ej. 10 mg por cada 1 kg), el Peso actual del modelo y la Concentración de tu fármaco stock. Haz clic en "Calcular Volumen..." para saber cuánto administrar (asegúrate de seleccionar las unidades correctas en todos los campos).</li>
+                 </ul>
+
+                  <h3>Protocolos y Recursos</h3>
+                 <p>Espacio para notas sobre protocolos comunes y enlaces a bases de datos externas.</p>
+                 <ul>
+                     <li><strong>Protocolos Comunes:</strong> Actualmente incluye un esquema básico para extracción de ARN. Puedes expandir esto o añadir otros protocolos.</li>
+                     <li><strong>Bases de Datos Externas:</strong> Enlaces rápidos a NCBI (PubMed, Gene) para búsquedas bibliográficas o de información genética.</li>
+                 </ul>
+
+
+                 <h3>Reporte del Experimento</h3>
+                 <p>Genera un resumen de tu experimento planificado.</p>
+                 <ul>
+                     <li>Haz clic en "Generar Reporte Completo" para ver un resumen en pantalla de la configuración de tus pozos y el protocolo.</li>
+                     <li>Una vez generado, puedes hacer clic en "Descargar Reporte (CSV)" para obtener un archivo compatible con Excel o Google Sheets, ideal para tu bitácora.</li>
+                 </ul>
+
+                 <h3>Calculadoras Rápidas</h3>
+                 <p>Herramientas independientes para cálculos comunes.</p>
+                 <ul>
+                    <li><strong>Masa Molar:</strong> Escribe una fórmula química (ej. <code>C6H12O6</code>) y obtén su masa molar.</li>
+                    <li><strong>Conversor de Unidades:</strong> Convierte entre diferentes unidades de masa, volumen y concentración (incluyendo unidades combinadas como mg/mL).</li>
+                    <li><strong>Dilución (C1V1=C2V2):</strong> Introduce 3 de los 4 valores (Concentración Inicial, Volumen Inicial, Concentración Final, Volumen Final) con sus unidades, y calcula el valor faltante.</li>
+                 </ul>
+
+                  <h3>Acerca del Proyecto</h3>
+                  <p>Muestra información sobre el desarrollo de esta herramienta y los colaboradores.</p>
+             </div>
+        </div>
+
         <!-- Planner Tab Content -->
-        <div id="content-planner" class="space-y-6">
+        <div id="content-planner" class="hidden space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Plate Setup -->
                 <div class="md:col-span-1 bg-white p-6 rounded-2xl shadow-lg">
@@ -109,10 +192,10 @@
                         <button onclick="generatePlate()" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Generar Placa</button>
                     </div>
                     <div class="mt-6 pt-4 border-t">
-                        <h3 class="text-lg font-bold mb-2">Guardar / Cargar</h3>
+                        <h3 class="text-lg font-bold mb-2">Guardar / Cargar Experimento</h3>
                         <div class="flex space-x-2">
-                            <button onclick="saveExperiment()" class="flex-1 bg-green-600 text-white font-bold py-2 px-3 text-sm rounded-md hover:bg-green-700">Guardar Experimento</button>
-                            <label for="load-exp-input" class="flex-1 bg-gray-600 text-white font-bold py-2 px-3 text-sm rounded-md hover:bg-gray-700 cursor-pointer text-center">Cargar Experimento</label>
+                            <button onclick="saveExperiment()" class="flex-1 bg-green-600 text-white font-bold py-2 px-3 text-sm rounded-md hover:bg-green-700">Guardar</button>
+                            <label for="load-exp-input" class="flex-1 bg-gray-600 text-white font-bold py-2 px-3 text-sm rounded-md hover:bg-gray-700 cursor-pointer text-center">Cargar</label>
                             <input type="file" id="load-exp-input" class="hidden" accept=".json">
                         </div>
                     </div>
@@ -144,18 +227,18 @@
                 </div>
             </div>
             
-            <!-- Master Mix Section -->
+            <!-- Stock Mix Section -->
             <div class="bg-white p-6 rounded-2xl shadow-lg">
-                 <h2 class="text-xl font-bold mb-4 border-b pb-2">3. Cálculo de Mezcla Maestra (conjunto de elementos de stock de cultivo)</h2>
+                 <h2 class="text-xl font-bold mb-4 border-b pb-2">3. Creador de Stock General</h2>
                  <div class="flex items-center space-x-4 mb-4">
-                    <button onclick="calculateMasterMix()" class="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-300">Calcular Master Mix para Pozos Seleccionados</button>
+                    <button onclick="calculateMasterMix()" class="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-300">Calcular Stock para Pozos Seleccionados</button>
                     <div class="flex items-center">
                          <label for="extra-volume" class="mr-2 text-sm font-medium">Volumen extra (%):</label>
                          <input type="number" id="extra-volume" value="10" class="w-20 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                  </div>
                  <div id="master-mix-results" class="p-4 bg-gray-50 rounded-lg">
-                    <p class="text-gray-500">Los resultados del cálculo para la mezcla maestra aparecerán aquí.</p>
+                    <p class="text-gray-500">Los resultados del cálculo para el stock general aparecerán aquí.</p>
                  </div>
             </div>
 
@@ -170,6 +253,121 @@
                 </div>
             </div>
         </div>
+
+        <!-- Animal Models Tab Content -->
+        <div id="content-models" class="hidden space-y-6">
+             <div class="bg-white p-6 rounded-2xl shadow-lg">
+                 <h2 class="text-xl font-bold mb-4 border-b pb-2">Seguimiento de Modelos Animales</h2>
+                 <div class="flex space-x-2 mb-4">
+                     <button onclick="saveModelData()" class="bg-green-600 text-white font-bold py-2 px-3 text-sm rounded-md hover:bg-green-700">Guardar Datos Modelos</button>
+                     <label for="load-model-input" class="bg-gray-600 text-white font-bold py-2 px-3 text-sm rounded-md hover:bg-gray-700 cursor-pointer text-center">Cargar Datos Modelos</label>
+                     <input type="file" id="load-model-input" class="hidden" accept=".json">
+                 </div>
+                 <div class="mb-4">
+                     <label for="model-type-selector" class="block text-sm font-medium text-gray-700">Tipo de Modelo:</label>
+                     <select id="model-type-selector" class="mt-1 border-gray-300 rounded-md shadow-sm">
+                         <option value="murino">Murino</option>
+                         <!-- Add other model types here if needed -->
+                     </select>
+                 </div>
+                 <div class="mb-4 flex space-x-2">
+                     <input type="text" id="new-model-id" placeholder="ID Nuevo Modelo" class="border-gray-300 rounded-md shadow-sm">
+                     <button onclick="addAnimalModel()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">Añadir Modelo</button>
+                 </div>
+                 <div id="animal-models-container" class="space-y-4">
+                     <!-- Animal model sections will be added here -->
+                 </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                 <h2 class="text-xl font-bold mb-4 border-b pb-2">Calculadora de Dosificación por Peso</h2>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                     <!-- Dosis -->
+                     <div>
+                        <label class="block text-sm font-medium">Dosis Deseada:</label>
+                        <div class="flex space-x-1 mt-1">
+                            <input type="number" id="dose-amount" placeholder="Cantidad" class="w-1/2 border-gray-300 rounded-md shadow-sm">
+                            <select id="dose-amount-unit" class="w-1/2 border-gray-300 rounded-md shadow-sm"></select>
+                         </div>
+                         <div class="flex space-x-1 mt-1 items-center text-sm">
+                            <span>por cada</span>
+                            <input type="number" id="dose-weight-unit-val" value="1" class="w-1/4 border-gray-300 rounded-md shadow-sm">
+                            <select id="dose-weight-unit" class="w-1/2 border-gray-300 rounded-md shadow-sm">
+                                <option value="g">g</option>
+                                <option value="kg" selected>kg</option>
+                            </select>
+                         </div>
+                     </div>
+                     <!-- Modelo -->
+                     <div>
+                        <label class="block text-sm font-medium">Peso del Modelo:</label>
+                         <div class="flex space-x-1 mt-1">
+                            <input type="number" id="model-weight" placeholder="Peso" class="w-1/2 border-gray-300 rounded-md shadow-sm">
+                            <select id="model-weight-unit" class="w-1/2 border-gray-300 rounded-md shadow-sm">
+                                <option value="g" selected>g</option>
+                                <option value="kg">kg</option>
+                            </select>
+                         </div>
+                     </div>
+                      <!-- Stock -->
+                     <div>
+                         <label class="block text-sm font-medium">Concentración del Stock:</label>
+                         <div class="flex space-x-1 mt-1">
+                             <input type="number" id="stock-conc-dose" placeholder="Conc." class="w-1/2 border-gray-300 rounded-md shadow-sm">
+                             <select id="stock-conc-dose-unit" class="w-1/2 border-gray-300 rounded-md shadow-sm"></select>
+                         </div>
+                     </div>
+                 </div>
+                 <div class="mt-4 flex justify-between items-center">
+                      <button onclick="calculateModelDose()" class="bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700">Calcular Volumen a Administrar</button>
+                      <div class="flex items-center space-x-2">
+                           <label class="text-sm font-medium">en:</label>
+                           <select id="dose-output-unit" class="border-gray-300 rounded-md shadow-sm">
+                               <option value="µL" selected>µL</option>
+                               <option value="mL">mL</option>
+                           </select>
+                      </div>
+                 </div>
+                 <div id="dose-calculation-result" class="mt-4 p-4 bg-gray-100 rounded-lg font-mono"></div>
+            </div>
+        </div>
+
+         <!-- Protocols and Resources Tab Content -->
+        <div id="content-protocols" class="hidden space-y-6 bg-white p-8 rounded-2xl shadow-lg">
+             <h2 class="text-2xl font-bold text-gray-800 border-b pb-4">Protocolos Comunes y Recursos Externos</h2>
+             <div class="prose max-w-none grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div>
+                     <h3>Protocolos Comunes (Notas)</h3>
+                     <div class="p-4 border rounded-lg bg-gray-50">
+                         <h4>Extracción de ARN (Esquema Básico)</h4>
+                         <p>Este es un lugar para tus notas o un checklist simple:</p>
+                         <ul class="list-disc list-inside text-sm">
+                             <li>Lisis celular (ej. Trizol)</li>
+                             <li>Separación de fases (Cloroformo)</li>
+                             <li>Precipitación de ARN (Isopropanol)</li>
+                             <li>Lavados (Etanol 70-75%)</li>
+                             <li>Resuspensión (Agua libre de nucleasas)</li>
+                             <li>Cuantificación (Nanodrop/Qubit)</li>
+                             <li>Control de Calidad (Gel/Bioanalyzer)</li>
+                         </ul>
+                         <p class="text-xs text-gray-500 mt-2">Puedes editar este archivo HTML para añadir detalles específicos de tus kits o protocolos.</p>
+                     </div>
+                     <!-- Add more protocol notes sections here -->
+                 </div>
+                 <div>
+                     <h3>Bases de Datos Externas</h3>
+                     <p>Enlaces rápidos a recursos útiles:</p>
+                     <ul class="list-disc list-inside">
+                         <li><a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" class="text-blue-600 hover:underline">PubMed (NCBI):</a> Búsqueda de literatura biomédica.</li>
+                         <li><a href="https://www.ncbi.nlm.nih.gov/gene/" target="_blank" class="text-blue-600 hover:underline">NCBI Gene:</a> Información sobre genes específicos.</li>
+                         <li><a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi" target="_blank" class="text-blue-600 hover:underline">NCBI BLAST:</a> Búsqueda de secuencias similares.</li>
+                         <li><a href="https://www.uniprot.org/" target="_blank" class="text-blue-600 hover:underline">UniProt:</a> Información sobre proteínas.</li>
+                         <li><a href="https://www.rcsb.org/" target="_blank" class="text-blue-600 hover:underline">Protein Data Bank (PDB):</a> Estructuras 3D de proteínas y ácidos nucleicos.</li>
+                         <!-- Add more links as needed -->
+                     </ul>
+                 </div>
+             </div>
+        </div>
+
 
         <!-- Report Tab Content -->
         <div id="content-report" class="hidden space-y-6 bg-white p-8 rounded-2xl shadow-lg">
@@ -299,7 +497,7 @@
                      <p><b>Teléfono:</b> 55 5729 6300 ext 62820</p>
                      <p class="mt-2">
                         <b>Sitios de Interés:</b>
-                        <a href="https://cemiztli.wixsite.com/cardiometabolismo" target="_blank" class="text-blue-500 hover:underline">Website</a> | 
+                        <a href="https://cemiztli.wixsite.com/cardiometabolismo" target="_blank" class="text-blue-600 hover:underline">Website</a> | 
                         <a href="#" class="text-blue-500 hover:underline">Facebook</a> | 
                         <a href="#" class="text-blue-500 hover:underline">Instagram</a>
                     </p>
@@ -399,6 +597,40 @@
         </div>
     </div>
 
+     <!-- Animal Model Data Entry Modal (Example - Adapt as needed) -->
+    <div id="model-data-modal" class="modal fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Añadir Registro para Modelo <span id="modal-model-id" class="text-blue-600"></span></h2>
+            <div class="space-y-3">
+                 <div>
+                     <label class="block text-sm font-medium">Peso (g):</label>
+                     <input type="number" id="modal-model-weight" class="mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                 </div>
+                 <div>
+                     <label class="block text-sm font-medium">Talla (cm):</label>
+                     <input type="number" id="modal-model-size" class="mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                 </div>
+                 <div>
+                     <label class="block text-sm font-medium">Glucosa (mg/dL):</label>
+                     <input type="number" id="modal-model-glucose" class="mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                 </div>
+                 <div>
+                     <label class="block text-sm font-medium">Fuerza Agarre (gf):</label>
+                     <input type="number" id="modal-model-grip" class="mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                 </div>
+                 <div>
+                     <label class="block text-sm font-medium">Notas/Otras Mediciones:</label>
+                     <textarea id="modal-model-notes" rows="2" class="mt-1 w-full border-gray-300 rounded-md shadow-sm"></textarea>
+                 </div>
+            </div>
+             <div class="mt-6 flex justify-end space-x-3">
+                <button onclick="closeModelDataModal()" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600">Cancelar</button>
+                <button onclick="saveModelDataEntry()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">Guardar Registro</button>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Variable Template -->
     <div id="variable-template" class="hidden p-4 border rounded-lg bg-gray-50">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-2 items-center">
@@ -457,63 +689,77 @@
 
     <script>
         // --- DATA & STATE MANAGEMENT ---
-        const ATOMIC_WEIGHTS = {
-            'H': 1.008, 'He': 4.0026, 'Li': 6.94, 'Be': 9.0122, 'B': 10.81, 'C': 12.011, 'N': 14.007,
-            'O': 15.999, 'F': 18.998, 'Ne': 20.180, 'Na': 22.990, 'Mg': 24.305, 'Al': 26.982, 'Si': 28.085,
-            'P': 30.974, 'S': 32.06, 'Cl': 35.45, 'Ar': 39.948, 'K': 39.098, 'Ca': 40.078, 'Sc': 44.956,
-            'Ti': 47.867, 'V': 50.942, 'Cr': 51.996, 'Mn': 54.938, 'Fe': 55.845, 'Co': 58.933, 'Ni': 58.693,
-            'Cu': 63.546, 'Zn': 65.38, 'Ga': 69.723, 'Ge': 72.630, 'As': 74.922, 'Se': 78.971, 'Br': 79.904,
-            'Kr': 83.798, 'Rb': 85.468, 'Sr': 87.62, 'Y': 88.906, 'Zr': 91.224, 'Nb': 92.906, 'Mo': 95.96,
-            'Tc': 98, 'Ru': 101.07, 'Rh': 102.91, 'Pd': 106.42, 'Ag': 107.87, 'Cd': 112.41, 'In': 114.82,
-            'Sn': 118.71, 'Sb': 121.76, 'Te': 127.60, 'I': 126.90, 'Xe': 131.29, 'Cs': 132.91, 'Ba': 137.33,
+        const ATOMIC_WEIGHTS = { // Simplified list
+            'H': 1.008, 'C': 12.011, 'N': 14.007, 'O': 15.999, 'Na': 22.990, 'Mg': 24.305, 
+            'P': 30.974, 'S': 32.06, 'Cl': 35.45, 'K': 39.098, 'Ca': 40.078, 'Fe': 55.845,
+             // Add more elements as needed by users
         };
 
         const CONVERSION_FACTORS = {
-            'mass': { 'g': 1, 'mg': 1e-3, 'µg': 1e-6, 'ng': 1e-9, 'pg': 1e-12 },
+            'mass': { 'kg': 1000, 'g': 1, 'mg': 1e-3, 'µg': 1e-6, 'ng': 1e-9, 'pg': 1e-12 },
             'volume': { 'L': 1, 'mL': 1e-3, 'µL': 1e-6, 'nL': 1e-9 },
             'concentration': { 'M': 1, 'mM': 1e-3, 'µM': 1e-6, 'nM': 1e-9 },
+            'length': { 'm': 1, 'cm': 1e-2, 'mm': 1e-3},
+            'force': { 'N': 1, 'gf': 9.80665e-3 }, // gf: gram-force
+            'pressure': { 'Pa': 1, 'mmHg': 133.322 },
+             // Add other relevant factors like glucose units if needed (mg/dL vs mmol/L)
         };
         
         let wellData = {}; 
         let selectedWells = new Set();
         let variableCounter = 0;
         let runningTimers = {};
+        let animalModels = {}; // Structure: { 'modelId': { data: [], ... }, ... }
+        let currentEditingModelId = null; // For the data entry modal
 
         // --- TABS & NAVIGATION ---
         function changeTab(tabName) {
-            const contents = ['planner', 'report', 'calculators', 'about'];
+            const contents = ['planner', 'models', 'protocols', 'report', 'calculators', 'guide', 'about']; // Added 'protocols'
             contents.forEach(content => {
-                document.getElementById(`content-${content}`).style.display = content === tabName ? 'block' : 'none';
-                document.getElementById(`tab-${content}`).classList.toggle('active', content === tabName);
+                const el = document.getElementById(`content-${content}`);
+                const tab = document.getElementById(`tab-${content}`);
+                if (el) el.style.display = content === tabName ? 'block' : 'none';
+                if (tab) tab.classList.toggle('active', content === tabName);
             });
+             if (tabName === 'models') {
+                renderAnimalModels(); // Ensure models are displayed when tab is selected
+            }
         }
 
         // --- QUICK CALCULATORS ---
         function parseFormula(formula) {
+            // Basic parsing, can be improved for complex cases like hydrates
             const regex = /([A-Z][a-z]*)(\d*)|(\()|(\))(\d*)/g;
             let match;
-            const stack = [{}];
+            const stack = [{}]; // Stack to handle parentheses
             while ((match = regex.exec(formula))) {
-                const [, element, count, openParen, closeParen, parenCount] = match;
-                if (element) {
+                const [, element, countStr, openParen, closeParen, parenCountStr] = match;
+                const count = countStr ? parseInt(countStr) : 1;
+                const parenCount = parenCountStr ? parseInt(parenCountStr) : 1;
+
+                if (element) { // Found an element
                     const currentGroup = stack[stack.length - 1];
-                    currentGroup[element] = (currentGroup[element] || 0) + (count ? parseInt(count) : 1);
-                } else if (openParen) {
+                    currentGroup[element] = (currentGroup[element] || 0) + count;
+                } else if (openParen) { // Start of a group
                     stack.push({});
-                } else if (closeParen) {
+                } else if (closeParen && stack.length > 1) { // End of a group
                     const completedGroup = stack.pop();
-                    const multiplier = parenCount ? parseInt(parenCount) : 1;
                     const currentGroup = stack[stack.length - 1];
+                    // Add counts from completed group to current group, multiplied by parenthesis count
                     for (const el in completedGroup) {
-                        currentGroup[el] = (currentGroup[el] || 0) + completedGroup[el] * multiplier;
+                        currentGroup[el] = (currentGroup[el] || 0) + completedGroup[el] * parenCount;
                     }
                 }
             }
-            return stack[0];
+            if (stack.length !== 1) { // Error handling for mismatched parentheses
+                throw new Error("Paréntesis no balanceados en la fórmula.");
+            }
+            return stack[0]; // The final counts of each element
         }
 
+
         function calculateMolarMass() {
-            const formula = document.getElementById('chem-formula').value;
+            const formula = document.getElementById('chem-formula').value.replace(/\s+/g, ''); // Remove spaces
             const resultDiv = document.getElementById('molar-mass-result');
             if (!formula) {
                 resultDiv.innerHTML = `<span class="text-red-500">Por favor, introduce una fórmula.</span>`;
@@ -523,6 +769,7 @@
                 const composition = parseFormula(formula);
                 let totalMass = 0;
                 let breakdown = [];
+                // Calculate total mass and create breakdown string
                 for (const element in composition) {
                     if (!ATOMIC_WEIGHTS[element]) {
                         throw new Error(`Elemento desconocido: ${element}`);
@@ -531,35 +778,73 @@
                     totalMass += mass;
                     breakdown.push(`<b>${element}</b>: ${composition[element]} x ${ATOMIC_WEIGHTS[element]} = ${mass.toFixed(4)}`);
                 }
+                // Display result
                 resultDiv.innerHTML = `<b>Masa Molar Total: <span class="text-blue-600">${totalMass.toFixed(4)} g/mol</span></b><br><small>${breakdown.join('<br>')}</small>`;
             } catch (error) {
+                // Display error message
                 resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
             }
         }
         
         function getUnitType(unit) {
-            if (!unit) return null;
-            if (CONVERSION_FACTORS.mass[unit]) return 'mass';
-            if (CONVERSION_FACTORS.volume[unit]) return 'volume';
-            if (CONVERSION_FACTORS.concentration[unit]) return 'concentration';
-            if (unit.includes('/')) return 'combined';
-            return null;
+             if (!unit) return null;
+             for (const type in CONVERSION_FACTORS) {
+                 if (CONVERSION_FACTORS[type][unit]) {
+                     return type;
+                 }
+             }
+            // Check for combined concentration units (mass/volume)
+            if (unit.includes('/')) {
+                const parts = unit.split('/');
+                if (parts.length === 2 && CONVERSION_FACTORS.mass[parts[0]] && CONVERSION_FACTORS.volume[parts[1]]) {
+                    return 'combined_concentration';
+                }
+            }
+            return null; // Unit not recognized
         }
 
-        function _pureConvertCombinedUnits(value, from, to) {
-            const [fromMass, fromVol] = from.split('/');
-            const [toMass, toVol] = to.split('/');
+        // Converts value FROM a unit TO grams (for mass) or liters (for volume) or moles/L (for molar concentration)
+        function convertToBaseUnit(value, fromUnit) {
+            const type = getUnitType(fromUnit);
+            if (!type || isNaN(value)) return NaN;
 
-            if (!CONVERSION_FACTORS.mass[fromMass] || !CONVERSION_FACTORS.volume[fromVol] || !CONVERSION_FACTORS.mass[toMass] || !CONVERSION_FACTORS.volume[toVol]) {
-                 return NaN;
+            if (type === 'combined_concentration') {
+                 const [massUnit, volUnit] = fromUnit.split('/');
+                 // Convert mass to grams and volume to Liters to get g/L
+                 const valueInG = value * (CONVERSION_FACTORS.mass[massUnit] || NaN);
+                 const volumeInL = 1 * (CONVERSION_FACTORS.volume[volUnit] || NaN); // Assuming per 1 unit of volume
+                 if (isNaN(valueInG) || isNaN(volumeInL) || volumeInL === 0) return NaN;
+                 return valueInG / volumeInL; // Base unit: g/L
+            } else if (CONVERSION_FACTORS[type]) {
+                // For simple types (mass, volume, concentration), multiply by factor to get base
+                 // Base for mass is g, volume is L, concentration is M
+                return value * (CONVERSION_FACTORS[type][fromUnit] || NaN);
             }
-            const valueInG = value * CONVERSION_FACTORS.mass[fromMass];
-            const fromVolInL = 1 * CONVERSION_FACTORS.volume[fromVol];
-            const valueInGL = valueInG / fromVolInL;
-            const finalValueMass = valueInGL / CONVERSION_FACTORS.mass[toMass];
-            const toVolInL = 1 * CONVERSION_FACTORS.volume[toVol];
-            const finalValue = finalValueMass * toVolInL;
-            return finalValue;
+            return NaN; // Should not happen if getUnitType is correct
+        }
+
+        // Converts value FROM a base unit (g, L, M, g/L) TO a target unit
+        function convertFromBaseUnit(value, toUnit) {
+            const type = getUnitType(toUnit);
+             if (!type || isNaN(value)) return NaN;
+
+             if (type === 'combined_concentration') {
+                 const [massUnit, volUnit] = toUnit.split('/');
+                 // Value is assumed to be in g/L
+                 const targetMassFactor = CONVERSION_FACTORS.mass[massUnit];
+                 const targetVolFactor = CONVERSION_FACTORS.volume[volUnit];
+                 if (!targetMassFactor || !targetVolFactor) return NaN;
+                  // Convert g/L to targetMassUnit / targetVolUnit
+                 // (value g / 1 L) * (1 L / targetVolFactor targetVolUnits) / (1 g / targetMassFactor targetMassUnits)
+                 // = value * targetMassFactor / targetVolFactor
+                 return value * targetMassFactor / targetVolFactor;
+             } else if (CONVERSION_FACTORS[type]) {
+                  // For simple types, divide by factor to get value in target unit
+                 const factor = CONVERSION_FACTORS[type][toUnit];
+                 if (!factor) return NaN;
+                 return value / factor;
+             }
+              return NaN; // Should not happen
         }
 
         function _pureConvertUnits(value, from, to) {
@@ -568,17 +853,23 @@
 
             const fromType = getUnitType(from);
             const toType = getUnitType(to);
+
+            // Allow conversion between Molar and Mass/Volume ONLY IF molar mass is known (future enhancement)
+            // For now, only allow conversion within the same category
+             if (!fromType || !toType || fromType !== toType) {
+                 // Special case: Allow g/L (base for combined) <-> M (base for molar) if molar mass known
+                 // if ((fromType === 'combined_concentration' && toType === 'concentration') || (fromType === 'concentration' && toType === 'combined_concentration')) {
+                 //    // Requires molar mass - implement later if needed
+                 //    return NaN;
+                 // }
+                 return NaN; // Cannot convert between different types directly (e.g., g to L)
+             }
             
-            if (fromType === 'combined' && toType === 'combined') {
-                 return _pureConvertCombinedUnits(value, from, to);
-            }
-            
-            if (fromType !== toType || !fromType) {
-                return NaN;
-            }
-            
-            const baseValue = value * CONVERSION_FACTORS[fromType][from];
-            const finalValue = baseValue / CONVERSION_FACTORS[toType][to];
+            // Convert 'from' unit to base unit, then base unit to 'to' unit
+            const baseValue = convertToBaseUnit(value, from);
+            if (isNaN(baseValue)) return NaN;
+            const finalValue = convertFromBaseUnit(baseValue, to);
+             
             return finalValue;
         }
 
@@ -592,7 +883,7 @@
             const finalValue = _pureConvertUnits(value, from, to);
             
             if (isNaN(finalValue)) {
-                 resultDiv.innerHTML = `<span class="text-red-500">No se puede convertir entre estas unidades.</span>`;
+                 resultDiv.innerHTML = `<span class="text-red-500">No se puede convertir entre estas unidades o tipos.</span>`;
             } else {
                  resultDiv.textContent = `${value} ${from} = ${finalValue.toExponential(4)} ${to}`;
             }
@@ -619,115 +910,135 @@
             let resultUnit;
 
             try {
+                 // Convert C2 unit to C1 unit for calculation
                 const c2_conv = _pureConvertUnits(fields.c2.val, fields.c2.unit, fields.c1.unit);
+                // Convert V2 unit to V1 unit for calculation
                 const v2_conv = _pureConvertUnits(fields.v2.val, fields.v2.unit, fields.v1.unit);
                 
-                if (isNaN(c2_conv) && !isNaN(fields.c2.val)) throw new Error(`No se puede convertir la unidad de C2 (${fields.c2.unit}) a la de C1 (${fields.c1.unit}).`);
+                // Check if conversions were successful (important if converting between types like M and g/L was attempted and failed)
+                if (isNaN(c2_conv) && !isNaN(fields.c2.val)) throw new Error(`No se puede convertir la unidad de C2 (${fields.c2.unit}) a la de C1 (${fields.c1.unit}). Asegúrate que son del mismo tipo (ej. ambas molares o ambas masa/volumen).`);
                 if (isNaN(v2_conv) && !isNaN(fields.v2.val)) throw new Error(`No se puede convertir la unidad de V2 (${fields.v2.unit}) a la de V1 (${fields.v1.unit}).`);
 
                 let c1_val = fields.c1.val;
                 let v1_val = fields.v1.val;
 
+                // Apply C1V1 = C2V2 formula
                 switch (missingVar) {
-                    case 'c1':
+                    case 'c1': // Calculate C1 = (C2 * V2) / V1
                         result = (c2_conv * v2_conv) / v1_val;
-                        resultUnit = fields.c1.unit;
+                        resultUnit = fields.c1.unit; // Result is in C1's original unit
                         break;
-                    case 'v1':
+                    case 'v1': // Calculate V1 = (C2 * V2) / C1
                         result = (c2_conv * v2_conv) / c1_val;
-                        resultUnit = fields.v1.unit;
+                        resultUnit = fields.v1.unit; // Result is in V1's original unit
                         break;
-                    case 'c2':
-                        const c2_in_c1_units = (c1_val * v1_val) / v2_conv;
+                    case 'c2': // Calculate C2 = (C1 * V1) / V2
+                         // Result is first calculated in C1's unit
+                        const c2_in_c1_units = (c1_val * v1_val) / v2_conv; 
+                         // Convert back to C2's desired unit
                         result = _pureConvertUnits(c2_in_c1_units, fields.c1.unit, fields.c2.unit);
                         resultUnit = fields.c2.unit;
                         break;
-                    case 'v2':
+                    case 'v2': // Calculate V2 = (C1 * V1) / C2
+                        // Result is first calculated in V1's unit
                         const v2_in_v1_units = (c1_val * v1_val) / c2_conv;
+                        // Convert back to V2's desired unit
                         result = _pureConvertUnits(v2_in_v1_units, fields.v1.unit, fields.v2.unit);
                         resultUnit = fields.v2.unit;
                         break;
                 }
 
+                // Final check for calculation errors
                 if (isNaN(result) || !isFinite(result)) {
-                    throw new Error("El resultado es inválido. Revisa los valores.");
+                    throw new Error("El resultado es inválido. Revisa los valores y unidades.");
                 }
 
+                // Display the result
                 resultDiv.textContent = `Resultado: ${missingVar.toUpperCase()} = ${result.toPrecision(4)} ${resultUnit}`;
 
             } catch (error) {
+                 // Display any errors that occurred
                 resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
             }
         }
 
         // --- PLATE PLANNER ---
-        function generatePlate(restoringData = null) {
+         function generatePlate(restoringData = null) {
             const plateType = restoringData ? restoringData.plateType : document.getElementById('plate-type').value;
-            document.getElementById('plate-type').value = plateType;
+            document.getElementById('plate-type').value = plateType; // Ensure dropdown matches
             const layout = document.getElementById('plate-layout');
-            layout.innerHTML = '';
+            layout.innerHTML = ''; // Clear previous layout
             
+            // Reset wellData only if not restoring from file
             if (!restoringData) {
                 wellData = {};
             }
-            selectedWells.clear();
+            selectedWells.clear(); // Always clear selection on new/loaded plate
 
+            // Define plate dimensions based on type
             const plateConfigs = {
                 '6': { rows: 2, cols: 3 }, '12': { rows: 3, cols: 4 },
                 '24': { rows: 4, cols: 6 }, '48': { rows: 6, cols: 8 },
                 '96': { rows: 8, cols: 12 },
             };
             const config = plateConfigs[plateType];
+            // Apply CSS Grid layout based on dimensions
             layout.style.gridTemplateColumns = `repeat(${config.cols}, minmax(0, 1fr))`;
             layout.style.display = 'grid';
 
+            // Create each well element
             for (let r = 0; r < config.rows; r++) {
                 for (let c = 0; c < config.cols; c++) {
-                    const rowLabel = String.fromCharCode(65 + r);
-                    const colLabel = c + 1;
-                    const wellId = `${rowLabel}${colLabel}`;
+                    const rowLabel = String.fromCharCode(65 + r); // A, B, C...
+                    const colLabel = c + 1; // 1, 2, 3...
+                    const wellId = `${rowLabel}${colLabel}`; // e.g., A1, B12
                     
                     const well = document.createElement('div');
                     well.id = `well-${wellId}`;
+                    // Basic styling + dataset for ID
                     well.className = 'well w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center cursor-pointer bg-white';
                     well.dataset.id = wellId;
                     
+                    // Add the label inside the well
                     const label = document.createElement('span');
                     label.className = 'well-label text-sm md:text-base font-semibold';
                     label.textContent = wellId;
                     well.appendChild(label);
 
+                    // Add click listener for selection
                     well.addEventListener('click', () => toggleWellSelection(wellId));
-                    layout.appendChild(well);
+                    layout.appendChild(well); // Add well to the grid layout
 
-                    if (restoringData && restoringData.wellData[wellId]) {
+                    // If restoring data, apply saved configuration styles
+                    if (restoringData?.wellData?.[wellId]) {
                         const data = restoringData.wellData[wellId];
-                        well.classList.add('configured');
+                        well.classList.add('configured'); // Mark as configured
+                         // Apply type-specific border color class
                         if (data.wellType && data.wellType !== 'default') {
                             well.classList.add(data.wellType);
                         }
                     }
                 }
             }
-            updateProtocolSchedule();
+            updateProtocolSchedule(); // Update the schedule based on the new/loaded plate data
         }
 
 
         function toggleWellSelection(wellId) {
             const wellEl = document.getElementById(`well-${wellId}`);
-            if (selectedWells.has(wellId)) {
+            if (selectedWells.has(wellId)) { // If already selected, deselect
                 selectedWells.delete(wellId);
                 wellEl.classList.remove('selected');
-            } else {
+            } else { // If not selected, select
                 selectedWells.add(wellId);
                 wellEl.classList.add('selected');
             }
         }
 
         function selectAllWells() {
-            document.querySelectorAll('.well').forEach(well => {
+            document.querySelectorAll('#plate-layout .well').forEach(well => {
                 const wellId = well.dataset.id;
-                if (!selectedWells.has(wellId)) {
+                if (!selectedWells.has(wellId)) { // Select only if not already selected
                     selectedWells.add(wellId);
                     well.classList.add('selected');
                 }
@@ -735,225 +1046,283 @@
         }
         
         function clearSelection() {
-            selectedWells.forEach(wellId => {
-                document.getElementById(`well-${wellId}`).classList.remove('selected');
+            selectedWells.forEach(wellId => { // Deselect each currently selected well
+                const wellEl = document.getElementById(`well-${wellId}`);
+                if (wellEl) wellEl.classList.remove('selected');
             });
-            selectedWells.clear();
+            selectedWells.clear(); // Empty the selection set
         }
 
         function openWellConfigModal() {
-            if (selectedWells.size === 0) {
+            if (selectedWells.size === 0) { // Check if any wells are selected
                 showToast('Por favor, selecciona al menos un pozo para configurar.', 'error');
                 return;
             }
-            const wellIds = Array.from(selectedWells).sort();
+             // Display selected well IDs in modal title
+            const wellIds = Array.from(selectedWells).sort(); 
             document.getElementById('well-ids-display').textContent = wellIds.join(', ');
             
+            // Load configuration from the first selected well, or reset if none are configured yet
             const firstWellId = wellIds[0];
             if (wellData[firstWellId]) {
-                loadConfigToModal(wellData[firstWellId]);
+                loadConfigToModal(wellData[firstWellId]); // Load existing config
             } else {
-                resetModal();
+                resetModal(); // Reset to defaults
             }
 
+            // Show the modal
             document.getElementById('well-config-modal').style.display = 'flex';
         }
 
         function closeWellConfigModal() {
-            document.getElementById('well-config-modal').style.display = 'none';
+            document.getElementById('well-config-modal').style.display = 'none'; // Hide modal
         }
         
-        function resetModal() {
+         function resetModal() {
+             // Reset all input fields in the well configuration modal to default/empty values
             document.getElementById('well-type').value = 'default';
             document.getElementById('well-total-volume').value = '';
             document.getElementById('well-cell-count').value = '';
-            document.getElementById('variables-container').innerHTML = '';
-            document.getElementById('protocol-steps-container').innerHTML = '';
-            variableCounter = 0;
-            addVariable(); 
-            addProtocolStep();
+            document.getElementById('variables-container').innerHTML = ''; // Clear dynamic variable fields
+            document.getElementById('protocol-steps-container').innerHTML = ''; // Clear dynamic protocol steps
+            // Reset cell calculation sub-panel fields
+            document.getElementById('neubauer-q1').value = '';
+            document.getElementById('neubauer-q2').value = '';
+            document.getElementById('neubauer-q3').value = '';
+            document.getElementById('neubauer-q4').value = '';
+            document.getElementById('cell-stock-conc').value = '';
+             document.getElementById('cell-stock-conc-unit').value = '1'; // Default to cells/mL
+            document.getElementById('cell-volume-result').textContent = '';
+            variableCounter = 0; // Reset counter for unique variable IDs
+            addVariable(); // Add one empty variable row by default
+            addProtocolStep(); // Add one empty protocol step row by default
         }
+
 
         function loadConfigToModal(data) {
-            resetModal();
+            resetModal(); // Start with a clean slate
+            // Populate general fields
             document.getElementById('well-type').value = data.wellType || 'default';
             document.getElementById('well-total-volume').value = data.totalVolume || '';
-            document.getElementById('well-cell-count').value = data.cells.count || '';
+            document.getElementById('well-cell-count').value = data.cells?.count || '';
             
+            // Populate Variables section
             const variablesContainer = document.getElementById('variables-container');
-            variablesContainer.innerHTML = ''; 
-            if (data.variables && data.variables.length > 0) {
-                data.variables.forEach(v => addVariable(v));
+            variablesContainer.innerHTML = ''; // Clear the default row added by resetModal
+            if (data.variables?.length > 0) {
+                 // Add rows for each saved variable
+                data.variables.forEach(v => addVariable(v)); 
             } else {
-                addVariable();
+                addVariable(); // Add one empty row if no variables were saved
             }
             
+            // Populate Protocol Steps section
             const stepsContainer = document.getElementById('protocol-steps-container');
-            stepsContainer.innerHTML = '';
-            if (data.protocol && data.protocol.steps.length > 0) {
-                data.protocol.steps.forEach(s => addProtocolStep(s));
+            stepsContainer.innerHTML = ''; // Clear the default row added by resetModal
+            if (data.protocol?.steps?.length > 0) {
+                // Add rows for each saved protocol step
+                data.protocol.steps.forEach(s => addProtocolStep(s)); 
             } else {
-                addProtocolStep();
+                addProtocolStep(); // Add one empty row if no steps were saved
             }
         }
 
+
         function saveWellConfig() {
+            // Read values from the modal form
             const wellType = document.getElementById('well-type').value;
             const totalVolume = parseFloat(document.getElementById('well-total-volume').value);
             const cellCount = parseFloat(document.getElementById('well-cell-count').value);
 
+            // Read Variable data
             const variables = [];
-            document.querySelectorAll('#variables-container > div.p-4').forEach(varDiv => {
+            document.querySelectorAll('#variables-container > div.p-4').forEach(varDiv => { // Select only variable rows
                 const variable = {
-                    id: varDiv.dataset.id,
-                    name: varDiv.querySelector('.variable-name').value,
+                    id: varDiv.dataset.id, // Keep unique ID if needed later
+                    name: varDiv.querySelector('.variable-name').value.trim(),
                     finalConc: parseFloat(varDiv.querySelector('.variable-final-conc').value),
                     finalConcUnit: varDiv.querySelector('.variable-final-conc-unit').value,
                 };
+                // Only save valid variables (name and concentration must be present)
                 if (variable.name && !isNaN(variable.finalConc)) {
                     variables.push(variable);
                 }
             });
             
+            // Read Protocol Step data
             const protocolSteps = [];
             document.querySelectorAll('#protocol-steps-container > div').forEach(stepDiv => {
                 const step = {
-                    name: stepDiv.querySelector('.protocol-step-name').value,
+                    name: stepDiv.querySelector('.protocol-step-name').value.trim(),
                     duration: parseFloat(stepDiv.querySelector('.protocol-step-duration').value),
-                    unit: parseInt(stepDiv.querySelector('.protocol-step-unit').value)
+                     // Unit stored as millisecond conversion factor
+                    unit: parseInt(stepDiv.querySelector('.protocol-step-unit').value) 
                 };
+                 // Only save valid steps (name and duration must be present)
                 if (step.name && !isNaN(step.duration)) {
                     protocolSteps.push(step);
                 }
             });
 
+            // Assemble the configuration data object for a well
             const configData = {
                 wellType,
-                totalVolume,
-                cells: { count: cellCount },
+                totalVolume: isNaN(totalVolume) ? null : totalVolume, // Store null if invalid
+                cells: { count: isNaN(cellCount) ? null : cellCount }, // Store null if invalid
                 variables,
                 protocol: {
                     steps: protocolSteps
                 }
             };
             
+            // Apply this configuration to all currently selected wells
             selectedWells.forEach(wellId => {
-                wellData[wellId] = JSON.parse(JSON.stringify(configData));
+                // IMPORTANT: Use deep copy to prevent all wells referencing the same object
+                wellData[wellId] = JSON.parse(JSON.stringify(configData)); 
                 const wellEl = document.getElementById(`well-${wellId}`);
-                wellEl.classList.remove('control', 'experimental', 'blanco', 'tratamiento-1', 'tratamiento-2', 'default');
-                if(wellType !== 'default') {
-                    wellEl.classList.add(wellType);
+                if (wellEl) {
+                     // Update visual appearance of the well on the main grid
+                    wellEl.classList.remove('control', 'experimental', 'blanco', 'tratamiento-1', 'tratamiento-2', 'default');
+                    if(wellType !== 'default') {
+                        wellEl.classList.add(wellType); // Add new type class
+                    }
+                    wellEl.classList.add('configured'); // Mark as configured
+                    wellEl.classList.remove('selected'); // Deselect after saving
                 }
-                wellEl.classList.add('configured');
-                wellEl.classList.remove('selected');
             });
             
-            updateProtocolSchedule();
-            clearSelection();
-            closeWellConfigModal();
-            showToast('Configuración guardada para los pozos seleccionados.');
+            updateProtocolSchedule(); // Refresh the main protocol schedule display
+            clearSelection(); // Clear the set of selected wells
+            closeWellConfigModal(); // Close the configuration window
+            showToast('Configuración guardada para los pozos seleccionados.'); // Confirmation message
         }
         
         function addVariable(data = null) {
             const template = document.getElementById('variable-template');
-            const clone = template.cloneNode(true);
-            clone.id = '';
-            clone.classList.remove('hidden');
+            const clone = template.cloneNode(true); // Create a copy of the template
+            clone.id = ''; // Remove template ID
+            clone.classList.remove('hidden'); // Make it visible
             
-            const uniqueId = `var-${variableCounter++}`;
-            clone.dataset.id = uniqueId;
+             // Assign a unique ID for targeting the sub-calculator
+            const uniqueId = `var-${variableCounter++}`; 
+            clone.dataset.id = uniqueId; // Store ID if needed
 
-            populateUnitDropdowns(clone);
+            populateUnitDropdowns(clone); // Populate unit dropdowns within the new row
             
+            // Link the calculator toggle button to its specific sub-calculator div
             const stockCalcToggle = clone.querySelector('.stock-calc-toggle');
             const subCalcDiv = clone.querySelector('.sub-calc');
             const subCalcId = `stock-calc-${uniqueId}`;
-            stockCalcToggle.dataset.target = subCalcId;
-            subCalcDiv.id = subCalcId;
+            stockCalcToggle.dataset.target = subCalcId; // Set button target
+            subCalcDiv.id = subCalcId; // Set div ID
             
+            // If loading data, fill in the fields
             if (data) {
                  clone.querySelector('.variable-name').value = data.name || '';
                  clone.querySelector('.variable-final-conc').value = data.finalConc || '';
-                 clone.querySelector('.variable-final-conc-unit').value = data.finalConcUnit || 'µM';
+                 clone.querySelector('.variable-final-conc-unit').value = data.finalConcUnit || 'µM'; // Default to µM if missing
             }
 
+            // Add the new variable row to the container
             document.getElementById('variables-container').appendChild(clone);
         }
 
         function addProtocolStep(data = null) {
             const template = document.getElementById('protocol-step-template');
-            const clone = template.cloneNode(true);
-            clone.id = '';
-            clone.classList.remove('hidden');
+            const clone = template.cloneNode(true); // Create copy
+            clone.id = ''; // Remove template ID
+            clone.classList.remove('hidden'); // Make visible
+            // If loading data, fill fields
             if (data) {
                 clone.querySelector('.protocol-step-name').value = data.name || '';
                 clone.querySelector('.protocol-step-duration').value = data.duration || '';
-                clone.querySelector('.protocol-step-unit').value = data.unit || '3600000';
+                // Unit is stored as ms factor, ensure correct option is selected
+                clone.querySelector('.protocol-step-unit').value = data.unit || '3600000'; // Default to hours
             }
+            // Add new step row to container
             document.getElementById('protocol-steps-container').appendChild(clone);
         }
 
         function calculateCellVolume() {
+            // Get required values from inputs
             const cellCount = parseFloat(document.getElementById('well-cell-count').value);
-            let stockConc = parseFloat(document.getElementById('cell-stock-conc').value); // in cells/mL or cells/uL
-            const stockUnit = parseFloat(document.getElementById('cell-stock-conc-unit').value);
+            let stockConc = parseFloat(document.getElementById('cell-stock-conc').value); 
+             // Factor to convert stock unit to cells/mL (1 for /mL, 1000 for /µL)
+            const stockUnitFactor = parseFloat(document.getElementById('cell-stock-conc-unit').value); 
             const resultEl = document.getElementById('cell-volume-result');
 
+            // Validate inputs
             if (isNaN(cellCount) || isNaN(stockConc) || stockConc === 0) {
                 resultEl.textContent = 'Inputs inválidos.';
                 return;
             }
             
-            // Convert stock to cells/mL for consistent calculation
-            const stockConcInMl = stockConc * stockUnit;
+            // Standardize stock concentration to cells/mL
+            const stockConcInMl = stockConc * stockUnitFactor;
 
+            // Formula: Volume (µL) = (Desired Cells / Stock Conc (cells/mL)) * 1000
             const volumeInMicroL = (cellCount / stockConcInMl) * 1000;
+             // Display result
             resultEl.textContent = `Tomar: ${volumeInMicroL.toFixed(2)} µL`;
         }
 
         function calculateNeubauer() {
+             // Get counts from the four quadrant inputs
             const q1 = parseFloat(document.getElementById('neubauer-q1').value) || 0;
             const q2 = parseFloat(document.getElementById('neubauer-q2').value) || 0;
             const q3 = parseFloat(document.getElementById('neubauer-q3').value) || 0;
             const q4 = parseFloat(document.getElementById('neubauer-q4').value) || 0;
 
             const sum = q1 + q2 + q3 + q4;
-            if (sum === 0) {
+            if (sum === 0) { // Basic validation
                 showToast("Introduce los conteos de los cuadrantes.", "error");
                 return;
             }
-            const avg = sum / 4;
-            const concentration = avg * 10000; // cells/mL
+            const avg = sum / 4; // Calculate average count
+             // Standard Neubauer formula: Avg * Dilution Factor (assume 1) * 10^4
+            const concentration = avg * 10000; // Result is in cells/mL
             
-            document.getElementById('cell-stock-conc-unit').value = "1"; // Set unit to cells/mL
-            document.getElementById('cell-stock-conc').value = concentration;
-            showToast(`Concentración calculada: ${concentration.toExponential(2)} células/mL.`);
+            // Update the main stock concentration field and unit selector
+            document.getElementById('cell-stock-conc-unit').value = "1"; // Select "cells/mL" (factor=1)
+            document.getElementById('cell-stock-conc').value = concentration; // Fill in calculated concentration
+            showToast(`Concentración calculada: ${concentration.toExponential(2)} células/mL.`); // Confirmation
+             // Re-calculate volume needed with the new concentration
+             calculateCellVolume(); 
         }
 
         function calculateStockVolume(button) {
-            const parent = button.closest('.grid');
-            const finalConc = parseFloat(parent.querySelector('.variable-final-conc').value);
-            const finalConcUnit = parent.querySelector('.variable-final-conc-unit').value;
-            const stockConc = parseFloat(parent.querySelector('.variable-stock-conc').value);
-            const stockConcUnit = parent.querySelector('.variable-stock-conc-unit').value;
-            const totalVolume = parseFloat(document.getElementById('well-total-volume').value); // in µL
-            const resultEl = parent.querySelector('.variable-stock-volume-result');
+             // Find the parent variable section using closest
+            const variableSection = button.closest('.p-4.border.rounded-lg.bg-gray-50'); 
+            if (!variableSection) return; 
 
+            // Get values from inputs within this specific variable section
+            const finalConc = parseFloat(variableSection.querySelector('.variable-final-conc').value);
+            const finalConcUnit = variableSection.querySelector('.variable-final-conc-unit').value;
+            const stockConc = parseFloat(variableSection.querySelector('.variable-stock-conc').value);
+            const stockConcUnit = variableSection.querySelector('.variable-stock-conc-unit').value;
+             // Get total volume from the main modal section
+            const totalVolume = parseFloat(document.getElementById('well-total-volume').value); // in µL
+            const resultEl = variableSection.querySelector('.variable-stock-volume-result');
+
+            // Validate inputs
             if (isNaN(finalConc) || isNaN(stockConc) || isNaN(totalVolume) || stockConc === 0) {
                  resultEl.textContent = 'Inputs inválidos.';
                  return;
             }
             
+            // Convert final concentration to the stock concentration's units
             const finalConcConverted = _pureConvertUnits(finalConc, finalConcUnit, stockConcUnit);
-            if (isNaN(finalConcConverted)) {
+            if (isNaN(finalConcConverted)) { // Check for conversion error
                  resultEl.textContent = 'Error de conversión de unidad.';
                  return;
             }
 
-            const V2_in_uL = totalVolume;
-            const V1_in_uL = (finalConcConverted * V2_in_uL) / stockConc;
+            // Apply C1V1 = C2V2 => V1 = (C2 * V2) / C1
+            // Here: V_Stock = (FinalConcConverted * TotalVolume_µL) / StockConc
+            const V_Stock_in_uL = (finalConcConverted * totalVolume) / stockConc;
 
-            resultEl.textContent = `Tomar: ${V1_in_uL.toFixed(3)} µL`;
+             // Display result
+            resultEl.textContent = `Tomar: ${V_Stock_in_uL.toFixed(3)} µL`;
         }
         
         function calculateMasterMix() {
@@ -967,19 +1336,24 @@
             const totalWellsToPrep = numWells * extraVolFactor;
 
             const masterMix = {};
+             // Assume all selected wells have the same configuration, use the first one as reference
             let firstWellId = Array.from(selectedWells)[0];
             const baseConfig = wellData[firstWellId];
 
-            if (!baseConfig) {
+            if (!baseConfig) { // Check if reference well is configured
                 showToast("El primer pozo seleccionado no está configurado.", 'error');
                 return;
             }
 
-            masterMix['Células'] = { 
-                total: `${(baseConfig.cells.count * totalWellsToPrep).toExponential(2)} células`,
-                note: 'El volumen a tomar depende de la concentración de tu stock celular.'
-            };
+            // Calculate total cells needed
+            if (baseConfig.cells?.count > 0) {
+                masterMix['Células'] = { 
+                    total: `${(baseConfig.cells.count * totalWellsToPrep).toExponential(2)} células`,
+                    note: 'El volumen a tomar depende de la concentración de tu stock celular.'
+                };
+            }
             
+            // Add objectives for each variable
             baseConfig.variables.forEach(v => {
                  masterMix[v.name] = {
                      total: `Añadir para una concentración final de ${v.finalConc} ${v.finalConcUnit}`,
@@ -987,6 +1361,7 @@
                  };
             });
             
+            // Generate HTML table for display
             let html = `<h3 class="font-bold mb-2">Receta para ${numWells} pozos (+${(extraVolFactor-1)*100}% extra):</h3>`;
             html += `<table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-100"><tr>
@@ -995,7 +1370,7 @@
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Notas</th>
                         </tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
 
-            for(const component in masterMix) {
+            for(const component in masterMix) { // Add row for each component
                 html += `<tr>
                             <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">${component}</td>
                             <td class="px-4 py-2 whitespace-nowrap text-sm">${masterMix[component].total}</td>
@@ -1003,64 +1378,83 @@
                          </tr>`;
             }
             
+             // Add final volume row (media top-up)
              html += `<tr><td class="px-4 py-2 text-sm font-bold">Medio de cultivo (completar hasta)</td>
                           <td class="px-4 py-2 text-sm font-bold">${(baseConfig.totalVolume * totalWellsToPrep).toFixed(2)} µL</td><td></td></tr>`;
 
             html += `</tbody></table><p class="text-xs mt-2 text-gray-500">Usa las sub-calculadoras en la configuración de pozos para determinar los volúmenes exactos a tomar de tus stocks.</p>`;
+            // Display the generated table
             document.getElementById('master-mix-results').innerHTML = html;
         }
 
         function updateProtocolSchedule() {
             const scheduleContainer = document.getElementById('protocol-schedule-container');
-            scheduleContainer.innerHTML = '';
+            scheduleContainer.innerHTML = ''; // Clear previous schedule
             let allSteps = [];
 
+            // Collect all steps from all configured wells
             for (const wellId in wellData) {
                 const data = wellData[wellId];
-                if (!data.protocol || !data.protocol.steps) continue;
+                // Check if protocol and steps exist for the well
+                if (!data.protocol?.steps) continue; 
                 
+                // Add each step with its index and unique ID
                 data.protocol.steps.forEach((step, index) => {
-                    allSteps.push({ ...step, wellId, stepIndex: index + 1, eventId: `${wellId}-${step.name.replace(/\s/g, '')}-${index}` });
+                    allSteps.push({ 
+                        ...step, // Copy step data (name, duration, unit)
+                        wellId, 
+                        stepIndex: index + 1, // 1-based index
+                         // Create unique ID combining well, name (no spaces), and index
+                        eventId: `${wellId}-${step.name.replace(/\s/g, '')}-${index}` 
+                    });
                 });
             }
             
+            // Group identical steps across different wells
             const uniqueSteps = Object.values(allSteps.reduce((acc, cur) => {
-                const key = `${cur.name}-${cur.duration}-${cur.unit}-${cur.stepIndex}`;
+                // Group key based on step properties
+                const key = `${cur.name}-${cur.duration}-${cur.unit}-${cur.stepIndex}`; 
                 if (!acc[key]) {
-                    acc[key] = { ...cur, wells: [cur.wellId] };
+                     // If new, create group with first well
+                    acc[key] = { ...cur, wells: [cur.wellId] }; 
                 } else {
-                    acc[key].wells.push(cur.wellId);
+                    acc[key].wells.push(cur.wellId); // Add well to existing group
                 }
                 return acc;
             }, {}));
             
+            // Sort steps by their index (order in the protocol)
             uniqueSteps.sort((a,b) => a.stepIndex - b.stepIndex);
 
 
-            if (uniqueSteps.length === 0) {
+            if (uniqueSteps.length === 0) { // If no steps found
                 scheduleContainer.innerHTML = '<p class="text-gray-500">No hay pasos de protocolo configurados.</p>';
                 return;
             }
 
+            // Create and append HTML for each unique step
             uniqueSteps.forEach((step) => {
-                const durationMs = step.duration * step.unit;
-                const unitText = step.unit === 3600000 ? 'horas' : step.unit === 60000 ? 'minutos' : 'días';
+                const durationMs = step.duration * step.unit; // Duration in milliseconds
+                 // Get human-readable unit text from ms factor
+                const unitText = {3600000: 'horas', 60000: 'minutos', 86400000: 'días'}[step.unit] || 'ms';
 
                 const eventEl = document.createElement('div');
                 eventEl.className = 'flex items-center justify-between p-3 bg-gray-100 rounded-lg';
+                // Populate element with step details, timer display, and button
                 eventEl.innerHTML = `
                     <div>
                         <span class="font-bold">Paso ${step.stepIndex}: ${step.name}</span>
                         <span class="text-sm text-gray-600 ml-2">(${step.duration} ${unitText})</span>
-                        <p class="text-xs text-blue-600">Pozos: ${step.wells.join(', ')}</p>
+                        <p class="text-xs text-blue-600">Pozos: ${step.wells.join(', ')}</p> 
                     </div>
                     <div class="flex items-center space-x-3">
                         <span id="timer-display-${step.eventId}" class="font-mono text-lg">--:--:--</span>
                         <button id="timer-btn-${step.eventId}" class="bg-green-500 text-white text-sm font-semibold py-1 px-3 rounded-md hover:bg-green-600">Iniciar</button>
                     </div>
                 `;
-                scheduleContainer.appendChild(eventEl);
+                scheduleContainer.appendChild(eventEl); // Add to display
                 
+                // Add click listener for the timer button
                 document.getElementById(`timer-btn-${step.eventId}`).addEventListener('click', (e) => {
                     handleTimerClick(e, step, durationMs);
                 });
@@ -1069,138 +1463,392 @@
         
         function handleTimerClick(e, event, durationMs) {
             const btn = e.target;
-            const timerId = `timer-btn-${event.eventId}`;
-            const displayId = `timer-display-${event.eventId}`;
+            const timerId = `timer-btn-${event.eventId}`; // Unique ID for the button/timer
+            const displayId = `timer-display-${event.eventId}`; // Unique ID for the display span
 
-            if (runningTimers[timerId]) { // Stop timer
-                clearInterval(runningTimers[timerId].interval);
-                delete runningTimers[timerId];
-                btn.textContent = 'Iniciar';
+            if (runningTimers[timerId]) { // If the timer is currently running, stop it
+                clearInterval(runningTimers[timerId].interval); // Clear the interval
+                delete runningTimers[timerId]; // Remove from tracking object
+                btn.textContent = 'Iniciar'; // Change button text
+                // Change button style back to 'start' style
                 btn.classList.add('bg-green-500', 'hover:bg-green-600');
                 btn.classList.remove('bg-red-500', 'hover:bg-red-600');
-                document.getElementById(displayId).textContent = '--:--:--';
-            } else { // Start timer
-                const endTime = Date.now() + durationMs;
-                btn.textContent = 'Detener';
+                document.getElementById(displayId).textContent = '--:--:--'; // Reset display
+            } else { // If the timer is not running, start it
+                const endTime = Date.now() + durationMs; // Calculate end time
+                btn.textContent = 'Detener'; // Change button text
+                // Change button style to 'stop' style
                 btn.classList.remove('bg-green-500', 'hover:bg-green-600');
                 btn.classList.add('bg-red-500', 'hover:bg-red-600');
 
-                const interval = setInterval(() => {
+                // Function to update the timer display
+                const updateDisplay = () => {
                     const remaining = endTime - Date.now();
-                    if (remaining <= 0) {
-                        clearInterval(interval);
+                    if (remaining <= 0) { // Timer finished
+                        clearInterval(interval); // Stop the interval
                         document.getElementById(displayId).textContent = '00:00:00';
                         const notificationMessage = `¡Paso finalizado: ${event.name}!`;
-                        showToast(notificationMessage);
-                        new Notification(notificationMessage);
-                        btn.textContent = 'Finalizado';
-                        btn.disabled = true;
-                        btn.classList.remove('bg-red-500', 'hover:bg-red-600');
-                    } else {
+                        showToast(notificationMessage); // Show in-app toast
+                        // Show browser notification (if permission granted)
+                        if (Notification.permission === 'granted') {
+                            new Notification(notificationMessage);
+                        }
+                        btn.textContent = 'Finalizado'; // Update button text
+                        btn.disabled = true; // Disable the button
+                        btn.classList.remove('bg-red-500', 'hover:bg-red-600'); // Remove stop style
+                        delete runningTimers[timerId]; // Remove from tracking
+                    } else { // Timer still running
+                        // Calculate hours, minutes, seconds remaining
                         const h = String(Math.floor(remaining / 3600000)).padStart(2, '0');
                         const m = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0');
                         const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
-                        document.getElementById(displayId).textContent = `${h}:${m}:${s}`;
+                        document.getElementById(displayId).textContent = `${h}:${m}:${s}`; // Update display
                     }
-                }, 1000);
+                };
+
+                // Start the interval timer, calling updateDisplay every second (1000 ms)
+                const interval = setInterval(updateDisplay, 1000);
+                 // Immediately update display once
+                updateDisplay();
+                // Store the interval ID and end time for tracking
                 runningTimers[timerId] = { interval, endTime };
             }
         }
         
+        // --- ANIMAL MODELS ---
+        function addAnimalModel() {
+            const modelIdInput = document.getElementById('new-model-id');
+            const modelId = modelIdInput.value.trim();
+            if (!modelId) {
+                showToast("Por favor, introduce un ID para el nuevo modelo.", "error");
+                return;
+            }
+            if (animalModels[modelId]) {
+                 showToast(`El modelo con ID "${modelId}" ya existe.`, "error");
+                return;
+            }
+            animalModels[modelId] = { id: modelId, data: [] }; // Initialize with empty data array
+            modelIdInput.value = ''; // Clear input
+            renderAnimalModels(); // Refresh display
+            showToast(`Modelo "${modelId}" añadido.`);
+        }
+
+        function renderAnimalModels() {
+            const container = document.getElementById('animal-models-container');
+            container.innerHTML = ''; // Clear current display
+            const sortedModelIds = Object.keys(animalModels).sort(); // Sort IDs alphabetically
+
+            if (sortedModelIds.length === 0) {
+                 container.innerHTML = '<p class="text-gray-500">No hay modelos añadidos todavía.</p>';
+                 return;
+            }
+
+            sortedModelIds.forEach(modelId => {
+                const model = animalModels[modelId];
+                const modelDiv = document.createElement('div');
+                modelDiv.className = 'p-4 border rounded-lg bg-white shadow';
+                modelDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-lg text-blue-700">${model.id}</h3>
+                        <div>
+                            <button onclick="openModelDataModal('${modelId}')" class="text-sm bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600">+ Añadir Registro</button>
+                            <button onclick="deleteAnimalModel('${modelId}')" class="text-sm bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 ml-2">Eliminar Modelo</button>
+                        </div>
+                    </div>
+                    <div class="max-h-60 overflow-y-auto">
+                        <table id="model-data-table-${modelId}" class="min-w-full text-sm">
+                            <thead>
+                                <tr><th>Fecha</th><th>Peso (g)</th><th>Talla (cm)</th><th>Glucosa (mg/dL)</th><th>Fuerza (gf)</th><th>Notas</th></tr>
+                            </thead>
+                            <tbody>
+                                ${model.data.sort((a,b) => new Date(b.date) - new Date(a.date)).map(entry => `
+                                    <tr>
+                                        <td>${new Date(entry.date).toLocaleDateString()}</td>
+                                        <td>${entry.weight ?? ''}</td>
+                                        <td>${entry.size ?? ''}</td>
+                                        <td>${entry.glucose ?? ''}</td>
+                                        <td>${entry.grip ?? ''}</td>
+                                        <td>${entry.notes ?? ''}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                container.appendChild(modelDiv);
+            });
+        }
+         function deleteAnimalModel(modelId) {
+            // Confirmation could be added here
+            if (animalModels[modelId]) {
+                delete animalModels[modelId];
+                renderAnimalModels();
+                showToast(`Modelo "${modelId}" eliminado.`);
+            }
+        }
+
+
+        function openModelDataModal(modelId) {
+            currentEditingModelId = modelId; // Store which model we're adding data for
+            document.getElementById('modal-model-id').textContent = modelId; // Update modal title
+            // Clear previous entries
+            document.getElementById('modal-model-weight').value = '';
+            document.getElementById('modal-model-size').value = '';
+            document.getElementById('modal-model-glucose').value = '';
+            document.getElementById('modal-model-grip').value = '';
+            document.getElementById('modal-model-notes').value = '';
+            // Show modal
+            document.getElementById('model-data-modal').style.display = 'flex';
+        }
+
+        function closeModelDataModal() {
+            document.getElementById('model-data-modal').style.display = 'none';
+            currentEditingModelId = null; // Clear editing state
+        }
+
+        function saveModelDataEntry() {
+            if (!currentEditingModelId || !animalModels[currentEditingModelId]) return;
+
+            // Read data from modal inputs
+            const entry = {
+                date: new Date().toISOString(), // Record timestamp
+                weight: parseFloat(document.getElementById('modal-model-weight').value) || null,
+                size: parseFloat(document.getElementById('modal-model-size').value) || null,
+                glucose: parseFloat(document.getElementById('modal-model-glucose').value) || null,
+                grip: parseFloat(document.getElementById('modal-model-grip').value) || null,
+                notes: document.getElementById('modal-model-notes').value.trim() || null,
+            };
+
+            // Add the new entry to the model's data array
+            animalModels[currentEditingModelId].data.push(entry);
+            renderAnimalModels(); // Refresh the display for that model
+            closeModelDataModal(); // Close the modal
+            showToast(`Registro añadido para ${currentEditingModelId}.`);
+        }
+
+        function saveModelData() {
+             if (Object.keys(animalModels).length === 0) {
+                showToast("No hay datos de modelos para guardar.", "warning");
+                return;
+            }
+            const dataString = JSON.stringify(animalModels, null, 2);
+            const blob = new Blob([dataString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `datos_modelos_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Datos de modelos guardados.');
+        }
+
+        function loadModelData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const loadedData = JSON.parse(e.target.result);
+                     // Basic validation: check if it looks like the expected structure
+                    if (typeof loadedData === 'object' && loadedData !== null) {
+                        animalModels = loadedData; // Overwrite current data
+                        renderAnimalModels(); // Refresh display
+                        showToast('Datos de modelos cargados.');
+                    } else {
+                        throw new Error("El archivo no tiene el formato esperado.");
+                    }
+                } catch (error) {
+                    showToast(`Error al cargar datos de modelos: ${error.message}`, 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset input
+        }
+
+        function calculateModelDose() {
+             // Get all input values and selected units
+             const doseAmount = parseFloat(document.getElementById('dose-amount').value);
+             const doseAmountUnit = document.getElementById('dose-amount-unit').value;
+             const doseWeightUnitVal = parseFloat(document.getElementById('dose-weight-unit-val').value) || 1; // Default to 'per 1 unit'
+             const doseWeightUnit = document.getElementById('dose-weight-unit').value; // e.g., 'kg' or 'g'
+             const modelWeight = parseFloat(document.getElementById('model-weight').value);
+             const modelWeightUnit = document.getElementById('model-weight-unit').value;
+             const stockConcAmount = parseFloat(document.getElementById('stock-conc-dose').value);
+             const stockConcUnit = document.getElementById('stock-conc-dose-unit').value; // e.g., 'mg/mL'
+             const outputUnit = document.getElementById('dose-output-unit').value; // e.g., 'µL' or 'mL'
+             const resultDiv = document.getElementById('dose-calculation-result');
+
+              // Basic validation
+             if (isNaN(doseAmount) || isNaN(modelWeight) || isNaN(stockConcAmount) || stockConcAmount === 0 || isNaN(doseWeightUnitVal) || doseWeightUnitVal === 0) {
+                 resultDiv.innerHTML = `<span class="text-red-500">Por favor, completa todos los campos numéricos requeridos.</span>`;
+                 return;
+             }
+
+             try {
+                // 1. Calculate Total Amount of Drug Needed
+                // Convert model weight to the same unit as the dose weight unit
+                const modelWeightConverted = _pureConvertUnits(modelWeight, modelWeightUnit, doseWeightUnit);
+                 if (isNaN(modelWeightConverted)) throw new Error(`No se puede convertir el peso del modelo (${modelWeightUnit}) a la unidad de peso de la dosis (${doseWeightUnit}).`);
+                
+                 // Calculate total amount needed in 'doseAmountUnit'
+                 // Amount = (Model Weight / Dose Weight Unit Value) * Dose Amount
+                 const totalAmountNeeded = (modelWeightConverted / doseWeightUnitVal) * doseAmount;
+                 
+                 // 2. Calculate Volume of Stock to Administer
+                 // Convert total amount needed to the mass unit of the stock concentration
+                 const stockMassUnit = stockConcUnit.split('/')[0];
+                 const stockVolUnit = stockConcUnit.split('/')[1];
+                  // Ensure stockConcUnit is valid before splitting
+                 if (!stockMassUnit || !stockVolUnit) throw new Error(`Unidad de concentración de stock inválida: ${stockConcUnit}`);
+
+                 const totalAmountConverted = _pureConvertUnits(totalAmountNeeded, doseAmountUnit, stockMassUnit);
+                  if (isNaN(totalAmountConverted)) throw new Error(`No se puede convertir la unidad de cantidad de dosis (${doseAmountUnit}) a la unidad de masa del stock (${stockMassUnit}).`);
+
+                 // Volume = Amount / Concentration
+                 // Volume (in stockVolUnit) = totalAmountConverted / stockConcAmount
+                 const volumeInStockVolUnit = totalAmountConverted / stockConcAmount;
+
+                 // 3. Convert Resulting Volume to Desired Output Unit
+                 const finalVolume = _pureConvertUnits(volumeInStockVolUnit, stockVolUnit, outputUnit);
+                 if (isNaN(finalVolume)) throw new Error(`No se puede convertir el volumen calculado (${stockVolUnit}) a la unidad de salida (${outputUnit}).`);
+
+                  // Display result
+                 resultDiv.textContent = `Administrar: ${finalVolume.toPrecision(4)} ${outputUnit}`;
+
+             } catch (error) {
+                 resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+             }
+        }
+
+
+        // --- UTILITIES ---
         function toggleSubCalc(targetId) {
             const el = document.getElementById(targetId);
             if(el) {
+                // Toggle display between 'block' and 'none'
                 el.style.display = el.style.display === 'block' ? 'none' : 'block';
             }
         }
         
-        // --- UTILITIES ---
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toast-message');
             
-            toastMessage.textContent = message;
-            toast.className = 'toast show fixed bottom-5 right-5 text-white py-3 px-6 rounded-lg shadow-xl';
+            toastMessage.textContent = message; // Set message text
+            // Reset classes, then add 'show' and color class
+            toast.className = 'toast show fixed bottom-5 right-5 text-white py-3 px-6 rounded-lg shadow-xl'; 
             toast.classList.add(type === 'error' ? 'bg-red-500' : 'bg-green-500');
             
+            // Hide the toast after 3 seconds
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
         }
         
         function populateUnitDropdowns(context = document) {
+            // Define available units by type
             const massUnits = Object.keys(CONVERSION_FACTORS.mass);
             const volUnits = Object.keys(CONVERSION_FACTORS.volume);
-            const concUnits = Object.keys(CONVERSION_FACTORS.concentration);
+            const concUnits = Object.keys(CONVERSION_FACTORS.concentration); // Molar
+            // Create combined mass/volume concentration units (e.g., g/L, mg/mL, µg/µL, etc.)
             const combinedUnits = [];
             massUnits.forEach(m => volUnits.forEach(v => combinedUnits.push(`${m}/${v}`)));
+             // All possible concentration units
             const allConcUnits = [...concUnits, ...combinedUnits];
+             // All units for the general converter
+            const allUnits = [...massUnits, ...volUnits, ...allConcUnits]; 
 
-            const ucFrom = context.querySelector('#uc-from');
-            if (ucFrom) { 
-                const allUnits = [...massUnits, ...volUnits, ...allConcUnits];
+            // --- Populate Dropdowns in Main Calculators (if context is document) ---
+            const ucFrom = context.querySelector('#uc-from'); 
+            if (ucFrom && context === document) { // Check if running on the main document
+                 // General Unit Converter
                 ucFrom.innerHTML = allUnits.map(u => `<option value="${u}">${u}</option>`).join('');
-                context.querySelector('#uc-to').innerHTML = allUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+                document.getElementById('uc-to').innerHTML = allUnits.map(u => `<option value="${u}">${u}</option>`).join('');
                 
+                // Dilution Calculator (C1, C2 use all concentration types, V1, V2 use volume)
                 document.getElementById('c1-unit').innerHTML = allConcUnits.map(u => `<option value="${u}">${u}</option>`).join('');
                 document.getElementById('c2-unit').innerHTML = allConcUnits.map(u => `<option value="${u}">${u}</option>`).join('');
                 document.getElementById('v1-unit').innerHTML = volUnits.map(u => `<option value="${u}">${u}</option>`).join('');
                 document.getElementById('v2-unit').innerHTML = volUnits.map(u => `<option value="${u}">${u}</option>`).join('');
 
+                 // Dose Calculator (specific units)
+                 document.getElementById('dose-amount-unit').innerHTML = massUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+                 // document.getElementById('dose-weight-unit') // Already has g/kg
+                 // document.getElementById('model-weight-unit') // Already has g/kg
+                 document.getElementById('stock-conc-dose-unit').innerHTML = allConcUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+                 // document.getElementById('dose-output-unit') // Already has µL/mL
             }
             
+            // --- Populate Dropdowns within Variable Template Clones ---
+            // Find dropdowns specifically within the context (which might be a cloned template row)
             const finalConcUnitSelects = context.querySelectorAll('.variable-final-conc-unit');
             const stockConcUnitSelects = context.querySelectorAll('.variable-stock-conc-unit');
             
+            // Populate with all concentration units, defaulting to µM or mM respectively
             finalConcUnitSelects.forEach(select => {
-                select.innerHTML = allConcUnits.map(u => `<option value="${u}" ${u==='µM' ? 'selected':''}>${u}</option>`).join('');
+                select.innerHTML = allConcUnits.map(u => `<option value="${u}" ${u === 'µM' ? 'selected' : ''}>${u}</option>`).join('');
             });
             stockConcUnitSelects.forEach(select => {
-                select.innerHTML = allConcUnits.map(u => `<option value="${u}" ${u==='mM' ? 'selected':''}>${u}</option>`).join('');
+                select.innerHTML = allConcUnits.map(u => `<option value="${u}" ${u === 'mM' ? 'selected' : ''}>${u}</option>`).join('');
             });
         }
         
         // --- SAVE / LOAD ---
         function saveExperiment() {
+            // Gather current state into an object
             const experimentState = {
                 experimentName: document.getElementById('exp-name').value,
                 plateType: document.getElementById('plate-type').value,
-                wellData: wellData,
+                wellData: wellData, // The main data object holding all well configurations
             };
 
-            const jsonString = JSON.stringify(experimentState, null, 2);
+            // Convert state object to a JSON string
+            const jsonString = JSON.stringify(experimentState, null, 2); // null, 2 for pretty printing
+            // Create a Blob (Binary Large Object) containing the JSON data
             const blob = new Blob([jsonString], { type: 'application/json' });
+             // Create a temporary URL for the Blob
             const url = URL.createObjectURL(blob);
 
+            // Create a temporary anchor (link) element
             const a = document.createElement('a');
-            a.href = url;
+            a.href = url; // Set the link's href to the Blob URL
+            // Create a filename (use experiment name or 'experimento', replace spaces with underscores)
             const fileName = (experimentState.experimentName || 'experimento').replace(/\s+/g, '_');
-            a.download = `${fileName}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('Experimento guardado exitosamente.');
+            a.download = `${fileName}.json`; // Set the download attribute to suggest a filename
+            document.body.appendChild(a); // Add the link to the document
+            a.click(); // Programmatically click the link to trigger download
+            document.body.removeChild(a); // Remove the temporary link
+            URL.revokeObjectURL(url); // Release the Blob URL resource
+            showToast('Experimento guardado exitosamente.'); // Show confirmation
         }
 
         function loadExperiment(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+            const file = event.target.files[0]; // Get the selected file
+            if (!file) return; // Exit if no file selected
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
+            const reader = new FileReader(); // Create a FileReader to read the file
+            reader.onload = function(e) { // Define what happens when the file is successfully read
                 try {
+                    // Parse the file content (assumed to be JSON) into a JavaScript object
                     const loadedState = JSON.parse(e.target.result);
                     
-                    document.getElementById('exp-name').value = loadedState.experimentName || '';
-                    wellData = loadedState.wellData || {};
-                    generatePlate(loadedState);
-                    showToast('Experimento cargado exitosamente.');
+                    // Restore state from the loaded object
+                    document.getElementById('exp-name').value = loadedState.experimentName || ''; // Restore experiment name
+                    wellData = loadedState.wellData || {}; // Restore the main well data object
+                    // Regenerate the plate based on the loaded data (also updates schedule)
+                    generatePlate(loadedState); 
+                    showToast('Experimento cargado exitosamente.'); // Show confirmation
                 } catch (error) {
+                    // Handle errors during file reading or JSON parsing
                     showToast('Error al cargar el archivo. Asegúrate de que es un archivo de experimento válido.', 'error');
+                    console.error("Error loading experiment:", error);
                 }
             };
+            // Read the file content as text
             reader.readAsText(file);
+            // Reset the file input value to allow loading the same file again if needed
             event.target.value = ''; 
         }
 
@@ -1210,41 +1858,49 @@
             const expName = document.getElementById('exp-name').value || 'Sin nombre';
             const plateType = document.getElementById('plate-type').value;
 
+            // Check if there is any data to report
             if (Object.keys(wellData).length === 0) {
                 output.innerHTML = '<p class="text-red-500">No hay datos de experimento para reportar. Por favor, configura al menos un pozo.</p>';
-                document.getElementById('export-csv-btn').style.display = 'none';
+                document.getElementById('export-csv-btn').style.display = 'none'; // Hide CSV button
                 return;
             }
 
+            // Start building the HTML report string
             let html = `<h3>Información General</h3>
                         <ul>
                             <li><strong>Nombre del Experimento:</strong> ${expName}</li>
                             <li><strong>Tipo de Placa:</strong> ${plateType} pozos</li>
                         </ul>`;
 
+            // Group wells that have the exact same configuration to avoid repetition
             const groupedWells = {};
             for (const wellId in wellData) {
-                const configKey = JSON.stringify(wellData[wellId]);
+                // Use the JSON string of the config as a key for grouping
+                const configKey = JSON.stringify(wellData[wellId]); 
                 if (!groupedWells[configKey]) {
+                    // If this configuration is new, create a group for it
                     groupedWells[configKey] = {
                         config: wellData[wellId],
-                        wells: []
+                        wells: [] // List of wells with this config
                     };
                 }
+                // Add the current well to the appropriate group
                 groupedWells[configKey].wells.push(wellId);
             }
 
+            // Add sections for each unique well configuration group
             html += `<h3>Configuración de Pozos</h3>`;
             Object.values(groupedWells).forEach((group, index) => {
-                const config = group.config;
+                const config = group.config; // The configuration for this group
                 html += `<div class="p-4 mb-4 border rounded-lg">
                             <h4><strong>Grupo ${index + 1}:</strong> Pozos ${group.wells.join(', ')}</h4>
                             <ul>
                                 <li><strong>Tipo:</strong> ${config.wellType}</li>
-                                <li><strong>Volumen Total:</strong> ${config.totalVolume || 'N/A'} µL</li>
-                                <li><strong>Células:</strong> ${config.cells?.count || 'N/A'}</li>
+                                <li><strong>Volumen Total:</strong> ${config.totalVolume ?? 'N/A'} µL</li>
+                                <li><strong>Células:</strong> ${config.cells?.count ?? 'N/A'}</li>
                             </ul>`;
-                if (config.variables && config.variables.length > 0) {
+                // Add table for variables if they exist
+                if (config.variables?.length > 0) {
                     html += `<h5>Variables:</h5>
                              <table class="min-w-full text-sm">
                                 <thead class="bg-gray-100"><tr><th>Nombre</th><th>Conc. Final</th></tr></thead>
@@ -1254,10 +1910,12 @@
                     });
                     html += `</tbody></table>`;
                 }
-                 if (config.protocol && config.protocol.steps.length > 0) {
+                 // Add list for protocol steps if they exist
+                 if (config.protocol?.steps?.length > 0) {
                     html += `<h5>Protocolo:</h5><ul>`;
                     config.protocol.steps.forEach((step, i) => {
-                         const unitText = {3600000:'horas', 60000:'minutos', 86400000:'días'}[step.unit];
+                         // Convert ms unit value back to text
+                         const unitText = {3600000:'horas', 60000:'minutos', 86400000:'días'}[step.unit] || 'ms';
                         html += `<li><strong>Paso ${i+1}:</strong> ${step.name} (${step.duration} ${unitText})</li>`;
                     });
                     html += `</ul>`;
@@ -1265,86 +1923,131 @@
                 html += `</div>`;
             });
             
+            // Display the generated HTML report
             output.innerHTML = html;
+            // Show the "Download CSV" button
             document.getElementById('export-csv-btn').style.display = 'inline-block';
         }
 
         function exportReportCSV() {
             const expName = document.getElementById('exp-name').value || 'Sin nombre';
             const plateType = document.getElementById('plate-type').value;
-            let csvContent = "data:text/csv;charset=utf-8,";
+             // Start CSV string with UTF-8 BOM for better Excel compatibility with special characters
+            let csvContent = "\uFEFF"; 
             
-            const escapeCSV = (str) => `"${(str || '').toString().replace(/"/g, '""')}"`;
+            // Helper function to safely format values for CSV (handles commas, quotes, newlines)
+            const escapeCSV = (str) => {
+                 // Ensure input is a string, handle null/undefined
+                const value = (str === undefined || str === null) ? '' : String(str);
+                 // If the string contains problematic characters, enclose in double quotes and escape internal quotes
+                if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                    return `"${value.replace(/"/g, '""')}"`; // Replace single " with ""
+                }
+                return value; // Return as is if safe
+            };
 
+            // Add General Info section to CSV
             csvContent += "Sección,Parámetro,Valor\n";
             csvContent += `Información General,Nombre del Experimento,${escapeCSV(expName)}\n`;
-            csvContent += `Información General,Tipo de Placa,${plateType} pozos\n\n`;
+            csvContent += `Información General,Tipo de Placa,${escapeCSV(plateType + ' pozos')}\n\n`;
 
+            // Prepare headers for the main data table (Wells)
             const headers = ['Pozo', 'Tipo de Pozo', 'Volumen Total (uL)', 'Cantidad de Células'];
+            // Dynamically find all unique variable names and max number of steps across all wells
             const allVars = new Set();
-            const allSteps = new Set();
             let maxSteps = 0;
-
             Object.values(wellData).forEach(d => {
-                d.variables.forEach(v => allVars.add(v.name));
-                if(d.protocol?.steps.length > maxSteps) maxSteps = d.protocol.steps.length;
+                d.variables?.forEach(v => allVars.add(v.name)); // Collect unique variable names
+                // Find the maximum number of protocol steps any well has
+                if(d.protocol?.steps?.length > maxSteps) maxSteps = d.protocol.steps.length; 
             });
-            const varColumns = Array.from(allVars);
+            const varColumns = Array.from(allVars); // Convert Set to Array for consistent order
+            // Add variable columns to headers
             varColumns.forEach(v => headers.push(`Variable: ${v} (Conc. Final)`));
+             // Add protocol step columns to headers (Name and Duration for each step up to maxSteps)
             for(let i=1; i<= maxSteps; i++) {
                 headers.push(`Paso ${i}: Nombre`);
                 headers.push(`Paso ${i}: Duración`);
             }
-            csvContent += headers.join(',') + '\n';
+            // Add header row to CSV content
+            csvContent += headers.map(escapeCSV).join(',') + '\n';
             
-            for (const wellId in wellData) {
-                const d = wellData[wellId];
+            // Add data rows for each well
+            // Sort well IDs for consistent output order (e.g., A1, A2, ..., B1, B2, ...)
+            const sortedWellIds = Object.keys(wellData).sort((a, b) => {
+                const rowA = a.match(/[A-Z]+/)[0];
+                const colA = parseInt(a.match(/\d+/)[0]);
+                const rowB = b.match(/[A-Z]+/)[0];
+                const colB = parseInt(b.match(/\d+/)[0]);
+                if (rowA !== rowB) return rowA.localeCompare(rowB);
+                return colA - colB;
+            });
+
+            for (const wellId of sortedWellIds) {
+                const d = wellData[wellId]; // Current well data
+                 // Start row with basic well info
                 const row = [
                     wellId,
                     d.wellType,
-                    d.totalVolume,
-                    d.cells?.count
+                    d.totalVolume ?? '', // Use empty string if null/undefined
+                    d.cells?.count ?? '' // Use empty string if null/undefined
                 ];
+                // Add variable data for this well, matching the header order
                 varColumns.forEach(varName => {
-                    const variable = d.variables.find(v => v.name === varName);
-                    row.push(variable ? `${variable.finalConc} ${variable.finalConcUnit}` : '');
+                    // Find the variable data for the current column's variable name
+                    const variable = d.variables?.find(v => v.name === varName); 
+                    // Add concentration and unit if variable exists for this well, else empty string
+                    row.push(variable ? `${variable.finalConc ?? ''} ${variable.finalConcUnit ?? ''}`.trim() : ''); 
                 });
 
+                // Add protocol step data for this well, matching the header order
                 for(let i=0; i< maxSteps; i++) {
-                    const step = d.protocol?.steps[i];
+                    const step = d.protocol?.steps?.[i]; // Get step data if exists
                     if (step) {
-                        const unitText = {3600000:'horas', 60000:'minutos', 86400000:'días'}[step.unit];
+                         // Convert ms unit value back to text
+                        const unitText = {3600000:'horas', 60000:'minutos', 86400000:'días'}[step.unit] || 'ms';
                         row.push(step.name);
                         row.push(`${step.duration} ${unitText}`);
                     } else {
+                        // Add empty strings if step doesn't exist for this well at this index
                         row.push('');
                         row.push('');
                     }
                 }
+                // Add the complete, escaped row for this well to the CSV content
                 csvContent += row.map(escapeCSV).join(',') + '\n';
             }
-            csvContent += '\n';
+            csvContent += '\n'; // Add a blank line for separation (optional)
 
 
-            const encodedUri = encodeURI(csvContent);
+            // Create Blob and initiate download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            const fileName = (expName || 'reporte').replace(/\s+/g, '_');
+            link.setAttribute("href", url);
+            const fileName = (expName || 'reporte').replace(/\s+/g, '_'); // Sanitize filename
             link.setAttribute("download", `${fileName}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            document.body.appendChild(link); // Add link to body temporarily
+            link.click(); // Trigger download
+            document.body.removeChild(link); // Remove link
+            URL.revokeObjectURL(url); // Clean up Blob URL
         }
+
 
         // --- INITIALIZATION ---
         window.onload = () => {
-            generatePlate();
-            populateUnitDropdowns();
-            if (Notification.permission !== 'granted') {
+            generatePlate(); // Generate default plate (24 well) on load
+            populateUnitDropdowns(); // Populate all unit dropdowns in the document
+             // Request permission for desktop notifications on load if not already granted or denied
+            if (typeof Notification !== 'undefined' && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
                 Notification.requestPermission();
             }
-            changeTab('planner');
+            changeTab('guide'); // Set the 'guide' tab as the active one initially
+             // Add event listener for the file input used for loading experiment (.json) files
             document.getElementById('load-exp-input').addEventListener('change', loadExperiment);
+             // Add event listener for loading animal model data
+             document.getElementById('load-model-input').addEventListener('change', loadModelData);
+
         };
 
     </script>
