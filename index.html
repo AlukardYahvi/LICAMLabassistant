@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LICAM Asistente de Laboratorio</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script> <!-- AÑADIDO: Biblioteca para Excel -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* Base Styles */
@@ -66,8 +67,8 @@
             to { opacity: 1; }
         }
         .toast {
-             /* Use Tailwind for visibility/opacity control in JS */
-             z-index: 60;
+            /* Use Tailwind for visibility/opacity control in JS */
+            z-index: 60;
         }
         .sub-calc {
             display: none;
@@ -93,6 +94,46 @@
             background-color: #eef2ff; /* Indigo 50 */
             color: #4338ca; /* Indigo 700 */
         }
+        
+        /* Estilos específicos para el Contador AI */
+        .image-preview-slot {
+            height: 150px;
+            width: 100%;
+            object-fit: contain;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+        }
+        .image-preview-slot:hover {
+            opacity: 0.9;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        #cell-counter-results-table th, #cell-counter-results-table td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        #cell-counter-results-table th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+            color: #334155;
+        }
+        #cell-counter-results-table tbody tr:nth-child(odd) {
+            background-color: #f8fafc;
+        }
+        .interpretation-content h4 {
+            font-weight: bold;
+            color: #1e40af; 
+            margin-top: 10px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #bfdbfe;
+            padding-bottom: 2px;
+        }
+        .calculation-result-ai {
+            background-color: #e0f2f1;
+            border-left: 4px solid #14b8a6;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -113,6 +154,7 @@
             <nav class="flex space-x-1 overflow-x-auto pb-0" aria-label="Tabs">
                 <button onclick="changeTab('guide')" id="tab-guide" class="tab-button active text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">💡 Guía de Uso</button>
                 <button onclick="changeTab('planner')" id="tab-planner" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🧪 Organizador de Cultivo</button>
+                <button onclick="changeTab('cell-counter')" id="tab-cell-counter" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🔬 Contador AI</button>
                 <button onclick="changeTab('models')" id="tab-models" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🐭 Modelos Animales</button>
                 <button onclick="changeTab('protocols')" id="tab-protocols" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">📚 Protocolos y Recursos</button>
                 <button onclick="changeTab('report')" id="tab-report" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">📄 Reporte del Experimento</button>
@@ -124,51 +166,60 @@
 
 
     <main class="container mx-auto p-4 md:p-8">
+        <!-- GUÍA DE USO -->
         <div id="content-guide" class="space-y-6 bg-white p-8 rounded-3xl shadow-2xl border border-gray-200">
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">💡 Guía de Uso Rápido</h2>
             <div class="prose max-w-none text-gray-700">
-                                  <p>¡Bienvenido/a al Asistente de Laboratorio LICAM! Esta guía te ayudará a usar las funciones principales.</p>
-                 <h3>Organizador de Cultivo (🧪)</h3>
-                 <p>Esta es la sección principal para planificar tus experimentos en placas.</p>
-                 <ul class="list-disc list-inside">
-                     <li><strong>1. Configuración del Experimento:</strong> Dale un nombre a tu experimento y selecciona el tipo de placa (6, 12, 24, 48, 96 pozos). Haz clic en "Generar Placa".</li>
-                     <li><strong>Guardar/Cargar Experimento:</strong> Usa los botones verdes y grises para guardar tu progreso en un archivo <code>.json</code> o cargar un experimento previamente guardado.</li>
-                     <li><strong>2. Diseño de la Placa:</strong> Haz clic en los pozos para seleccionarlos (se pondrán azules). Puedes seleccionar varios. Usa "Seleccionar Todos" o "Limpiar Selección" para ayudarte.</li>
-                     <li><strong>Configurar Pozo(s):</strong> Con los pozos seleccionados, haz clic en "Configurar Pozo(s)". Se abrirá una ventana:
-                        <ul>
-                            <li><strong>Parámetros Generales:</strong> Define el Tipo de Pozo, Volumen Total Final y Cantidad de Células por pozo. Usa el icono ⚙️ junto a Células para:
-                                <ul>
-                                    <li>Calcular el volumen a tomar de tu stock celular (necesitas la concentración de tu stock).</li>
-                                    <li>O usar la calculadora de Cámara de Neubauer: introduce los conteos de 4 cuadrantes y haz clic en "Calcular Concentración" para obtener la concentración de tu stock en células/mL.</li>
-                                </ul>
-                            </li>
-                             <li><strong>Variables/Reactivos:</strong> Añade los reactivos que usarás. Define la Concentración Final deseada. Usa el icono ⚙️ para calcular cuánto volumen tomar de tu reactivo stock.</li>
-                             <li><strong>Pasos del Protocolo:</strong> Define los pasos secuenciales de tu experimento (Ej. Paso 1: Incubación PMA, Duración: 24 horas; Paso 2: Lavado + LPS, Duración: 12 horas). Añade tantos pasos como necesites.</li>
-                        </ul>
-                     </li>
-                     <li><strong>3. Creador de Stock General:</strong> Selecciona los pozos que tendrán la misma mezcla y haz clic en "Calcular Stock...". Indica un porcentaje extra si lo deseas. La tabla te mostrará cuánto necesitas preparar en total.</li>
-                     <li><strong>4. Cronograma del Protocolo:</strong> Aquí aparecerán todos los Pasos del Protocolo. Cada paso tendrá su propio temporizador. Haz clic en "Iniciar" para comenzar la cuenta regresiva.</li>
-                 </ul>
+                <p>¡Bienvenido/a al Asistente de Laboratorio LICAM! Esta guía te ayudará a usar las funciones principales.</p>
+                <h3>Organizador de Cultivo (🧪)</h3>
+                <p>Esta es la sección principal para planificar tus experimentos en placas.</p>
+                <ul class="list-disc list-inside">
+                    <li><strong>1. Configuración del Experimento:</strong> Dale un nombre a tu experimento y selecciona el tipo de placa (6, 12, 24, 48, 96 pozos). Haz clic en "Generar Placa".</li>
+                    <li><strong>Guardar/Cargar Experimento:</strong> Usa los botones verdes y grises para guardar tu progreso en un archivo <code>.json</code> o cargar un experimento previamente guardado.</li>
+                    <li><strong>2. Diseño de la Placa:</strong> Haz clic en los pozos para seleccionarlos (se pondrán azules). Puedes seleccionar varios. Usa "Seleccionar Todos" o "Limpiar Selección" para ayudarte.</li>
+                    <li><strong>Configurar Pozo(s):</strong> Con los pozos seleccionados, haz clic en "Configurar Pozo(s)". Se abrirá una ventana:
+                        <ul>
+                            <li><strong>Parámetros Generales:</strong> Define el Tipo de Pozo, Volumen Total Final y Cantidad de Células por pozo. Usa el icono ⚙️ junto a Células para:
+                                <ul>
+                                    <li>Calcular el volumen a tomar de tu stock celular (necesitas la concentración de tu stock).</li>
+                                    <li>O usar la calculadora de Cámara de Neubauer: introduce los conteos de 4 cuadrantes y haz clic en "Calcular Concentración" para obtener la concentración de tu stock en células/mL.</li>
+                                </ul>
+                            </li>
+                             <li><strong>Variables/Reactivos:</strong> Añade los reactivos que usarás. Define la Concentración Final deseada. Usa el icono ⚙️ para calcular cuánto volumen tomar de tu reactivo stock.</li>
+                             <li><strong>Pasos del Protocolo:</strong> Define los pasos secuenciales de tu experimento (Ej. Paso 1: Incubación PMA, Duración: 24 horas; Paso 2: Lavado + LPS, Duración: 12 horas). Añade tantos pasos como necesites.</li>
+                        </ul>
+                    </li>
+                    <li><strong>3. Creador de Stock General:</strong> Selecciona los pozos que tendrán la misma mezcla y haz clic en "Calcular Stock...". Indica un porcentaje extra si lo deseas. La tabla te mostrará cuánto necesitas preparar en total.</li>
+                    <li><strong>4. Cronograma del Protocolo:</strong> Aquí aparecerán todos los Pasos del Protocolo. Cada paso tendrá su propio temporizador. Haz clic en "Iniciar" para comenzar la cuenta regresiva.</li>
+                </ul>
 
-                 <h3>Modelos Animales (🐭)</h3>
-                 <p>Sección para llevar un registro de datos de modelos animales y calcular dosis.</p>
-                 <ul class="list-disc list-inside">
-                     <li><strong>Seguimiento:</strong> Añade modelos con un ID único. Luego, haz clic en "+ Añadir Registro" para ingresar Peso (g), Talla (cm), Glucosa (mg/dL), Fuerza de Agarre (gf) y Notas.</li>
-                     <li><strong>Dosis:</strong> Utiliza la Calculadora de Dosificación para saber cuánto volumen administrar (µL o mL) según la dosis requerida (mg/kg), el peso del modelo y la concentración de tu stock.</li>
-                     <li><strong>Guardar/Cargar:</strong> Guarda o carga los datos de tus modelos en archivos <code>.json</code>.</li>
-                 </ul>
+                <h3>Contador AI (🔬)</h3>
+                <p>Utiliza la Inteligencia Artificial para el conteo automático de células en cuadrantes de Neubauer.</p>
+                <ul class="list-disc list-inside">
+                    <li>**1. Carga de Regiones:** Sube hasta 4 imágenes independientes (una por cada cuadrante grande "L").</li>
+                    <li>**2. Análisis:** La IA cuenta las células de cada región y genera un informe estructurado con el conteo y un análisis morfológico.</li>
+                    <li>**3. Cálculo Final:** El sistema suma el conteo y calcula la concentración final en Células/mL, asumiendo que usas muestra pura (Dilución 1:1) y contaste 4 cuadrantes grandes.</li>
+                </ul>
 
-                  <h3>Protocolos y Recursos (📚)</h3>
-                 <p>Contiene una sección editable de notas para protocolos comunes (ej. Extracción de ARN) y enlaces directos a bases de datos útiles (PubMed, UniProt, etc.).</p>
+                <h3>Modelos Animales (🐭)</h3>
+                <p>Sección para llevar un registro de datos de modelos animales y calcular dosis.</p>
+                <ul class="list-disc list-inside">
+                    <li><strong>Seguimiento:</strong> Añade modelos con un ID único. Luego, haz clic en "+ Añadir Registro" para ingresar Peso (g), Talla (cm), Glucosa (mg/dL), Fuerza de Agarre (gf) y Notas.</li>
+                    <li><strong>Dosis:</strong> Utiliza la Calculadora de Dosificación para saber cuánto volumen administrar (µL o mL) según la dosis requerida (mg/kg), el peso del modelo y la concentración de tu stock.</li>
+                    <li><strong>Guardar/Cargar:</strong> Guarda o carga los datos de tus modelos en archivos <code>.json</code>.</li>
+                </ul>
 
-                 <h3>Reporte y Calculadoras (📄/🔢)</h3>
-                 <p>El <strong>Reporte</strong> genera un archivo CSV listo para Excel con la configuración de tu placa. Las <strong>Calculadoras</strong> te permiten realizar cálculos rápidos de Masa Molar, Conversión de Unidades y Dilución (C₁V₁=C₂V₂) de forma independiente.</p>
+                <h3>Protocolos y Recursos (📚)</h3>
+                <p>Contiene una sección editable de notas para protocolos comunes (ej. Extracción de ARN) y enlaces directos a bases de datos útiles (PubMed, UniProt, etc.).</p>
 
-                  <h3>Acerca del Proyecto (ℹ️)</h3>
-                  <p>Muestra información sobre el desarrollo, colaboradores, institución y datos de contacto de LICAM.</p>
-             </div>
+                <h3>Reporte y Calculadoras (📄/🔢)</h3>
+                <p>El **Reporte** genera un archivo CSV listo para Excel con la configuración de tu placa. Las **Calculadoras** te permiten realizar cálculos rápidos de Masa Molar, Conversión de Unidades y Dilución (C₁V₁=C₂V₂) de forma independiente.</p>
+
+                <h3>Acerca del Proyecto (ℹ️)</h3>
+                <p>Muestra información sobre el desarrollo, colaboradores, institución y datos de contacto de LICAM.</p>
+            </div>
         </div>
-
+        <!-- ORGANIZADOR DE CULTIVO -->
         <div id="content-planner" class="hidden space-y-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-1 bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
@@ -253,7 +304,98 @@
             </div>
         </div>
         
+        <!-- CONTADOR CELULAR AI (NUEVA PESTAÑA) -->
+        <div id="content-cell-counter" class="hidden space-y-8">
+            <div class="bg-white p-8 rounded-3xl shadow-2xl border border-gray-200">
+                <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">🔬 Contador de Células (Neubauer AI)</h2>
+                <p class="text-gray-500 mt-2 mb-6">Analiza hasta 4 imágenes de cuadrantes grandes ("L") para el conteo de células y cálculo de concentración.</p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Columna de Carga de Imagen y Parámetros (lg:col-span-1) -->
+                    <div class="lg:col-span-1 space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Paso 1: Cargar Regiones (Máx. 4)</h3>
+                        
+                        <!-- Slots de Carga -->
+                        <div id="cellUploadSlots" class="grid grid-cols-2 gap-4">
+                            <!-- Los slots se inicializan vía JS -->
+                            <template id="cellUploadSlotTemplate">
+                                <div class="bg-gray-50 p-3 rounded-lg shadow-inner border border-gray-200">
+                                    <label class="block text-sm font-medium text-gray-600 mb-2" data-slot-label>Región N</label>
+                                    <input type="file" accept="image/*" class="cell-upload-input hidden" onchange="handleImageUpload(event, this)">
+                                    <img class="image-preview-slot cursor-pointer border border-gray-300" 
+                                         src="https://placehold.co/150x150/e5e7eb/9ca3af?text=Slot" 
+                                         alt="Vista previa de la región" 
+                                         onclick="this.previousElementSibling.click()">
+                                    <button onclick="clearImageSlot(this)" class="clear-button w-full mt-2 py-1 text-xs bg-red-500 text-white rounded-md hover:bg-red-600 hidden">Eliminar</button>
+                                </div>
+                            </template>
+                        </div>
+
+                        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 pt-4 mb-4">Paso 2: Parámetros de Cálculo</h3>
+                        <div class="space-y-4 bg-white p-4 rounded-lg shadow-md border">
+                            <p class="text-sm font-medium text-gray-700">Factor de Dilución:</p>
+                            <p class="text-md font-bold text-teal-800">1:1 (Muestra Pura)</p>
+                            <p class="text-xs text-gray-500">El cálculo de concentración asume que no se ha diluido la muestra, usando un factor de <span class="font-extrabold text-teal-700">1</span>.</p>
+                        </div>
+
+
+                        <button id="analyzeButton" onclick="analyzeImage()" disabled
+                            class="w-full py-3 px-4 bg-gray-400 text-white font-bold rounded-lg transition duration-200 shadow-md disabled:opacity-50 mt-6">
+                            Paso 3: Analizar y Calcular Concentración
+                        </button>
+                    </div>
+
+                    <!-- Columna de Resultados (lg:col-span-2) -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <div id="loadingIndicator" class="hidden bg-yellow-100 p-6 rounded-lg shadow-md border-l-4 border-yellow-500">
+                            <div class="flex items-center space-x-3">
+                                <svg class="animate-spin h-5 w-5 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="text-yellow-700 font-medium">Analizando hasta 4 regiones... Esto puede tardar más.</span>
+                            </div>
+                        </div>
+
+                        <div id="resultsCard" class="bg-green-50 p-6 rounded-lg shadow-md border-l-4 border-green-500 min-h-[200px]">
+                            <h3 class="text-xl font-bold text-green-700 mb-4">Resultados Detallados por Región (IA)</h3>
+                            <div id="resultsContent" class="text-gray-700">
+                                <p>Los resultados del conteo aparecerán aquí en una tabla detallada por cada región cargada.</p>
+                                <p class="mt-4 text-sm text-gray-500">Nota: La IA analizará la morfología y distribución para cada imagen.</p>
+                            </div>
+
+                            <div id="totalSummary" class="hidden mt-6 pt-4 border-t border-green-300">
+                                <h4 class="text-lg font-bold text-green-800">Resumen del Conteo:</h4>
+                                <p class="text-sm text-gray-600 mb-4">El conteo sumado de todas las regiones analizadas es: <span id="totalCountDisplay" class="text-2xl font-bold ml-1 text-green-700">0</span> Células.</p>
+                                
+                                <!-- Resultado de concentración -->
+                                <div id="concentrationResult" class="calculation-result-ai p-4 rounded-lg">
+                                    <h5 class="text-md font-bold text-teal-700 mb-1">Concentración de la Muestra (Células/mL):</h5>
+                                    <p class="text-2xl font-extrabold text-teal-800"><span id="finalConcentrationDisplay">0</span></p>
+                                    <p class="text-xs text-gray-600 mt-1">Fórmula: $(\sum\text{Células} / \text{N Cuadrantes}) \times 2,500$. (Dilución x1).</p>
+                                    <p class="text-xs text-gray-600">Usando $\text{N Cuadrantes}$: <span id="calcRegions">0</span></p>
+                                </div>
+                            </div>
+
+                            <button id="downloadExcelButton" onclick="downloadExcel()"
+                                class="hidden mt-4 py-2 px-4 bg-green-600 text-white font-bold rounded-lg transition duration-200 hover:bg-green-700 shadow-md">
+                                Descargar Resultados (Excel)
+                            </button>
+                        </div>
+
+                        <div id="errorCard" class="hidden bg-red-100 p-6 rounded-lg shadow-md border-l-4 border-red-500">
+                            <h3 class="text-xl font-bold text-red-700 mb-2">Error en el Análisis</h3>
+                            <p id="errorMessage" class="text-red-700"></p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODELOS ANIMALES -->
         <div id="content-models" class="hidden space-y-8">
+            <!-- ... (CONTENIDO DE MODELOS ANIMALES) ... -->
             <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
                 <h2 class="text-2xl font-bold mb-5 text-indigo-700 border-b pb-3">🐭 Seguimiento de Modelos Animales</h2>
                 <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 mb-6">
@@ -318,7 +460,9 @@
             </div>
         </div>
 
+        <!-- PROTOCOLOS Y RECURSOS -->
         <div id="content-protocols" class="hidden space-y-6 bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
+            <!-- ... (CONTENIDO DE PROTOCOLOS Y RECURSOS) ... -->
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">📚 Protocolos Comunes y Recursos Externos</h2>
             <div class="prose max-w-none grid grid-cols-1 md:grid-cols-2 gap-8 text-gray-700">
                 <div>
@@ -352,8 +496,9 @@
             </div>
         </div>
 
-
+        <!-- REPORTE -->
         <div id="content-report" class="hidden space-y-6 bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
+            <!-- ... (CONTENIDO DE REPORTE) ... -->
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">📄 Reporte del Experimento</h2>
             <div class="flex space-x-4">
                 <button onclick="generateReport()" class="bg-teal-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-teal-700 transition shadow-md">Generar Reporte Completo</button>
@@ -364,7 +509,9 @@
             </div>
         </div>
 
+        <!-- CALCULADORAS RÁPIDAS -->
         <div id="content-calculators" class="hidden space-y-8">
+            <!-- ... (CONTENIDO DE CALCULADORAS) ... -->
             <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
                 <h2 class="text-2xl font-bold mb-5 text-indigo-700">🔢 Calculadora de Masa Molar</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -445,7 +592,9 @@
             </div>
         </div>
 
+        <!-- ACERCA DEL PROYECTO -->
         <div id="content-about" class="hidden space-y-8 bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
+            <!-- ... (CONTENIDO DE ACERCA DE) ... -->
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">ℹ️ Información del Proyecto y Colaboradores</h2>
             <div class="prose max-w-none text-gray-700">
                 <p class="text-lg">Esta aplicación es una herramienta de apoyo desarrollada como parte de un proyecto de tesis para optimizar el trabajo en el laboratorio, especialmente en la planificación y seguimiento de cultivos celulares.</p>
@@ -507,6 +656,7 @@
     </main>
 
     <div id="well-config-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center p-4">
+        <!-- ... (CONTENIDO DEL MODAL DE CONFIGURACIÓN DE POZO) ... -->
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto p-8 border-4 border-indigo-500/50">
             <div class="flex justify-between items-center border-b pb-4 mb-6">
                 <h2 class="text-2xl font-bold text-gray-800">Configurar Pozo(s): <span id="well-ids-display" class="text-indigo-600 font-extrabold"></span></h2>
@@ -591,6 +741,7 @@
     </div>
 
     <div id="model-data-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center p-4">
+        <!-- ... (CONTENIDO DEL MODAL DE DATOS DEL MODELO) ... -->
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 border-4 border-green-500/50">
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Añadir Registro para Modelo <span id="modal-model-id" class="text-green-600 font-extrabold"></span></h2>
             <div class="space-y-4">
@@ -624,6 +775,7 @@
 
 
     <div id="variable-template" class="hidden p-4 border rounded-xl bg-gray-50 transition hover:bg-gray-100">
+        <!-- ... (CONTENIDO DE PLANTILLA DE VARIABLE) ... -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-3 items-center">
             <div class="md:col-span-12 flex justify-between items-center border-b pb-2 mb-2">
                 <input type="text" class="variable-name w-full md:w-1/3 border-0 bg-transparent font-extrabold text-gray-800 focus:ring-0 text-lg" placeholder="Nombre (Ej: PMA)">
@@ -654,6 +806,7 @@
     </div>
 
     <div id="protocol-step-template" class="hidden p-3 border rounded-xl bg-white shadow-sm hover:shadow-md transition">
+        <!-- ... (CONTENIDO DE PLANTILLA DE PASO) ... -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
             <input type="text" class="protocol-step-name md:col-span-1 border-gray-300 rounded-lg p-2" placeholder="Nombre (Ej: Incubación PMA)">
             <div class="flex items-center space-x-2 md:col-span-2">
@@ -677,1168 +830,1578 @@
     <script>
         // --- DATA & STATE MANAGEMENT ---
         const ATOMIC_WEIGHTS = { 
-            'H': 1.008, 'C': 12.011, 'N': 14.007, 'O': 15.999, 'Na': 22.990, 'Mg': 24.305, 
-            'P': 30.974, 'S': 32.06, 'Cl': 35.45, 'K': 39.098, 'Ca': 40.078, 'Fe': 55.845,
+            'H': 1.008, 'C': 12.011, 'N': 14.007, 'O': 15.999, 'Na': 22.990, 'Mg': 24.305, 
+            'P': 30.974, 'S': 32.06, 'Cl': 35.45, 'K': 39.098, 'Ca': 40.078, 'Fe': 55.845,
             'He': 4.0026, 'Li': 6.94, 'Be': 9.0122, 'B': 10.81, 'F': 18.998, 'Ne': 20.180, 'Al': 26.982, 'Si': 28.085, 'Ar': 39.948, 'Sc': 44.956, 'Ti': 47.867, 'V': 50.942, 'Cr': 51.996, 'Mn': 54.938, 'Co': 58.933, 'Ni': 58.693, 'Cu': 63.546, 'Zn': 65.38, 'Ga': 69.723, 'Ge': 72.630, 'As': 74.922, 'Se': 78.971, 'Br': 79.904, 'Kr': 83.798, 'Rb': 85.468, 'Sr': 87.62, 'Y': 88.906, 'Zr': 91.224, 'Nb': 92.906, 'Mo': 95.96, 'Tc': 98, 'Ru': 101.07, 'Rh': 102.91, 'Pd': 106.42, 'Ag': 107.87, 'Cd': 112.41, 'In': 114.82, 'Sn': 118.71, 'Sb': 121.76, 'Te': 127.60, 'I': 126.90, 'Xe': 131.29, 'Cs': 132.91, 'Ba': 137.33,
-        };
-
-        const CONVERSION_FACTORS = {
-            'mass': { 'kg': 1000, 'g': 1, 'mg': 1e-3, 'µg': 1e-6, 'ng': 1e-9, 'pg': 1e-12 },
-            'volume': { 'L': 1, 'mL': 1e-3, 'µL': 1e-6, 'nL': 1e-9 },
-            'concentration': { 'M': 1, 'mM': 1e-3, 'µM': 1e-6, 'nM': 1e-9 },
-            'length': { 'm': 1, 'cm': 1e-2, 'mm': 1e-3},
-            'force': { 'N': 1, 'gf': 9.80665e-3 }, 
-            'pressure': { 'Pa': 1, 'mmHg': 133.322 },
-        };
-        
-        let wellData = {}; 
-        let selectedWells = new Set();
-        let variableCounter = 0;
-        let runningTimers = {};
-        let animalModels = {}; 
-        let currentEditingModelId = null; 
-
-        // --- TABS & NAVIGATION ---
-        function changeTab(tabName) {
-            const contents = ['planner', 'models', 'protocols', 'report', 'calculators', 'guide', 'about']; 
-            contents.forEach(content => {
-                const el = document.getElementById(`content-${content}`);
-                const tab = document.getElementById(`tab-${content}`);
-                if (el) el.style.display = content === tabName ? 'block' : 'none';
-                if (tab) tab.classList.toggle('active', content === tabName);
-            });
-             if (tabName === 'models') {
-                renderAnimalModels(); 
-            }
-        }
-
-        // --- QUICK CALCULATORS (Molar Mass, Unit Conversion, Dilution) ---
-        function parseFormula(formula) {
-            const regex = /([A-Z][a-z]*)(\d*)|(\()|(\))(\d*)/g;
-            let match;
-            const stack = [{}]; 
-            while ((match = regex.exec(formula))) {
-                const [, element, countStr, openParen, closeParen, parenCountStr] = match;
-                const count = countStr ? parseInt(countStr) : 1;
-                const parenCount = parenCountStr ? parseInt(parenCountStr) : 1;
-
-                if (element) { 
-                    const currentGroup = stack[stack.length - 1];
-                    currentGroup[element] = (currentGroup[element] || 0) + count;
-                } else if (openParen) { 
-                    stack.push({});
-                } else if (closeParen && stack.length > 1) { 
-                    const completedGroup = stack.pop();
-                    const currentGroup = stack[stack.length - 1];
-                    for (const el in completedGroup) {
-                        currentGroup[el] = (currentGroup[el] || 0) + completedGroup[el] * parenCount;
-                    }
-                }
-            }
-            if (stack.length !== 1) { 
-                throw new Error("Paréntesis no balanceados en la fórmula.");
-            }
-            return stack[0]; 
-        }
-
-
-        function calculateMolarMass() {
-            const formula = document.getElementById('chem-formula').value.replace(/\s+/g, ''); 
-            const resultDiv = document.getElementById('molar-mass-result');
-            if (!formula) {
-                resultDiv.innerHTML = `<span class="text-red-500">Por favor, introduce una fórmula.</span>`;
-                return;
-            }
-            try {
-                const composition = parseFormula(formula);
-                let totalMass = 0;
-                let breakdown = [];
-                for (const element in composition) {
-                    if (!ATOMIC_WEIGHTS[element]) {
-                        throw new Error(`Elemento desconocido: ${element}`);
-                    }
-                    const mass = ATOMIC_WEIGHTS[element] * composition[element];
-                    totalMass += mass;
-                    breakdown.push(`<b>${element}</b>: ${composition[element]} x ${ATOMIC_WEIGHTS[element]} = ${mass.toFixed(4)}`);
-                }
-                resultDiv.innerHTML = `<b>Masa Molar Total: <span class="text-blue-600">${totalMass.toFixed(4)} g/mol</span></b><br><small>${breakdown.join('<br>')}</small>`;
-            } catch (error) {
-                resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
-            }
-        }
-        
-        function getUnitType(unit) {
-             if (!unit) return null;
-             for (const type in CONVERSION_FACTORS) {
-                 if (CONVERSION_FACTORS[type][unit]) {
-                     return type;
-                 }
-             }
-            if (unit.includes('/')) {
-                const parts = unit.split('/');
-                if (parts.length === 2 && CONVERSION_FACTORS.mass[parts[0]] && CONVERSION_FACTORS.volume[parts[1]]) {
-                    return 'combined_concentration';
-                }
-            }
-            return null; 
-        }
-
-        function convertToBaseUnit(value, fromUnit) {
-            const type = getUnitType(fromUnit);
-            if (!type || isNaN(value)) return NaN;
-
-            if (type === 'combined_concentration') {
-                 const [massUnit, volUnit] = fromUnit.split('/');
-                 const valueInG = value * (CONVERSION_FACTORS.mass[massUnit] || NaN);
-                 const volumeInL = 1 * (CONVERSION_FACTORS.volume[volUnit] || NaN); 
-                 if (isNaN(valueInG) || isNaN(volumeInL) || volumeInL === 0) return NaN;
-                 return valueInG / volumeInL; 
-            } else if (CONVERSION_FACTORS[type]) {
-                return value * (CONVERSION_FACTORS[type][fromUnit] || NaN);
-            }
-            return NaN; 
-        }
-
-        function convertFromBaseUnit(value, toUnit) {
-            const type = getUnitType(toUnit);
-             if (!type || isNaN(value)) return NaN;
-
-             if (type === 'combined_concentration') {
-                 const [massUnit, volUnit] = toUnit.split('/');
-                 const targetMassFactor = CONVERSION_FACTORS.mass[massUnit];
-                 const targetVolFactor = CONVERSION_FACTORS.volume[volUnit];
-                 if (!targetMassFactor || !targetVolFactor) return NaN;
-                 return value * targetMassFactor / targetVolFactor;
-             } else if (CONVERSION_FACTORS[type]) {
-                 const factor = CONVERSION_FACTORS[type][toUnit];
-                 if (!factor) return NaN;
-                 return value / factor;
-             }
-              return NaN; 
-        }
-
-        function _pureConvertUnits(value, from, to) {
-            if (isNaN(value) || !from || !to) return NaN;
-            if (from === to) return value;
-
-            const fromType = getUnitType(from);
-            const toType = getUnitType(to);
-
-             if (!fromType || !toType || fromType !== toType) {
-                 return NaN; 
-             }
-            
-            const baseValue = convertToBaseUnit(value, from);
-            if (isNaN(baseValue)) return NaN;
-            const finalValue = convertFromBaseUnit(baseValue, to);
-             
-            return finalValue;
-        }
-
-
-        function convertUnits() {
-            const value = parseFloat(document.getElementById('uc-value').value);
-            const from = document.getElementById('uc-from').value;
-            const to = document.getElementById('uc-to').value;
-            const resultDiv = document.getElementById('uc-result');
-
-            const finalValue = _pureConvertUnits(value, from, to);
-            
-            if (isNaN(finalValue)) {
-                 resultDiv.innerHTML = `<span class="text-red-500">No se puede convertir entre estas unidades o tipos.</span>`;
-            } else {
-                 resultDiv.textContent = `${value} ${from} = ${finalValue.toExponential(4)} ${to}`;
-            }
-        }
-
-        function calculateDilution() {
-            const fields = {
-                c1: { val: parseFloat(document.getElementById('c1').value), unit: document.getElementById('c1-unit').value },
-                v1: { val: parseFloat(document.getElementById('v1').value), unit: document.getElementById('v1-unit').value },
-                c2: { val: parseFloat(document.getElementById('c2').value), unit: document.getElementById('c2-unit').value },
-                v2: { val: parseFloat(document.getElementById('v2').value), unit: document.getElementById('v2-unit').value },
-            };
-
-            const resultDiv = document.getElementById('dilution-result');
-            const emptyFields = Object.keys(fields).filter(k => isNaN(fields[k].val));
-
-            if (emptyFields.length !== 1) {
-                resultDiv.innerHTML = `<span class="text-red-500">Por favor, introduce exactamente 3 valores numéricos.</span>`;
-                return;
-            }
-
-            const missingVar = emptyFields[0];
-            let result;
-            let resultUnit;
-
-            try {
-                 const c2_conv = _pureConvertUnits(fields.c2.val, fields.c2.unit, fields.c1.unit);
-                const v2_conv = _pureConvertUnits(fields.v2.val, fields.v2.unit, fields.v1.unit);
-                
-                if (isNaN(c2_conv) && !isNaN(fields.c2.val)) throw new Error(`No se puede convertir la unidad de C2 (${fields.c2.unit}) a la de C1 (${fields.c1.unit}). Asegúrate que son del mismo tipo (ej. ambas molares o ambas masa/volumen).`);
-                if (isNaN(v2_conv) && !isNaN(fields.v2.val)) throw new Error(`No se puede convertir la unidad de V2 (${fields.v2.unit}) a la de V1 (${fields.v1.unit}).`);
-
-                let c1_val = fields.c1.val;
-                let v1_val = fields.v1.val;
-
-                switch (missingVar) {
-                    case 'c1': 
-                        result = (c2_conv * v2_conv) / v1_val;
-                        resultUnit = fields.c1.unit; 
-                        break;
-                    case 'v1': 
-                        result = (c2_conv * v2_conv) / c1_val;
-                        resultUnit = fields.v1.unit; 
-                        break;
-                    case 'c2': 
-                        const c2_in_c1_units = (c1_val * v1_val) / v2_conv; 
-                        result = _pureConvertUnits(c2_in_c1_units, fields.c1.unit, fields.c2.unit);
-                        resultUnit = fields.c2.unit;
-                        break;
-                    case 'v2': 
-                        const v2_in_v1_units = (c1_val * v1_val) / c2_conv;
-                        result = _pureConvertUnits(v2_in_v1_units, fields.v1.unit, fields.v2.unit);
-                        resultUnit = fields.v2.unit;
-                        break;
-                }
-
-                if (isNaN(result) || !isFinite(result)) {
-                    throw new Error("El resultado es inválido. Revisa los valores y unidades.");
-                }
-
-                resultDiv.textContent = `Resultado: ${missingVar.toUpperCase()} = ${result.toPrecision(4)} ${resultUnit}`;
-
-            } catch (error) {
-                 resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
-            }
-        }
-
-        // --- PLATE PLANNER ---
-         function generatePlate(restoringData = null) {
-            const plateType = restoringData ? restoringData.plateType : document.getElementById('plate-type').value;
-            document.getElementById('plate-type').value = plateType; 
-            const layout = document.getElementById('plate-layout');
-            layout.innerHTML = ''; 
-            
-            if (!restoringData) {
-                wellData = {};
-            }
-            selectedWells.clear(); 
-
-            const plateConfigs = {
-                '6': { rows: 2, cols: 3 }, '12': { rows: 3, cols: 4 },
-                '24': { rows: 4, cols: 6 }, '48': { rows: 6, cols: 8 },
-                '96': { rows: 8, cols: 12 },
-            };
-            const config = plateConfigs[plateType];
-            layout.style.gridTemplateColumns = `repeat(${config.cols}, minmax(0, 1fr))`;
-            layout.style.display = 'grid';
-
-            for (let r = 0; r < config.rows; r++) {
-                for (let c = 0; c < config.cols; c++) {
-                    const rowLabel = String.fromCharCode(65 + r); 
-                    const colLabel = c + 1; 
-                    const wellId = `${rowLabel}${colLabel}`; 
-                    
-                    const well = document.createElement('div');
-                    well.id = `well-${wellId}`;
-                    well.className = 'well w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center cursor-pointer bg-white';
-                    well.dataset.id = wellId;
-                    
-                    const label = document.createElement('span');
-                    label.className = 'well-label text-sm md:text-base font-semibold';
-                    label.textContent = wellId;
-                    well.appendChild(label);
-
-                    well.addEventListener('click', () => toggleWellSelection(wellId));
-                    layout.appendChild(well); 
-
-                    if (restoringData?.wellData?.[wellId]) {
-                        const data = restoringData.wellData[wellId];
-                        well.classList.add('configured'); 
-                        if (data.wellType && data.wellType !== 'default') {
-                            well.classList.add(data.wellType);
-                        }
-                    }
-                }
-            }
-            updateProtocolSchedule(); 
-        }
-
-
-        function toggleWellSelection(wellId) {
-            const wellEl = document.getElementById(`well-${wellId}`);
-            if (selectedWells.has(wellId)) { 
-                selectedWells.delete(wellId);
-                wellEl.classList.remove('selected');
-            } else { 
-                selectedWells.add(wellId);
-                wellEl.classList.add('selected');
-            }
-        }
-
-        function selectAllWells() {
-            document.querySelectorAll('#plate-layout .well').forEach(well => {
-                const wellId = well.dataset.id;
-                if (!selectedWells.has(wellId)) { 
-                    selectedWells.add(wellId);
-                    well.classList.add('selected');
-                }
-            });
-        }
-        
-        function clearSelection() {
-            selectedWells.forEach(wellId => { 
-                const wellEl = document.getElementById(`well-${wellId}`);
-                if (wellEl) wellEl.classList.remove('selected');
-            });
-            selectedWells.clear(); 
-        }
-
-        function openWellConfigModal() {
-            if (selectedWells.size === 0) { 
-                showToast('Por favor, selecciona al menos un pozo para configurar.', 'error');
-                return;
-            }
-            const wellIds = Array.from(selectedWells).sort(); 
-            document.getElementById('well-ids-display').textContent = wellIds.join(', ');
-            
-            const firstWellId = wellIds[0];
-            if (wellData[firstWellId]) {
-                loadConfigToModal(wellData[firstWellId]); 
-            } else {
-                resetModal(); 
-            }
-
-            document.getElementById('well-config-modal').style.display = 'flex';
-        }
-
-        function closeWellConfigModal() {
-            document.getElementById('well-config-modal').style.display = 'none'; 
-        }
-        
-         function resetModal() {
-             document.getElementById('well-type').value = 'default';
-            document.getElementById('well-total-volume').value = '';
-            document.getElementById('well-cell-count').value = '';
-            document.getElementById('variables-container').innerHTML = ''; 
-            document.getElementById('protocol-steps-container').innerHTML = ''; 
-            document.getElementById('neubauer-q1').value = '';
-            document.getElementById('neubauer-q2').value = '';
-            document.getElementById('neubauer-q3').value = '';
-            document.getElementById('neubauer-q4').value = '';
-            document.getElementById('cell-stock-conc').value = '';
-             document.getElementById('cell-stock-conc-unit').value = '1'; 
-            document.getElementById('cell-volume-result').textContent = '';
-            variableCounter = 0; 
-            addVariable(); 
-            addProtocolStep(); 
-        }
-
-
-        function loadConfigToModal(data) {
-            resetModal(); 
-            document.getElementById('well-type').value = data.wellType || 'default';
-            document.getElementById('well-total-volume').value = data.totalVolume || '';
-            document.getElementById('well-cell-count').value = data.cells?.count || '';
-            
-            const variablesContainer = document.getElementById('variables-container');
-            variablesContainer.innerHTML = ''; 
-            if (data.variables?.length > 0) {
-                data.variables.forEach(v => addVariable(v)); 
-            } else {
-                addVariable(); 
-            }
-            
-            const stepsContainer = document.getElementById('protocol-steps-container');
-            stepsContainer.innerHTML = ''; 
-            if (data.protocol?.steps?.length > 0) {
-                data.protocol.steps.forEach(s => addProtocolStep(s)); 
-            } else {
-                addProtocolStep(); 
-            }
-        }
-
-
-        function saveWellConfig() {
-            const wellType = document.getElementById('well-type').value;
-            const totalVolume = parseFloat(document.getElementById('well-total-volume').value);
-            const cellCount = parseFloat(document.getElementById('well-cell-count').value);
-
-            const variables = [];
-            document.querySelectorAll('#variables-container > div.p-4').forEach(varDiv => { 
-                const variable = {
-                    id: varDiv.dataset.id, 
-                    name: varDiv.querySelector('.variable-name').value.trim(),
-                    finalConc: parseFloat(varDiv.querySelector('.variable-final-conc').value),
-                    finalConcUnit: varDiv.querySelector('.variable-final-conc-unit').value,
-                };
-                if (variable.name && !isNaN(variable.finalConc)) {
-                    variables.push(variable);
-                }
-            });
-            
-            const protocolSteps = [];
-            document.querySelectorAll('#protocol-steps-container > div').forEach(stepDiv => {
-                const step = {
-                    name: stepDiv.querySelector('.protocol-step-name').value.trim(),
-                    duration: parseFloat(stepDiv.querySelector('.protocol-step-duration').value),
-                    unit: parseInt(stepDiv.querySelector('.protocol-step-unit').value) 
-                };
-                if (step.name && !isNaN(step.duration)) {
-                    protocolSteps.push(step);
-                }
-            });
-
-            const configData = {
-                wellType,
-                totalVolume: isNaN(totalVolume) ? null : totalVolume, 
-                cells: { count: isNaN(cellCount) ? null : cellCount }, 
-                variables,
-                protocol: {
-                    steps: protocolSteps
-                }
-            };
-            
-            selectedWells.forEach(wellId => {
-                wellData[wellId] = JSON.parse(JSON.stringify(configData)); 
-                const wellEl = document.getElementById(`well-${wellId}`);
-                if (wellEl) {
-                     wellEl.classList.remove('control', 'experimental', 'blanco', 'tratamiento-1', 'tratamiento-2', 'default');
-                    if(wellType !== 'default') {
-                        wellEl.classList.add(wellType); 
-                    }
-                    wellEl.classList.add('configured'); 
-                    wellEl.classList.remove('selected'); 
-                }
-            });
-            
-            updateProtocolSchedule(); 
-            clearSelection(); 
-            closeWellConfigModal(); 
-            showToast('Configuración guardada para los pozos seleccionados.'); 
-        }
-        
-        function addVariable(data = null) {
-            const template = document.getElementById('variable-template');
-            const clone = template.cloneNode(true); 
-            clone.id = ''; 
-            clone.classList.remove('hidden'); 
-            
-            const uniqueId = `var-${variableCounter++}`; 
-            clone.dataset.id = uniqueId; 
-
-            populateUnitDropdowns(clone); 
-            
-            const stockCalcToggle = clone.querySelector('.stock-calc-toggle');
-            const subCalcDiv = clone.querySelector('.sub-calc');
-            const subCalcId = `stock-calc-${uniqueId}`;
-            stockCalcToggle.dataset.target = subCalcId; 
-            subCalcDiv.id = subCalcId; 
-            
-            if (data) {
-                 clone.querySelector('.variable-name').value = data.name || '';
-                 clone.querySelector('.variable-final-conc').value = data.finalConc || '';
-                 clone.querySelector('.variable-final-conc-unit').value = data.finalConcUnit || 'µM'; 
-            }
-
-            document.getElementById('variables-container').appendChild(clone);
-        }
-
-        function addProtocolStep(data = null) {
-            const template = document.getElementById('protocol-step-template');
-            const clone = template.cloneNode(true); 
-            clone.id = ''; 
-            clone.classList.remove('hidden'); 
-            if (data) {
-                clone.querySelector('.protocol-step-name').value = data.name || '';
-                clone.querySelector('.protocol-step-duration').value = data.duration || '';
-                clone.querySelector('.protocol-step-unit').value = data.unit || '3600000'; 
-            }
-            document.getElementById('protocol-steps-container').appendChild(clone);
-        }
-
-        function calculateCellVolume() {
-            const cellCount = parseFloat(document.getElementById('well-cell-count').value);
-            let stockConc = parseFloat(document.getElementById('cell-stock-conc').value); 
-            const stockUnitFactor = parseFloat(document.getElementById('cell-stock-conc-unit').value); 
-            const resultEl = document.getElementById('cell-volume-result');
-
-            if (isNaN(cellCount) || isNaN(stockConc) || stockConc === 0) {
-                resultEl.textContent = 'Inputs inválidos.';
-                return;
-            }
-            
-            const stockConcInMl = stockConc * stockUnitFactor;
-
-            const volumeInMicroL = (cellCount / stockConcInMl) * 1000;
-             // Display result
-            resultEl.textContent = `Tomar: ${volumeInMicroL.toFixed(2)} µL`;
-        }
-
-        function calculateNeubauer() {
-             const q1 = parseFloat(document.getElementById('neubauer-q1').value) || 0;
-            const q2 = parseFloat(document.getElementById('neubauer-q2').value) || 0;
-            const q3 = parseFloat(document.getElementById('neubauer-q3').value) || 0;
-            const q4 = parseFloat(document.getElementById('neubauer-q4').value) || 0;
-
-            const sum = q1 + q2 + q3 + q4;
-            if (sum === 0) { 
-                showToast("Introduce los conteos de los cuadrantes.", "error");
-                return;
-            }
-            const avg = sum / 4; 
-            const concentration = avg * 10000; 
-            
-            document.getElementById('cell-stock-conc-unit').value = "1"; 
-            document.getElementById('cell-stock-conc').value = concentration; 
-            showToast(`Concentración calculada: ${concentration.toExponential(2)} células/mL.`); 
-             calculateCellVolume(); 
-        }
-
-        function calculateStockVolume(button) {
-             const variableSection = button.closest('.p-4.border.rounded-lg.bg-gray-50'); 
-            if (!variableSection) return; 
-
-            const finalConc = parseFloat(variableSection.querySelector('.variable-final-conc').value);
-            const finalConcUnit = variableSection.querySelector('.variable-final-conc-unit').value;
-            const stockConc = parseFloat(variableSection.querySelector('.variable-stock-conc').value);
-            const stockConcUnit = variableSection.querySelector('.variable-stock-conc-unit').value;
-             const totalVolume = parseFloat(document.getElementById('well-total-volume').value); 
-            const resultEl = variableSection.querySelector('.variable-stock-volume-result');
-
-            if (isNaN(finalConc) || isNaN(stockConc) || isNaN(totalVolume) || stockConc === 0) {
-                 resultEl.textContent = 'Inputs inválidos.';
-                 return;
-            }
-            
-            const finalConcConverted = _pureConvertUnits(finalConc, finalConcUnit, stockConcUnit);
-            if (isNaN(finalConcConverted)) { 
-                 resultEl.textContent = 'Error de conversión de unidad.';
-                 return;
-            }
-
-            const V_Stock_in_uL = (finalConcConverted * totalVolume) / stockConc;
-
-             // Display result
-            resultEl.textContent = `Tomar: ${V_Stock_in_uL.toFixed(3)} µL`;
-        }
-        
-        function calculateMasterMix() {
-            if (selectedWells.size === 0) {
-                showToast("Selecciona los pozos para los que quieres calcular la mezcla.", 'error');
-                return;
-            }
-            
-            const numWells = selectedWells.size;
-            const extraVolFactor = 1 + (parseFloat(document.getElementById('extra-volume').value) || 0) / 100;
-            const totalWellsToPrep = numWells * extraVolFactor;
-
-            const masterMix = {};
-            let firstWellId = Array.from(selectedWells)[0];
-            const baseConfig = wellData[firstWellId];
-
-            if (!baseConfig) { 
-                showToast("El primer pozo seleccionado no está configurado.", 'error');
-                return;
-            }
-
-            if (baseConfig.cells?.count > 0) {
-                masterMix['Células'] = { 
-                    total: `${(baseConfig.cells.count * totalWellsToPrep).toExponential(2)} células`,
-                    note: 'El volumen a tomar depende de la concentración de tu stock celular.'
-                };
-            }
-            
-            baseConfig.variables.forEach(v => {
-                 masterMix[v.name] = {
-                     total: `Añadir para una concentración final de ${v.finalConc} ${v.finalConcUnit}`,
-                     note: 'El volumen a tomar depende de la concentración de tu reactivo stock.'
-                 };
-            });
-            
-            let html = `<h3 class="font-bold mb-2">Receta para ${numWells} pozos (+${(extraVolFactor-1)*100}% extra):</h3>`;
-            html += `<table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-100"><tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Componente</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Cantidad Total / Objetivo</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Notas</th>
-                        </tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
-
-            for(const component in masterMix) { 
-                html += `<tr>
-                            <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">${component}</td>
-                            <td class="px-4 py-2 whitespace-nowrap text-sm">${masterMix[component].total}</td>
-                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">${masterMix[component].note}</td>
-                         </tr>`;
-            }
-            
-             html += `<tr><td class="px-4 py-2 text-sm font-bold">Medio de cultivo (completar hasta)</td>
-                          <td class="px-4 py-2 text-sm font-bold">${(baseConfig.totalVolume * totalWellsToPrep).toFixed(2)} µL</td><td></td></tr>`;
-
-            html += `</tbody></table><p class="text-xs mt-2 text-gray-500">Usa las sub-calculadoras en la configuración de pozos para determinar los volúmenes exactos a tomar de tus stocks.</p>`;
-            document.getElementById('master-mix-results').innerHTML = html;
-        }
-
-        function updateProtocolSchedule() {
-            const scheduleContainer = document.getElementById('protocol-schedule-container');
-            scheduleContainer.innerHTML = ''; 
-            let allSteps = [];
-
-            for (const wellId in wellData) {
-                const data = wellData[wellId];
-                if (!data.protocol?.steps) continue; 
-                
-                data.protocol.steps.forEach((step, index) => {
-                    allSteps.push({ 
-                        ...step, 
-                        wellId, 
-                        stepIndex: index + 1, 
-                        eventId: `${wellId}-${step.name.replace(/\s/g, '')}-${index}` 
-                    });
-                });
-            }
-            
-            const uniqueSteps = Object.values(allSteps.reduce((acc, cur) => {
-                const key = `${cur.name}-${cur.duration}-${cur.unit}-${cur.stepIndex}`; 
-                if (!acc[key]) {
-                     acc[key] = { ...cur, wells: [cur.wellId] }; 
-                } else {
-                    acc[key].wells.push(cur.wellId); 
-                }
-                return acc;
-            }, {}));
-            
-            uniqueSteps.sort((a,b) => a.stepIndex - b.stepIndex);
-
-
-            if (uniqueSteps.length === 0) { 
-                scheduleContainer.innerHTML = '<p class="text-gray-500">No hay pasos de protocolo configurados.</p>';
-                return;
-            }
-
-            uniqueSteps.forEach((step) => {
-                const durationMs = step.duration * step.unit; 
-                 const unitText = {3600000: 'horas', 60000: 'minutos', 86400000: 'días'}[step.unit] || 'ms';
-
-                const eventEl = document.createElement('div');
-                eventEl.className = 'flex items-center justify-between p-3 bg-gray-100 rounded-lg';
-                eventEl.innerHTML = `
-                    <div>
-                        <span class="font-bold">Paso ${step.stepIndex}: ${step.name}</span>
-                        <span class="text-sm text-gray-600 ml-2">(${step.duration} ${unitText})</span>
-                        <p class="text-xs text-blue-600">Pozos: ${step.wells.join(', ')}</p> 
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <span id="timer-display-${step.eventId}" class="font-mono text-lg">--:--:--</span>
-                        <button id="timer-btn-${step.eventId}" class="bg-green-500 text-white text-sm font-semibold py-1 px-3 rounded-md hover:bg-green-600">Iniciar</button>
-                    </div>
-                `;
-                scheduleContainer.appendChild(eventEl); 
-                
-                document.getElementById(`timer-btn-${step.eventId}`).addEventListener('click', (e) => {
-                    handleTimerClick(e, step, durationMs);
-                });
-            });
-        }
-        
-        function handleTimerClick(e, event, durationMs) {
-            const btn = e.target;
-            const timerId = `timer-btn-${event.eventId}`; 
-            const displayId = `timer-display-${event.eventId}`; 
-
-            if (runningTimers[timerId]) { 
-                clearInterval(runningTimers[timerId].interval); 
-                delete runningTimers[timerId]; 
-                btn.textContent = 'Iniciar'; 
-                btn.classList.add('bg-green-500', 'hover:bg-green-600');
-                btn.classList.remove('bg-red-500', 'hover:bg-red-600');
-                document.getElementById(displayId).textContent = '--:--:--'; 
-            } else { 
-                const endTime = Date.now() + durationMs; 
-                btn.textContent = 'Detener'; 
-                btn.classList.remove('bg-green-500', 'hover:bg-green-600');
-                btn.classList.add('bg-red-500', 'hover:bg-red-600');
-
-                const updateDisplay = () => {
-                    const remaining = endTime - Date.now();
-                    if (remaining <= 0) { 
-                        clearInterval(interval); 
-                        document.getElementById(displayId).textContent = '00:00:00';
-                        const notificationMessage = `¡Paso finalizado: ${event.name}!`;
-                        showToast(notificationMessage); 
-                        if (Notification.permission === 'granted') {
-                            new Notification(notificationMessage);
-                        }
-                        btn.textContent = 'Finalizado'; 
-                        btn.disabled = true; 
-                        btn.classList.remove('bg-red-500', 'hover:bg-red-600'); 
-                        delete runningTimers[timerId]; 
-                    } else { 
-                        const h = String(Math.floor(remaining / 3600000)).padStart(2, '0');
-                        const m = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0');
-                        const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
-                        document.getElementById(displayId).textContent = `${h}:${m}:${s}`; 
-                    }
-                };
-
-                const interval = setInterval(updateDisplay, 1000);
-                updateDisplay();
-                runningTimers[timerId] = { interval, endTime };
-            }
-        }
-        
-        // --- ANIMAL MODELS ---
-        function addAnimalModel() {
-            const modelIdInput = document.getElementById('new-model-id');
-            const modelId = modelIdInput.value.trim();
-            if (!modelId) {
-                showToast("Por favor, introduce un ID para el nuevo modelo.", "error");
-                return;
-            }
-            if (animalModels[modelId]) {
-                 showToast(`El modelo con ID "${modelId}" ya existe.`, "error");
-                return;
-            }
-            animalModels[modelId] = { id: modelId, data: [] }; 
-            modelIdInput.value = ''; 
-            renderAnimalModels(); 
-            showToast(`Modelo "${modelId}" añadido.`);
-        }
-
-        function renderAnimalModels() {
-            const container = document.getElementById('animal-models-container');
-            container.innerHTML = ''; 
-            const sortedModelIds = Object.keys(animalModels).sort(); 
-
-            if (sortedModelIds.length === 0) {
-                 container.innerHTML = '<p class="text-gray-500">No hay modelos añadidos todavía.</p>';
-                 return;
-            }
-
-            sortedModelIds.forEach(modelId => {
-                const model = animalModels[modelId];
-                const modelDiv = document.createElement('div');
-                modelDiv.className = 'p-4 border rounded-lg bg-white shadow';
-                modelDiv.innerHTML = `
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-bold text-lg text-blue-700">${model.id}</h3>
-                        <div>
-                            <button onclick="openModelDataModal('${modelId}')" class="text-sm bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600">+ Añadir Registro</button>
-                            <button onclick="deleteAnimalModel('${modelId}')" class="text-sm bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 ml-2">Eliminar Modelo</button>
-                        </div>
-                    </div>
-                    <div class="max-h-60 overflow-y-auto">
-                        <table id="model-data-table-${modelId}" class="min-w-full text-sm">
-                            <thead>
-                                <tr><th>Fecha</th><th>Peso (g)</th><th>Talla (cm)</th><th>Glucosa (mg/dL)</th><th>Fuerza (gf)</th><th>Notas</th></tr>
-                            </thead>
-                            <tbody>
-                                ${model.data.sort((a,b) => new Date(b.date) - new Date(a.date)).map(entry => `
-                                    <tr>
-                                        <td>${new Date(entry.date).toLocaleDateString()}</td>
-                                        <td>${entry.weight ?? ''}</td>
-                                        <td>${entry.size ?? ''}</td>
-                                        <td>${entry.glucose ?? ''}</td>
-                                        <td>${entry.grip ?? ''}</td>
-                                        <td>${entry.notes ?? ''}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-                container.appendChild(modelDiv);
-            });
-        }
-         function deleteAnimalModel(modelId) {
-            if (confirm(`¿Estás seguro de eliminar el modelo ${modelId} y todos sus registros?`)) {
-                if (animalModels[modelId]) {
-                    delete animalModels[modelId];
-                    renderAnimalModels();
-                    showToast(`Modelo "${modelId}" eliminado.`);
-                }
-            }
-        }
-
-
-        function openModelDataModal(modelId) {
-            currentEditingModelId = modelId; 
-            document.getElementById('modal-model-id').textContent = modelId; 
-            document.getElementById('modal-model-weight').value = '';
-            document.getElementById('modal-model-size').value = '';
-            document.getElementById('modal-model-glucose').value = '';
-            document.getElementById('modal-model-grip').value = '';
-            document.getElementById('modal-model-notes').value = '';
-            document.getElementById('model-data-modal').style.display = 'flex';
-        }
-
-        function closeModelDataModal() {
-            document.getElementById('model-data-modal').style.display = 'none';
-            currentEditingModelId = null; 
-        }
-
-        function saveModelDataEntry() {
-            if (!currentEditingModelId || !animalModels[currentEditingModelId]) return;
-
-            const entry = {
-                date: new Date().toISOString(), 
-                weight: parseFloat(document.getElementById('modal-model-weight').value) || null,
-                size: parseFloat(document.getElementById('modal-model-size').value) || null,
-                glucose: parseFloat(document.getElementById('modal-model-glucose').value) || null,
-                grip: parseFloat(document.getElementById('modal-model-grip').value) || null,
-                notes: document.getElementById('modal-model-notes').value.trim() || null,
-            };
-
-            animalModels[currentEditingModelId].data.push(entry);
-            renderAnimalModels(); 
-            closeModelDataModal(); 
-            showToast(`Registro añadido para ${currentEditingModelId}.`);
-        }
-
-        function saveModelData() {
-             if (Object.keys(animalModels).length === 0) {
-                showToast("No hay datos de modelos para guardar.", "warning");
-                return;
-            }
-            const dataString = JSON.stringify(animalModels, null, 2);
-            const blob = new Blob([dataString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `datos_modelos_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('Datos de modelos guardados.');
-        }
-
-        function loadModelData(event) {
-            const file = event.target.files[0]; 
-            if (!file) return; 
-            const reader = new FileReader(); 
-            reader.onload = (e) => {
-                try {
-                    const loadedData = JSON.parse(e.target.result);
-                     if (typeof loadedData === 'object' && loadedData !== null) {
-                        animalModels = loadedData; 
-                        renderAnimalModels(); 
-                        showToast('Datos de modelos cargados.');
-                    } else {
-                        throw new Error("El archivo no tiene el formato esperado.");
-                    }
-                } catch (error) {
-                    showToast(`Error al cargar datos de modelos: ${error.message}`, 'error');
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = ''; 
-        }
-
-        function calculateModelDose() {
-             const doseAmount = parseFloat(document.getElementById('dose-amount').value);
-             const doseAmountUnit = document.getElementById('dose-amount-unit').value;
-             const doseWeightUnitVal = parseFloat(document.getElementById('dose-weight-unit-val').value) || 1; 
-             const doseWeightUnit = document.getElementById('dose-weight-unit').value; 
-             const modelWeight = parseFloat(document.getElementById('model-weight').value);
-             const modelWeightUnit = document.getElementById('model-weight-unit').value;
-             const stockConcAmount = parseFloat(document.getElementById('stock-conc-dose').value);
-             const stockConcUnit = document.getElementById('stock-conc-dose-unit').value; 
-             const outputUnit = document.getElementById('dose-output-unit').value; 
-             const resultDiv = document.getElementById('dose-calculation-result');
-
-             if (isNaN(doseAmount) || isNaN(modelWeight) || isNaN(stockConcAmount) || stockConcAmount === 0 || isNaN(doseWeightUnitVal) || doseWeightUnitVal === 0) {
-                 resultDiv.innerHTML = `<span class="text-red-500">Por favor, completa todos los campos numéricos requeridos.</span>`;
-                 return;
-             }
-
-             try {
-                const modelWeightConverted = _pureConvertUnits(modelWeight, modelWeightUnit, doseWeightUnit);
-                 if (isNaN(modelWeightConverted)) throw new Error(`No se puede convertir el peso del modelo (${modelWeightUnit}) a la unidad de peso de la dosis (${doseWeightUnit}).`);
-                
-                 const totalAmountNeeded = (modelWeightConverted / doseWeightUnitVal) * doseAmount;
-                 
-                 const stockMassUnit = stockConcUnit.split('/')[0];
-                 const stockVolUnit = stockConcUnit.split('/')[1];
-                 if (!stockMassUnit || !stockVolUnit) throw new Error(`Unidad de concentración de stock inválida: ${stockConcUnit}`);
-
-                 const totalAmountConverted = _pureConvertUnits(totalAmountNeeded, doseAmountUnit, stockMassUnit);
-                  if (isNaN(totalAmountConverted)) throw new Error(`No se puede convertir la unidad de cantidad de dosis (${doseAmountUnit}) a la unidad de masa del stock (${stockMassUnit}).`);
-
-                 const volumeInStockVolUnit = totalAmountConverted / stockConcAmount;
-
-                 const finalVolume = _pureConvertUnits(volumeInStockVolUnit, stockVolUnit, outputUnit);
-                 if (isNaN(finalVolume)) throw new Error(`No se puede convertir el volumen calculado (${stockVolUnit}) a la unidad de salida (${outputUnit}).`);
-
-                 resultDiv.textContent = `Administrar: ${finalVolume.toPrecision(4)} ${outputUnit}`;
-
-             } catch (error) {
-                 resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
-             }
-        }
-
-
-        // --- UTILITIES ---
-        function toggleSubCalc(targetId) {
-            const el = document.getElementById(targetId);
-            if(el) {
-                el.style.display = el.style.display === 'block' ? 'none' : 'block';
-            }
-        }
-        
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toast-message');
-            
-            toastMessage.textContent = message; 
-            toast.className = 'toast show fixed bottom-5 right-5 text-white py-4 px-8 rounded-xl shadow-2xl z-50'; 
-            toast.classList.add(type === 'error' ? 'bg-red-600' : 'bg-green-600');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-        
-        function populateUnitDropdowns(context = document) {
-            const massUnits = Object.keys(CONVERSION_FACTORS.mass);
-            const volUnits = Object.keys(CONVERSION_FACTORS.volume);
-            const concUnits = Object.keys(CONVERSION_FACTORS.concentration); 
-            const combinedUnits = [];
-            massUnits.forEach(m => volUnits.forEach(v => combinedUnits.push(`${m}/${v}`)));
-            const allConcUnits = [...concUnits, ...combinedUnits];
-            const allUnits = [...massUnits, ...volUnits, ...allConcUnits]; 
-
-            const ucFrom = context.querySelector('#uc-from'); 
-            if (ucFrom && context === document) { 
-                 
-                ucFrom.innerHTML = allUnits.map(u => `<option value="${u}">${u}</option>`).join('');
-                document.getElementById('uc-to').innerHTML = allUnits.map(u => `<option value="${u}">${u}</option>`).join('');
-                
-                document.getElementById('c1-unit').innerHTML = allConcUnits.map(u => `<option value="${u}" ${u==='mM' ? 'selected':''}>${u}</option>`).join('');
-                document.getElementById('c2-unit').innerHTML = allConcUnits.map(u => `<option value="${u}" ${u==='µM' ? 'selected':''}>${u}</option>`).join('');
-                document.getElementById('v1-unit').innerHTML = volUnits.map(u => `<option value="${u}" ${u==='mL' ? 'selected':''}>${u}</option>`).join('');
-                document.getElementById('v2-unit').innerHTML = volUnits.map(u => `<option value="${u}" ${u==='µL' ? 'selected':''}>${u}</option>`).join('');
-
-                 document.getElementById('dose-amount-unit').innerHTML = massUnits.map(u => `<option value="${u}" ${u==='mg' ? 'selected':''}>${u}</option>`).join('');
-                 document.getElementById('stock-conc-dose-unit').innerHTML = allConcUnits.map(u => `<option value="${u}" ${u==='mg/mL' ? 'selected':''}>${u}</option>`).join('');
-            }
-            
-            const finalConcUnitSelects = context.querySelectorAll('.variable-final-conc-unit');
-            const stockConcUnitSelects = context.querySelectorAll('.variable-stock-conc-unit');
-            
-            finalConcUnitSelects.forEach(select => {
-                select.innerHTML = allConcUnits.map(u => `<option value="${u}" ${u === 'µM' ? 'selected' : ''}>${u}</option>`).join('');
-            });
-            stockConcUnitSelects.forEach(select => {
-                select.innerHTML = allConcUnits.map(u => `<option value="${u}" ${u === 'mM' ? 'selected' : ''}>${u}</option>`).join('');
-            });
-        }
-        
-        // --- SAVE / LOAD ---
-        function saveExperiment() {
-            const experimentState = {
-                experimentName: document.getElementById('exp-name').value,
-                plateType: document.getElementById('plate-type').value,
-                wellData: wellData, 
-            };
-
-            const jsonString = JSON.stringify(experimentState, null, 2); 
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-
-            const a = document.createElement('a');
-            a.href = url; 
-            const fileName = (experimentState.experimentName || 'experimento').replace(/\s+/g, '_');
-            a.download = `${fileName}.json`; 
-            document.body.appendChild(a); 
-            a.click(); 
-            document.body.removeChild(a); 
-            URL.revokeObjectURL(url); 
-            showToast('Experimento guardado exitosamente.'); 
-        }
-
-        function loadExperiment(event) {
-            const file = event.target.files[0]; 
-            if (!file) return; 
-
-            const reader = new FileReader(); 
-            reader.onload = function(e) { 
-                try {
-                    const loadedState = JSON.parse(e.target.result);
-                    
-                    document.getElementById('exp-name').value = loadedState.experimentName || ''; 
-                    wellData = loadedState.wellData || {}; 
-                    generatePlate(loadedState); 
-                    showToast('Experimento cargado exitosamente.'); 
-                } catch (error) {
-                    showToast('Error al cargar el archivo. Asegúrate de que es un archivo de experimento válido.', 'error'); 
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = ''; 
-        }
-
-        // --- REPORTING ---
-        function generateReport() {
-            const output = document.getElementById('report-output');
-            const expName = document.getElementById('exp-name').value || 'Sin nombre';
-            const plateType = document.getElementById('plate-type').value;
-
-            if (Object.keys(wellData).length === 0) {
-                output.innerHTML = '<p class="text-red-500">No hay datos de experimento para reportar. Por favor, configura al menos un pozo.</p>';
-                document.getElementById('export-csv-btn').style.display = 'none'; 
-                return;
-            }
-
-            let html = `<h3>Información General</h3>
-                        <ul>
-                            <li><strong>Nombre del Experimento:</strong> ${expName}</li>
-                            <li><strong>Tipo de Placa:</strong> ${plateType} pozos</li>
-                        </ul>`;
-
-            const groupedWells = {};
-            for (const wellId in wellData) {
-                const configKey = JSON.stringify(wellData[wellId]); 
-                if (!groupedWells[configKey]) {
-                    groupedWells[configKey] = {
-                        config: wellData[wellId],
-                        wells: [] 
-                    };
-                }
-                groupedWells[configKey].wells.push(wellId);
-            }
-
-            html += `<h3>Configuración de Pozos</h3>`;
-            Object.values(groupedWells).forEach((group, index) => {
-                const config = group.config; 
-                html += `<div class="p-4 mb-4 border rounded-lg">
-                            <h4><strong>Grupo ${index + 1}:</strong> Pozos ${group.wells.join(', ')}</h4>
-                            <ul>
-                                <li><strong>Tipo:</strong> ${config.wellType}</li>
-                                <li><strong>Volumen Total:</strong> ${config.totalVolume ?? 'N/A'} µL</li>
-                                <li><strong>Células:</strong> ${config.cells?.count ?? 'N/A'}</li>
-                            </ul>`;
-                if (config.variables?.length > 0) {
-                    html += `<h5>Variables:</h5>
-                             <table class="min-w-full text-sm">
-                                <thead class="bg-gray-100"><tr><th>Nombre</th><th>Conc. Final</th></tr></thead>
-                                <tbody>`;
-                    config.variables.forEach(v => {
-                        html += `<tr><td>${v.name}</td><td>${v.finalConc} ${v.finalConcUnit}</td></tr>`;
-                    });
-                    html += `</tbody></table>`;
-                }
-                 if (config.protocol?.steps?.length > 0) {
-                    html += `<h5>Protocolo:</h5><ul>`;
-                    config.protocol.steps.forEach((step, i) => {
-                         const unitText = {3600000:'horas', 60000:'minutos', 86400000:'días'}[step.unit] || 'ms';
-                        html += `<li><strong>Paso ${i+1}:</strong> ${step.name} (${step.duration} ${unitText})</li>`;
-                    });
-                    html += `</ul>`;
-                }
-                html += `</div>`;
-            });
-            
-            output.innerHTML = html;
-            document.getElementById('export-csv-btn').style.display = 'inline-block';
-        }
-
-        function exportReportCSV() {
-            const expName = document.getElementById('exp-name').value || 'Sin nombre';
-            const plateType = document.getElementById('plate-type').value;
-            let csvContent = "\uFEFF"; 
-            
-            const escapeCSV = (str) => {
-                 const value = (str === undefined || str === null) ? '' : String(str);
-                if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-                    return `"${value.replace(/"/g, '""')}"`; 
-                }
-                return value; 
-            };
-
-            csvContent += "Sección,Parámetro,Valor\n";
-            csvContent += `Información General,Nombre del Experimento,${escapeCSV(expName)}\n`;
-            csvContent += `Información General,Tipo de Placa,${escapeCSV(plateType + ' pozos')}\n\n`;
-
-            const headers = ['Pozo', 'Tipo de Pozo', 'Volumen Total (uL)', 'Cantidad de Células'];
-            const allVars = new Set();
-            let maxSteps = 0;
-            Object.values(wellData).forEach(d => {
-                d.variables?.forEach(v => allVars.add(v.name)); 
-                if(d.protocol?.steps?.length > maxSteps) maxSteps = d.protocol.steps.length; 
-            });
-            const varColumns = Array.from(allVars); 
-            varColumns.forEach(v => headers.push(`Variable: ${v} (Conc. Final)`));
-             for(let i=1; i<= maxSteps; i++) {
-                headers.push(`Paso ${i}: Nombre`);
-                headers.push(`Paso ${i}: Duración`);
-            }
-            csvContent += headers.map(escapeCSV).join(',') + '\n';
-            
-            const sortedWellIds = Object.keys(wellData).sort((a, b) => {
-                const rowA = a.match(/[A-Z]+/)[0];
-                const colA = parseInt(a.match(/\d+/)[0]);
-                const rowB = b.match(/[A-Z]+/)[0];
-                const colB = parseInt(b.match(/\d+/)[0]);
-                if (rowA !== rowB) return rowA.localeCompare(rowB);
-                return colA - colB;
-            });
-
-            for (const wellId of sortedWellIds) {
-                const d = wellData[wellId]; 
-                 const row = [
-                    wellId,
-                    d.wellType,
-                    d.totalVolume ?? '', 
-                    d.cells?.count ?? '' 
-                ];
-                varColumns.forEach(varName => {
-                    const variable = d.variables?.find(v => v.name === varName); 
-                    row.push(variable ? `${variable.finalConc ?? ''} ${variable.finalConcUnit ?? ''}`.trim() : ''); 
-                });
-
-                for(let i=0; i< maxSteps; i++) {
-                    const step = d.protocol?.steps?.[i]; 
-                    if (step) {
-                         const unitText = {3600000:'horas', 60000:'minutos', 86400000:'días'}[step.unit] || 'ms';
-                        row.push(step.name);
-                        row.push(`${step.duration} ${unitText}`);
-                    } else {
-                        row.push('');
-                        row.push('');
-                    }
-                }
-                csvContent += row.map(escapeCSV).join(',') + '\n';
-            }
-            csvContent += '\n'; 
-
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            const fileName = (expName || 'reporte').replace(/\s+/g, '_'); 
-            link.setAttribute("download", `${fileName}.csv`);
-            document.body.appendChild(link); 
-            link.click(); 
-            document.body.removeChild(link); 
-            URL.revokeObjectURL(url); 
-        }
-
-
-        // --- INITIALIZATION ---
-        window.onload = () => {
-            generatePlate(); 
-            populateUnitDropdowns(); 
-            if (typeof Notification !== 'undefined' && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-                Notification.requestPermission();
-            }
-            changeTab('guide'); 
-            document.getElementById('load-exp-input').addEventListener('change', loadExperiment);
-            document.getElementById('load-model-input').addEventListener('change', loadModelData);
-
-        };
+        };
+
+        const CONVERSION_FACTORS = {
+            'mass': { 'kg': 1000, 'g': 1, 'mg': 1e-3, 'µg': 1e-6, 'ng': 1e-9, 'pg': 1e-12 },
+            'volume': { 'L': 1, 'mL': 1e-3, 'µL': 1e-6, 'nL': 1e-9 },
+            'concentration': { 'M': 1, 'mM': 1e-3, 'µM': 1e-6, 'nM': 1e-9 },
+            'length': { 'm': 1, 'cm': 1e-2, 'mm': 1e-3},
+            'force': { 'N': 1, 'gf': 9.80665e-3 }, 
+            'pressure': { 'Pa': 1, 'mmHg': 133.322 },
+        };
+        
+        let wellData = {}; 
+        let selectedWells = new Set();
+        let variableCounter = 0;
+        let runningTimers = {};
+        let animalModels = {}; 
+        let currentEditingModelId = null; 
+
+        // --- VARIABLES DEL CONTADOR AI ---
+        let base64Images = []; // Almacena hasta 4 objetos de imagen
+        let currentResults = []; // Almacena resultados de la tabla para Excel
+        const MAX_SLOTS = 4;
+        const CORRECTION_FACTOR = 2500; // Factor para 4 cuadrantes grandes (1 / 0.0004 mL)
+        const DILUTION_FACTOR_FIXED = 1; // Dilución asumida: Muestra Pura (1:1)
+        const apiKey = ""; // Clave API gestionada por el entorno
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const MAX_RETRIES = 3;
+
+
+        // --- TABS & NAVIGATION ---
+        function changeTab(tabName) {
+            const contents = ['planner', 'models', 'protocols', 'report', 'calculators', 'guide', 'about', 'cell-counter']; 
+            contents.forEach(content => {
+                const el = document.getElementById(`content-${content}`);
+                const tab = document.getElementById(`tab-${content}`);
+                if (el) el.style.display = content === tabName ? 'block' : 'none';
+                if (tab) tab.classList.toggle('active', content === tabName);
+            });
+            if (tabName === 'models') {
+                renderAnimalModels(); 
+            }
+        }
+
+        // --- UTILIDADES DE CONVERSIÓN ---
+        function getUnitType(unit) {
+             if (!unit) return null;
+             for (const type in CONVERSION_FACTORS) {
+                 if (CONVERSION_FACTORS[type][unit]) {
+                     return type;
+                 }
+             }
+             if (unit.includes('/')) {
+                 const parts = unit.split('/');
+                 if (parts.length === 2 && CONVERSION_FACTORS.mass[parts[0]] && CONVERSION_FACTORS.volume[parts[1]]) {
+                     return 'combined_concentration';
+                 }
+             }
+             return null; 
+        }
+
+        function convertToBaseUnit(value, fromUnit) {
+            const type = getUnitType(fromUnit);
+            if (!type || isNaN(value)) return NaN;
+
+            if (type === 'combined_concentration') {
+                 const [massUnit, volUnit] = fromUnit.split('/');
+                 const valueInG = value * (CONVERSION_FACTORS.mass[massUnit] || NaN);
+                 const volumeInL = 1 * (CONVERSION_FACTORS.volume[volUnit] || NaN); 
+                 if (isNaN(valueInG) || isNaN(volumeInL) || volumeInL === 0) return NaN;
+                 return valueInG / volumeInL; 
+            } else if (CONVERSION_FACTORS[type]) {
+                return value * (CONVERSION_FACTORS[type][fromUnit] || NaN);
+            }
+            return NaN; 
+        }
+
+        function convertFromBaseUnit(value, toUnit) {
+            const type = getUnitType(toUnit);
+             if (!type || isNaN(value)) return NaN;
+
+             if (type === 'combined_concentration') {
+                 const [massUnit, volUnit] = toUnit.split('/');
+                 const targetMassFactor = CONVERSION_FACTORS.mass[massUnit];
+                 const targetVolFactor = CONVERSION_FACTORS.volume[volUnit];
+                 if (!targetMassFactor || !targetVolFactor) return NaN;
+                 return value * targetMassFactor / targetVolFactor;
+             } else if (CONVERSION_FACTORS[type]) {
+                 const factor = CONVERSION_FACTORS[type][toUnit];
+                 if (!factor) return NaN;
+                 return value / factor;
+             }
+             return NaN; 
+        }
+
+        function _pureConvertUnits(value, from, to) {
+            if (isNaN(value) || !from || !to) return NaN;
+            if (from === to) return value;
+
+            const fromType = getUnitType(from);
+            const toType = getUnitType(to);
+
+             if (!fromType || !toType || fromType !== toType) {
+                 return NaN; 
+             }
+            
+            const baseValue = convertToBaseUnit(value, from);
+            if (isNaN(baseValue)) return NaN;
+            const finalValue = convertFromBaseUnit(baseValue, to);
+             
+            return finalValue;
+        }
+
+        // --- QUICK CALCULATORS (Molar Mass, Unit Conversion, Dilution) ---
+        function parseFormula(formula) {
+            const regex = /([A-Z][a-z]*)(\d*)|(\()|(\))(\d*)/g;
+            let match;
+            const stack = [{}]; 
+            while ((match = regex.exec(formula))) {
+                const [, element, countStr, openParen, closeParen, parenCountStr] = match;
+                const count = countStr ? parseInt(countStr) : 1;
+                const parenCount = parenCountStr ? parseInt(parenCountStr) : 1;
+
+                if (element) { 
+                    const currentGroup = stack[stack.length - 1];
+                    currentGroup[element] = (currentGroup[element] || 0) + count;
+                } else if (openParen) { 
+                    stack.push({});
+                } else if (closeParen && stack.length > 1) { 
+                    const completedGroup = stack.pop();
+                    const currentGroup = stack[stack.length - 1];
+                    for (const el in completedGroup) {
+                        currentGroup[el] = (currentGroup[el] || 0) + completedGroup[el] * parenCount;
+                    }
+                }
+            }
+            if (stack.length !== 1) { 
+                throw new Error("Paréntesis no balanceados en la fórmula.");
+            }
+            return stack[0]; 
+        }
+
+
+        function calculateMolarMass() {
+            const formula = document.getElementById('chem-formula').value.replace(/\s+/g, ''); 
+            const resultDiv = document.getElementById('molar-mass-result');
+            if (!formula) {
+                resultDiv.innerHTML = `<span class="text-red-500">Por favor, introduce una fórmula.</span>`;
+                return;
+            }
+            try {
+                const composition = parseFormula(formula);
+                let totalMass = 0;
+                let breakdown = [];
+                for (const element in composition) {
+                    if (!ATOMIC_WEIGHTS[element]) {
+                        throw new Error(`Elemento desconocido: ${element}`);
+                    }
+                    const mass = ATOMIC_WEIGHTS[element] * composition[element];
+                    totalMass += mass;
+                    breakdown.push(`<b>${element}</b>: ${composition[element]} x ${ATOMIC_WEIGHTS[element]} = ${mass.toFixed(4)}`);
+                }
+                resultDiv.innerHTML = `<b>Masa Molar Total: <span class="text-blue-600">${totalMass.toFixed(4)} g/mol</span></b><br><small>${breakdown.join('<br>')}</small>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+            }
+        }
+        
+        function convertUnits() {
+            const value = parseFloat(document.getElementById('uc-value').value);
+            const from = document.getElementById('uc-from').value;
+            const to = document.getElementById('uc-to').value;
+            const resultDiv = document.getElementById('uc-result');
+
+            const finalValue = _pureConvertUnits(value, from, to);
+            
+            if (isNaN(finalValue)) {
+                 resultDiv.innerHTML = `<span class="text-red-500">No se puede convertir entre estas unidades o tipos.</span>`;
+            } else {
+                 resultDiv.textContent = `${value} ${from} = ${finalValue.toExponential(4)} ${to}`;
+            }
+        }
+
+        function calculateDilution() {
+            const fields = {
+                c1: { val: parseFloat(document.getElementById('c1').value), unit: document.getElementById('c1-unit').value },
+                v1: { val: parseFloat(document.getElementById('v1').value), unit: document.getElementById('v1-unit').value },
+                c2: { val: parseFloat(document.getElementById('c2').value), unit: document.getElementById('c2-unit').value },
+                v2: { val: parseFloat(document.getElementById('v2').value), unit: document.getElementById('v2-unit').value },
+            };
+
+            const resultDiv = document.getElementById('dilution-result');
+            const emptyFields = Object.keys(fields).filter(k => isNaN(fields[k].val));
+
+            if (emptyFields.length !== 1) {
+                resultDiv.innerHTML = `<span class="text-red-500">Por favor, introduce exactamente 3 valores numéricos.</span>`;
+                return;
+            }
+
+            const missingVar = emptyFields[0];
+            let result;
+            let resultUnit;
+
+            try {
+                 const c2_conv = _pureConvertUnits(fields.c2.val, fields.c2.unit, fields.c1.unit);
+                 const v2_conv = _pureConvertUnits(fields.v2.val, fields.v2.unit, fields.v1.unit);
+                
+                if (isNaN(c2_conv) && !isNaN(fields.c2.val)) throw new Error(`No se puede convertir la unidad de C2 (${fields.c2.unit}) a la de C1 (${fields.c1.unit}). Asegúrate que son del mismo tipo (ej. ambas molares o ambas masa/volumen).`);
+                if (isNaN(v2_conv) && !isNaN(fields.v2.val)) throw new Error(`No se puede convertir la unidad de V2 (${fields.v2.unit}) a la de V1 (${fields.v1.unit}).`);
+
+                let c1_val = fields.c1.val;
+                let v1_val = fields.v1.val;
+
+                switch (missingVar) {
+                    case 'c1': 
+                        result = (c2_conv * v2_conv) / v1_val;
+                        resultUnit = fields.c1.unit; 
+                        break;
+                    case 'v1': 
+                        result = (c2_conv * v2_conv) / c1_val;
+                        resultUnit = fields.v1.unit; 
+                        break;
+                    case 'c2': 
+                        const c2_in_c1_units = (c1_val * v1_val) / v2_conv; 
+                        result = _pureConvertUnits(c2_in_c1_units, fields.c1.unit, fields.c2.unit);
+                        resultUnit = fields.c2.unit;
+                        break;
+                    case 'v2': 
+                        const v2_in_v1_units = (c1_val * v1_val) / c2_conv;
+                        result = _pureConvertUnits(v2_in_v1_units, fields.v1.unit, fields.v2.unit);
+                        resultUnit = fields.v2.unit;
+                        break;
+                }
+
+                if (isNaN(result) || !isFinite(result)) {
+                    throw new Error("El resultado es inválido. Revisa los valores y unidades.");
+                }
+
+                resultDiv.textContent = `Resultado: ${missingVar.toUpperCase()} = ${result.toPrecision(4)} ${resultUnit}`;
+
+            } catch (error) {
+                 resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+            }
+        }
+
+
+        // --- CONTADOR CELULAR AI FUNCTIONS ---
+
+        /** Inicializa los slots de carga de imágenes */
+        function initializeUploadSlots() {
+            const cellUploadSlotsContainer = document.getElementById('cellUploadSlots');
+            const cellUploadSlotTemplate = document.getElementById('cellUploadSlotTemplate');
+            
+            // Limpiar slots existentes antes de inicializar
+            cellUploadSlotsContainer.innerHTML = ''; 
+            base64Images = [];
+
+            for (let i = 1; i <= MAX_SLOTS; i++) {
+                const slot = cellUploadSlotTemplate.content.cloneNode(true);
+                const container = slot.querySelector('div');
+                const label = container.querySelector('[data-slot-label]');
+                const input = container.querySelector('.cell-upload-input');
+                const preview = container.querySelector('.image-preview-slot');
+                const clearButton = container.querySelector('.clear-button');
+
+                label.textContent = `Región ${i}`;
+                input.id = `imageUpload${i}`;
+                input.dataset.slotIndex = i;
+                preview.dataset.slotIndex = i;
+                clearButton.dataset.slotIndex = i;
+                clearButton.onclick = function() { clearImageSlot(this); };
+                input.onchange = function(event) { handleImageUpload(event, this); };
+
+                cellUploadSlotsContainer.appendChild(slot);
+                base64Images[i] = null; // Inicializar array
+            }
+            updateAnalyzeButtonState();
+        }
+
+        /**
+         * Convierte el archivo seleccionado a una cadena base64.
+         */
+        function getBase64Image(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const [mimeTypePart, dataPart] = reader.result.split(',');
+                    const mimeType = mimeTypePart.match(/:(.*?);/)[1];
+                    resolve({ data: dataPart, mimeType: mimeType });
+                };
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        /**
+         * Maneja la carga de la imagen en un slot específico.
+         */
+        async function handleImageUpload(event, inputElement) {
+            document.getElementById('errorCard').classList.add('hidden');
+            document.getElementById('resultsContent').innerHTML = '<p>Los resultados del conteo aparecerán aquí en una tabla detallada por cada región cargada.</p>';
+            document.getElementById('downloadExcelButton').classList.add('hidden');
+            document.getElementById('totalSummary').classList.add('hidden');
+            currentResults = [];
+            
+            const slotIndex = parseInt(inputElement.dataset.slotIndex);
+            const file = inputElement.files[0];
+            const preview = inputElement.nextElementSibling;
+            const clearButton = inputElement.nextElementSibling.nextElementSibling;
+
+            if (file) {
+                preview.src = URL.createObjectURL(file);
+                try {
+                    const result = await getBase64Image(file);
+                    base64Images[slotIndex] = { ...result, slotIndex };
+                    clearButton.classList.remove('hidden');
+                } catch (error) {
+                    console.error("Error al leer el archivo:", error);
+                    base64Images[slotIndex] = null;
+                    clearButton.classList.add('hidden');
+                }
+            } else {
+                clearImageSlot(clearButton);
+            }
+            updateAnalyzeButtonState();
+        }
+
+        /** Limpia un slot de imagen. */
+        function clearImageSlot(buttonElement) {
+            const slotIndex = parseInt(buttonElement.dataset.slotIndex);
+            const container = buttonElement.closest('div');
+            const input = container.querySelector('.cell-upload-input');
+            const preview = container.querySelector('.image-preview-slot');
+
+            input.value = ''; // Resetear el input file
+            preview.src = `https://placehold.co/150x150/e5e7eb/9ca3af?text=Slot`;
+            base64Images[slotIndex] = null;
+            buttonElement.classList.add('hidden');
+            updateAnalyzeButtonState();
+        }
+
+        /** Habilita/deshabilita el botón de análisis. */
+        function updateAnalyzeButtonState() {
+            const loadedImages = base64Images.filter(img => img !== null && img !== undefined);
+            const analyzeButton = document.getElementById('analyzeButton');
+            if (loadedImages.length > 0) {
+                analyzeButton.disabled = false;
+                analyzeButton.classList.replace('bg-gray-400', 'bg-blue-600');
+                analyzeButton.classList.add('hover:bg-blue-700');
+            } else {
+                analyzeButton.disabled = true;
+                analyzeButton.classList.replace('bg-blue-600', 'bg-gray-400');
+                analyzeButton.classList.remove('hover:bg-blue-700');
+            }
+        }
+        
+        /**
+         * Formato de números grandes con separador de miles.
+         */
+        function formatNumber(num) {
+            if (num === 0) return '0';
+            const options = { maximumSignificantDigits: 4 };
+            return new Intl.NumberFormat('es-MX', options).format(num);
+        }
+
+        /**
+         * Calcula la concentración final de la muestra.
+         * Células/mL = (Conteo Total / N Cuadrantes) * 1 (Dilución Fija) * 2,500
+         */
+        function calculateConcentration(totalCount) {
+            const dilutionFactor = DILUTION_FACTOR_FIXED; 
+            const numRegions = base64Images.filter(img => img !== null && img !== undefined).length;
+            
+            if (totalCount === 0 || numRegions === 0) return 0;
+
+            const averageCountPerRegion = totalCount / numRegions; 
+            const concentration = averageCountPerRegion * dilutionFactor * CORRECTION_FACTOR;
+
+            return concentration;
+        }
+
+
+        /**
+         * Llama a la API de Gemini para analizar las imágenes.
+         */
+        async function analyzeImage() {
+            const loadedImages = base64Images.filter(img => img !== null && img !== undefined);
+            const analyzeButton = document.getElementById('analyzeButton');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+
+            if (loadedImages.length === 0) {
+                displayError("Carga al menos una imagen para analizar.");
+                return;
+            }
+
+            document.getElementById('errorCard').classList.add('hidden');
+            loadingIndicator.classList.remove('hidden');
+            analyzeButton.disabled = true;
+            analyzeButton.textContent = 'Analizando...';
+            document.getElementById('resultsContent').innerHTML = '';
+            document.getElementById('downloadExcelButton').classList.add('hidden');
+            document.getElementById('totalSummary').classList.add('hidden');
+            currentResults = [];
+
+            // Construir la lista de partes del contenido (texto + imágenes)
+            const parts = [{ 
+                text: `Analiza las ${loadedImages.length} imágenes proporcionadas. Identifícalas como Región ${loadedImages.map(img => img.slotIndex).join(', Región ')}. Para cada imagen, realiza el conteo total de células. Luego, proporciona un análisis estructurado y profesional. Tu respuesta debe ser una lista numerada (1. Región X, 2. Región Y, etc.) donde cada entrada contiene: a) El conteo total como primer valor numérico, y b) una descripción con las siguientes secciones obligatorias, usando el formato **Título** para los encabezados: **CONTEO Y DENSIDAD**, **MORFOLOGÍA CELULAR**, **DISTRIBUCIÓN EN LA CUADRÍCULA**, y **APUNTES ADICIONALES**. No incluyas ningún saludo, introducción o descripción de tu persona ni notas de cierre.` 
+            }];
+
+            loadedImages.forEach(img => {
+                parts.push({
+                    inlineData: {
+                        mimeType: img.mimeType,
+                        data: img.data
+                    }
+                });
+            });
+
+            const systemPrompt = "Eres un sistema de análisis de imágenes cuyo único objetivo es ejecutar la tarea solicitada. Genera el resultado del análisis de las imágenes de la cámara de Neubauer. Tu respuesta debe ser concisa, profesional y limitarse estrictamente a la información solicitada sin preámbulos, descripciones de tu rol, ni notas de cierre. El primer elemento de cada entrada de la lista debe ser el número total de células contado para esa imagen.";
+
+            const payload = {
+                contents: [{ role: "user", parts }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            for (let i = 0; i < MAX_RETRIES; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    // --- NUEVA LÓGICA DE MANEJO DE RESPUESTA ROBUSTA ---
+                    const responseText = await response.text();
+                    let result;
+
+                    try {
+                        result = JSON.parse(responseText);
+                    } catch (e) {
+                        // Captura el error de sintaxis JSON (ej: Unexpected end of input)
+                        if (!response.ok) {
+                            // Si el status NO es OK y falla JSON, es un error HTTP con respuesta malformada
+                            throw new Error(`Error HTTP ${response.status} (${response.statusText}). La respuesta no es JSON válido. Contenido: ${responseText.substring(0, 100)}...`);
+                        }
+                        // Si el status SÍ es OK (200) pero falla JSON (cuerpo vacío o incompleto)
+                        throw new Error(`Error de sintaxis JSON, la respuesta de la API fue inválida. Contenido: ${responseText.substring(0, 100)}...`);
+                    }
+
+                    if (!response.ok) {
+                        // Si la respuesta fue HTTP error pero el cuerpo sí era JSON válido.
+                        throw new Error(`Error HTTP ${response.status} (${response.statusText}): ${result.error?.message || 'Fallo en la llamada a la API.'}`);
+                    }
+                    // --- FIN LÓGICA DE MANEJO DE RESPUESTA ---
+
+                    // Continuar con el procesamiento del resultado
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (text) {
+                        formatAndDisplayResult(text);
+                        return; // Éxito, salir del bucle
+                    } else {
+                        // El JSON es válido (cuerpo no vacío), pero faltan los datos esperados
+                        throw new Error("La respuesta de la IA no contenía texto generado (candidatos vacíos o estructura inesperada).");
+                    }
+
+                } catch (error) {
+                    console.error(`Intento ${i + 1} fallido:`, error);
+                    if (i === MAX_RETRIES - 1) {
+                        displayError(`No se pudo completar el análisis después de ${MAX_RETRIES} intentos. Error: ${error.message}`);
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                    }
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                    updateAnalyzeButtonState(); 
+                    analyzeButton.textContent = 'Paso 3: Analizar y Calcular Concentración';
+                }
+            }
+        }
+
+        /**
+         * Formatea el resultado de texto de la IA (múltiples regiones) en una tabla y lo muestra.
+         */
+        function formatAndDisplayResult(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const regionData = [];
+            let totalCount = 0;
+            let currentRegion = {};
+
+            // Expresión para detectar el inicio de una nueva región (ej. "1. Región X" o "1.")
+            const regionStartRegex = /^(\d+\.\s*|\[?Región\s*(\d+)\]?\.?)(.*)/i; 
+            
+            // Reconstruir la data basada en las líneas
+            lines.forEach(line => {
+                const match = line.match(regionStartRegex);
+                
+                if (match) {
+                    if (currentRegion.Region) {
+                        regionData.push(currentRegion);
+                    }
+                    
+                    let regionText = match[0];
+                    let countMatch = regionText.match(/(\d+)/);
+                    let count = countMatch ? parseInt(countMatch[1]) : 0;
+                    
+                    let regionNumber = match[2] ? parseInt(match[2]) : (regionData.length + 1);
+
+                    currentRegion = {
+                        Region: `Región ${regionNumber}`,
+                        Conteo: count,
+                        Interpretacion: line.replace(countMatch ? countMatch[0] : '', '').trim()
+                    };
+                    
+                    if (!countMatch) {
+                        const innerCountMatch = line.match(/\*\*CONTEO Y DENSIDAD\*\*.*?(\d+)/i);
+                        currentRegion.Conteo = innerCountMatch ? parseInt(innerCountMatch[1]) : 0;
+                    }
+
+                    totalCount += currentRegion.Conteo;
+
+                } else if (currentRegion.Region) {
+                    currentRegion.Interpretacion += '\n' + line;
+                }
+            });
+
+            if (currentRegion.Region) {
+                regionData.push(currentRegion);
+            }
+
+            // CALCULAR CONCENTRACIÓN
+            const finalConcentration = calculateConcentration(totalCount);
+            const numRegions = base64Images.filter(img => img !== null && img !== undefined).length;
+            
+            // Actualizar visualización del resumen
+            document.getElementById('totalCountDisplay').textContent = formatNumber(totalCount);
+            document.getElementById('finalConcentrationDisplay').textContent = formatNumber(finalConcentration);
+            document.getElementById('calcRegions').textContent = numRegions;
+
+
+            // Mapear los resultados para la tabla HTML y el Excel
+            currentResults = regionData.map(data => {
+                const interpretationHTML = data.Interpretacion
+                    .replace(/\*\*(.*?)\*\*/g, '<h4>$1</h4>') // Markdown a <h4>
+                    .split('\n').map(line => line.trim() === '' ? '<br>' : line).join('');
+
+                return {
+                    'Región': data.Region,
+                    'Conteo': data.Conteo,
+                    'Interpretación (HTML)': interpretationHTML,
+                    'Interpretación (Texto Simple)': data.Interpretacion.replace(/<\/?h4>/g, ' ').replace(/<br>/g, ' ').replace(/\s+/g, ' ').trim() // Para Excel
+                };
+            });
+            
+            // Generar HTML de la tabla
+            let tableHtml = `
+                <div class="table-responsive">
+                    <table id="cell-counter-results-table" class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Región</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Células Contadas</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10/12">Interpretación y Análisis Morfológico</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+            `;
+
+            currentResults.forEach(data => {
+                tableHtml += `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 align-top">${data['Región']}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 align-top">
+                            <span class="text-xl font-extrabold">${data.Conteo}</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500 interpretation-content">
+                            ${data['Interpretación (HTML)']}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `</tbody></table></div>`;
+            
+            document.getElementById('resultsContent').innerHTML = tableHtml;
+            document.getElementById('totalSummary').classList.remove('hidden');
+            document.getElementById('downloadExcelButton').classList.remove('hidden'); 
+        }
+
+        /**
+         * Muestra un mensaje de error y limpia el estado de carga.
+         */
+        function displayError(message) {
+            document.getElementById('loadingIndicator').classList.add('hidden');
+            document.getElementById('analyzeButton').disabled = false;
+            document.getElementById('analyzeButton').textContent = 'Paso 3: Analizar y Calcular Concentración';
+            document.getElementById('errorCard').classList.remove('hidden');
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('downloadExcelButton').classList.add('hidden');
+            document.getElementById('totalSummary').classList.add('hidden');
+        }
+
+        /**
+         * Descarga los resultados actuales en un archivo Excel.
+         */
+        function downloadExcel() {
+            if (currentResults.length === 0) {
+                document.getElementById('errorMessage').textContent = "No hay resultados para descargar.";
+                document.getElementById('errorCard').classList.remove('hidden');
+                return;
+            }
+
+            const totalCount = currentResults.reduce((sum, item) => sum + item['Conteo'], 0);
+            const finalConcentration = calculateConcentration(totalCount);
+            
+            // Preparamos los datos para Excel (usando solo las columnas de texto simple)
+            const excelData = currentResults.map(data => ({
+                'Región': data['Región'],
+                'Células Contadas': data['Conteo'],
+                'Análisis Detallado': data['Interpretación (Texto Simple)']
+            }));
+            
+            // Añadir la fila de resumen
+            excelData.push(
+                {}, 
+                {
+                    'Región': 'RESUMEN TOTAL',
+                    'Células Contadas': totalCount,
+                    'Análisis Detallado': 'Suma total de células contadas en todas las regiones.'
+                },
+                {
+                    'Región': 'CONCENTRACIÓN FINAL (Células/mL)',
+                    'Células Contadas': finalConcentration,
+                    'Análisis Detallado': `Cálculo: (Conteo Promedio) x 2,500. Se asume Dilución 1:1. Regiones Contadas: ${currentResults.length}.`
+                }
+            );
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Conteo Celular Multirregión");
+            XLSX.writeFile(workbook, `resultados_conteo_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        }
+        
+        // --- PLATE PLANNER ---
+        function generatePlate(restoringData = null) {
+            const plateType = restoringData ? restoringData.plateType : document.getElementById('plate-type').value;
+            document.getElementById('plate-type').value = plateType; 
+            const layout = document.getElementById('plate-layout');
+            layout.innerHTML = ''; 
+            
+            if (!restoringData) {
+                wellData = {};
+            }
+            selectedWells.clear(); 
+
+            const plateConfigs = {
+                '6': { rows: 2, cols: 3 }, '12': { rows: 3, cols: 4 },
+                '24': { rows: 4, cols: 6 }, '48': { rows: 6, cols: 8 },
+                '96': { rows: 8, cols: 12 },
+            };
+            const config = plateConfigs[plateType];
+            layout.style.gridTemplateColumns = `repeat(${config.cols}, minmax(0, 1fr))`;
+            layout.style.display = 'grid';
+
+            for (let r = 0; r < config.rows; r++) {
+                for (let c = 0; c < config.cols; c++) {
+                    const rowLabel = String.fromCharCode(65 + r); 
+                    const colLabel = c + 1; 
+                    const wellId = `${rowLabel}${colLabel}`; 
+                    
+                    const well = document.createElement('div');
+                    well.id = `well-${wellId}`;
+                    well.className = 'well w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center cursor-pointer bg-white';
+                    well.dataset.id = wellId;
+                    
+                    const label = document.createElement('span');
+                    label.className = 'well-label text-sm md:text-base font-semibold';
+                    label.textContent = wellId;
+                    well.appendChild(label);
+
+                    well.addEventListener('click', () => toggleWellSelection(wellId));
+                    layout.appendChild(well); 
+
+                    if (restoringData?.wellData?.[wellId]) {
+                        const data = restoringData.wellData[wellId];
+                        well.classList.add('configured'); 
+                        if (data.wellType && data.wellType !== 'default') {
+                            well.classList.add(data.wellType);
+                        }
+                    }
+                }
+            }
+            updateProtocolSchedule(); 
+        }
+
+
+        function toggleWellSelection(wellId) {
+            const wellEl = document.getElementById(`well-${wellId}`);
+            if (selectedWells.has(wellId)) { 
+                selectedWells.delete(wellId);
+                wellEl.classList.remove('selected');
+            } else { 
+                selectedWells.add(wellId);
+                wellEl.classList.add('selected');
+            }
+        }
+
+        function selectAllWells() {
+            document.querySelectorAll('#plate-layout .well').forEach(well => {
+                const wellId = well.dataset.id;
+                if (!selectedWells.has(wellId)) { 
+                    selectedWells.add(wellId);
+                    well.classList.add('selected');
+                }
+            });
+        }
+        
+        function clearSelection() {
+            selectedWells.forEach(wellId => { 
+                const wellEl = document.getElementById(`well-${wellId}`);
+                if (wellEl) wellEl.classList.remove('selected');
+            });
+            selectedWells.clear(); 
+        }
+
+        function openWellConfigModal() {
+            if (selectedWells.size === 0) { 
+                showToast('Por favor, selecciona al menos un pozo para configurar.', 'error');
+                return;
+            }
+            const wellIds = Array.from(selectedWells).sort(); 
+            document.getElementById('well-ids-display').textContent = wellIds.join(', ');
+            
+            const firstWellId = wellIds[0];
+            if (wellData[firstWellId]) {
+                loadConfigToModal(wellData[firstWellId]); 
+            } else {
+                resetModal(); 
+            }
+
+            document.getElementById('well-config-modal').style.display = 'flex';
+        }
+
+        function closeWellConfigModal() {
+            document.getElementById('well-config-modal').style.display = 'none'; 
+        }
+        
+        function resetModal() {
+             document.getElementById('well-type').value = 'default';
+             document.getElementById('well-total-volume').value = '';
+             document.getElementById('well-cell-count').value = '';
+             document.getElementById('variables-container').innerHTML = ''; 
+             document.getElementById('protocol-steps-container').innerHTML = ''; 
+             document.getElementById('neubauer-q1').value = '';
+             document.getElementById('neubauer-q2').value = '';
+             document.getElementById('neubauer-q3').value = '';
+             document.getElementById('neubauer-q4').value = '';
+             document.getElementById('cell-stock-conc').value = '';
+             document.getElementById('cell-stock-conc-unit').value = '1'; 
+             document.getElementById('cell-volume-result').textContent = '';
+             variableCounter = 0; 
+             addVariable(); 
+             addProtocolStep(); 
+        }
+
+
+        function loadConfigToModal(data) {
+            resetModal(); 
+             document.getElementById('well-type').value = data.wellType || 'default';
+             document.getElementById('well-total-volume').value = data.totalVolume || '';
+             document.getElementById('well-cell-count').value = data.cells?.count || '';
+            
+            const variablesContainer = document.getElementById('variables-container');
+            variablesContainer.innerHTML = ''; 
+            if (data.variables?.length > 0) {
+                data.variables.forEach(v => addVariable(v)); 
+            } else {
+                addVariable(); 
+            }
+            
+            const stepsContainer = document.getElementById('protocol-steps-container');
+            stepsContainer.innerHTML = ''; 
+            if (data.protocol?.steps?.length > 0) {
+                data.protocol.steps.forEach(s => addProtocolStep(s)); 
+            } else {
+                addProtocolStep(); 
+            }
+        }
+
+
+        function saveWellConfig() {
+            const wellType = document.getElementById('well-type').value;
+            const totalVolume = parseFloat(document.getElementById('well-total-volume').value);
+            const cellCount = parseFloat(document.getElementById('well-cell-count').value);
+
+            const variables = [];
+            document.querySelectorAll('#variables-container > div.p-4').forEach(varDiv => { 
+                const variable = {
+                    id: varDiv.dataset.id, 
+                    name: varDiv.querySelector('.variable-name').value.trim(),
+                    finalConc: parseFloat(varDiv.querySelector('.variable-final-conc').value),
+                    finalConcUnit: varDiv.querySelector('.variable-final-conc-unit').value,
+                };
+                if (variable.name && !isNaN(variable.finalConc)) {
+                    variables.push(variable);
+                }
+            });
+            
+            const protocolSteps = [];
+            document.querySelectorAll('#protocol-steps-container > div').forEach(stepDiv => {
+                const step = {
+                    name: stepDiv.querySelector('.protocol-step-name').value.trim(),
+                    duration: parseFloat(stepDiv.querySelector('.protocol-step-duration').value),
+                    unit: parseInt(stepDiv.querySelector('.protocol-step-unit').value) 
+                };
+                if (step.name && !isNaN(step.duration)) {
+                    protocolSteps.push(step);
+                }
+            });
+
+            const configData = {
+                wellType,
+                totalVolume: isNaN(totalVolume) ? null : totalVolume, 
+                cells: { count: isNaN(cellCount) ? null : cellCount }, 
+                variables,
+                protocol: {
+                    steps: protocolSteps
+                }
+            };
+            
+            selectedWells.forEach(wellId => {
+                wellData[wellId] = JSON.parse(JSON.stringify(configData)); 
+                const wellEl = document.getElementById(`well-${wellId}`);
+                if (wellEl) {
+                     wellEl.classList.remove('control', 'experimental', 'blanco', 'tratamiento-1', 'tratamiento-2', 'default');
+                    if (wellType !== 'default') {
+                        wellEl.classList.add(wellType); 
+                    }
+                    wellEl.classList.add('configured'); 
+                    wellEl.classList.remove('selected'); 
+                }
+            });
+            
+            updateProtocolSchedule(); 
+            clearSelection(); 
+            closeWellConfigModal(); 
+            showToast('Configuración guardada para los pozos seleccionados.'); 
+        }
+        
+        function addVariable(data = null) {
+            const template = document.getElementById('variable-template');
+            const clone = template.cloneNode(true); 
+            clone.id = ''; 
+            clone.classList.remove('hidden'); 
+            
+            const uniqueId = `var-${variableCounter++}`; 
+            clone.dataset.id = uniqueId; 
+
+            populateUnitDropdowns(clone); 
+            
+            const stockCalcToggle = clone.querySelector('.stock-calc-toggle');
+            const subCalcDiv = clone.querySelector('.sub-calc');
+            const subCalcId = `stock-calc-${uniqueId}`;
+            stockCalcToggle.dataset.target = subCalcId; 
+            subCalcDiv.id = subCalcId; 
+            
+            if (data) {
+                 clone.querySelector('.variable-name').value = data.name || '';
+                 clone.querySelector('.variable-final-conc').value = data.finalConc || '';
+                 clone.querySelector('.variable-final-conc-unit').value = data.finalConcUnit || 'µM'; 
+            }
+
+            document.getElementById('variables-container').appendChild(clone);
+        }
+
+        function addProtocolStep(data = null) {
+            const template = document.getElementById('protocol-step-template');
+            const clone = template.cloneNode(true); 
+            clone.id = ''; 
+            clone.classList.remove('hidden'); 
+            if (data) {
+                clone.querySelector('.protocol-step-name').value = data.name || '';
+                clone.querySelector('.protocol-step-duration').value = data.duration || '';
+                clone.querySelector('.protocol-step-unit').value = data.unit || '3600000'; 
+            }
+            document.getElementById('protocol-steps-container').appendChild(clone);
+        }
+
+        function calculateCellVolume() {
+            const cellCount = parseFloat(document.getElementById('well-cell-count').value);
+            let stockConc = parseFloat(document.getElementById('cell-stock-conc').value); 
+            const stockUnitFactor = parseFloat(document.getElementById('cell-stock-conc-unit').value); 
+            const resultEl = document.getElementById('cell-volume-result');
+
+            if (isNaN(cellCount) || isNaN(stockConc) || stockConc === 0) {
+                resultEl.textContent = 'Inputs inválidos.';
+                return;
+            }
+            
+            const stockConcInMl = stockConc * stockUnitFactor;
+
+            const volumeInMicroL = (cellCount / stockConcInMl) * 1000;
+             // Display result
+            resultEl.textContent = `Tomar: ${volumeInMicroL.toFixed(2)} µL`;
+        }
+
+        function calculateNeubauer() {
+             const q1 = parseFloat(document.getElementById('neubauer-q1').value) || 0;
+            const q2 = parseFloat(document.getElementById('neubauer-q2').value) || 0;
+            const q3 = parseFloat(document.getElementById('neubauer-q3').value) || 0;
+            const q4 = parseFloat(document.getElementById('neubauer-q4').value) || 0;
+
+            const sum = q1 + q2 + q3 + q4;
+            if (sum === 0) { 
+                showToast("Introduce los conteos de los cuadrantes.", "error");
+                return;
+            }
+            const avg = sum / 4; 
+            const concentration = avg * 10000; 
+            
+            document.getElementById('cell-stock-conc-unit').value = "1"; 
+            document.getElementById('cell-stock-conc').value = concentration; 
+            showToast(`Concentración calculada: ${concentration.toExponential(2)} células/mL.`); 
+             calculateCellVolume(); 
+        }
+
+        function calculateStockVolume(button) {
+             const variableSection = button.closest('.p-4.border.rounded-lg.bg-gray-50'); 
+            if (!variableSection) return; 
+
+            const finalConc = parseFloat(variableSection.querySelector('.variable-final-conc').value);
+            const finalConcUnit = variableSection.querySelector('.variable-final-conc-unit').value;
+            const stockConc = parseFloat(variableSection.querySelector('.variable-stock-conc').value);
+            const stockConcUnit = variableSection.querySelector('.variable-stock-conc-unit').value;
+             const totalVolume = parseFloat(document.getElementById('well-total-volume').value); 
+            const resultEl = variableSection.querySelector('.variable-stock-volume-result');
+
+            if (isNaN(finalConc) || isNaN(stockConc) || isNaN(totalVolume) || stockConc === 0) {
+                 resultEl.textContent = 'Inputs inválidos.';
+                 return;
+            }
+            
+            const finalConcConverted = _pureConvertUnits(finalConc, finalConcUnit, stockConcUnit);
+            if (isNaN(finalConcConverted)) { 
+                 resultEl.textContent = 'Error de conversión de unidad.';
+                 return;
+            }
+
+            const V_Stock_in_uL = (finalConcConverted * totalVolume) / stockConc;
+
+             // Display result
+            resultEl.textContent = `Tomar: ${V_Stock_in_uL.toFixed(3)} µL`;
+        }
+        
+        function calculateMasterMix() {
+            if (selectedWells.size === 0) {
+                showToast("Selecciona los pozos para los que quieres calcular la mezcla.", 'error');
+                return;
+            }
+            
+            const numWells = selectedWells.size;
+            const extraVolFactor = 1 + (parseFloat(document.getElementById('extra-volume').value) || 0) / 100;
+            const totalWellsToPrep = numWells * extraVolFactor;
+
+            const masterMix = {};
+            let firstWellId = Array.from(selectedWells)[0];
+            const baseConfig = wellData[firstWellId];
+
+            if (!baseConfig) { 
+                showToast("El primer pozo seleccionado no está configurado.", 'error');
+                return;
+            }
+
+            if (baseConfig.cells?.count > 0) {
+                masterMix['Células'] = { 
+                    total: `${(baseConfig.cells.count * totalWellsToPrep).toExponential(2)} células`,
+                    note: 'El volumen a tomar depende de la concentración de tu stock celular.'
+                };
+            }
+            
+            baseConfig.variables.forEach(v => {
+                 masterMix[v.name] = {
+                     total: `Añadir para una concentración final de ${v.finalConc} ${v.finalConcUnit}`,
+                     note: 'El volumen a tomar depende de la concentración de tu reactivo stock.'
+                 };
+            });
+            
+            let html = `<h3 class="font-bold mb-2">Receta para ${numWells} pozos (+${(extraVolFactor-1)*100}% extra):</h3>`;
+            html += `<table class="min-w-full divide-y divide-gray-200">
+                         <thead class="bg-gray-100"><tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Componente</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Cantidad Total / Objetivo</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Notas</th>
+                        </tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+
+            for(const component in masterMix) { 
+                html += `<tr>
+                            <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">${component}</td>
+                            <td class="px-4 py-2 whitespace-nowrap text-sm">${masterMix[component].total}</td>
+                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">${masterMix[component].note}</td>
+                          </tr>`;
+            }
+            
+             html += `<tr><td class="px-4 py-2 text-sm font-bold">Medio de cultivo (completar hasta)</td>
+                              <td class="px-4 py-2 text-sm font-bold">${(baseConfig.totalVolume * totalWellsToPrep).toFixed(2)} µL</td><td></td></tr>`;
+
+            html += `</tbody></table><p class="text-xs mt-2 text-gray-500">Usa las sub-calculadoras en la configuración de pozos para determinar los volúmenes exactos a tomar de tus stocks.</p>`;
+            document.getElementById('master-mix-results').innerHTML = html;
+        }
+
+        function updateProtocolSchedule() {
+            const scheduleContainer = document.getElementById('protocol-schedule-container');
+            scheduleContainer.innerHTML = ''; 
+            let allSteps = [];
+
+            for (const wellId in wellData) {
+                const data = wellData[wellId];
+                if (!data.protocol?.steps) continue; 
+                
+                data.protocol.steps.forEach((step, index) => {
+                    allSteps.push({ 
+                        ...step, 
+                        wellId, 
+                        stepIndex: index + 1, 
+                        eventId: `${wellId}-${step.name.replace(/\s/g, '')}-${index}` 
+                    });
+                });
+            }
+            
+            const uniqueSteps = Object.values(allSteps.reduce((acc, cur) => {
+                const key = `${cur.name}-${cur.duration}-${cur.unit}-${cur.stepIndex}`; 
+                if (!acc[key]) {
+                     acc[key] = { ...cur, wells: [cur.wellId] }; 
+                } else {
+                    acc[key].wells.push(cur.wellId); 
+                }
+                return acc;
+            }, {}));
+            
+            uniqueSteps.sort((a,b) => a.stepIndex - b.stepIndex);
+
+
+            if (uniqueSteps.length === 0) { 
+                scheduleContainer.innerHTML = '<p class="text-gray-500">No hay pasos de protocolo configurados.</p>';
+                return;
+            }
+
+            uniqueSteps.forEach((step) => {
+                const durationMs = step.duration * step.unit; 
+                 const unitText = {3600000: 'horas', 60000: 'minutos', 86400000: 'días'}[step.unit] || 'ms';
+
+                const eventEl = document.createElement('div');
+                eventEl.className = 'flex items-center justify-between p-3 bg-gray-100 rounded-lg';
+                eventEl.innerHTML = `
+                    <div>
+                        <span class="font-bold">Paso ${step.stepIndex}: ${step.name}</span>
+                        <span class="text-sm text-gray-600 ml-2">(${step.duration} ${unitText})</span>
+                        <p class="text-xs text-blue-600">Pozos: ${step.wells.join(', ')}</p> 
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span id="timer-display-${step.eventId}" class="font-mono text-lg">--:--:--</span>
+                        <button id="timer-btn-${step.eventId}" class="bg-green-500 text-white text-sm font-semibold py-1 px-3 rounded-md hover:bg-green-600">Iniciar</button>
+                    </div>
+                `;
+                scheduleContainer.appendChild(eventEl); 
+                
+                document.getElementById(`timer-btn-${step.eventId}`).addEventListener('click', (e) => {
+                    handleTimerClick(e, step, durationMs);
+                });
+            });
+        }
+        
+        function handleTimerClick(e, event, durationMs) {
+            const btn = e.target;
+            const timerId = `timer-btn-${event.eventId}`; 
+            const displayId = `timer-display-${event.eventId}`; 
+
+            if (runningTimers[timerId]) { 
+                clearInterval(runningTimers[timerId].interval); 
+                delete runningTimers[timerId]; 
+                btn.textContent = 'Iniciar'; 
+                btn.classList.add('bg-green-500', 'hover:bg-green-600');
+                btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                document.getElementById(displayId).textContent = '--:--:--'; 
+            } else { 
+                const endTime = Date.now() + durationMs; 
+                btn.textContent = 'Detener'; 
+                btn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                btn.classList.add('bg-red-500', 'hover:bg-red-600');
+
+                const updateDisplay = () => {
+                    const remaining = endTime - Date.now();
+                    if (remaining <= 0) { 
+                        clearInterval(interval); 
+                        document.getElementById(displayId).textContent = '00:00:00';
+                        const notificationMessage = `¡Paso finalizado: ${event.name}!`;
+                        showToast(notificationMessage); 
+                        if (Notification.permission === 'granted') {
+                            new Notification(notificationMessage);
+                        }
+                        btn.textContent = 'Finalizado'; 
+                        btn.disabled = true; 
+                        btn.classList.remove('bg-red-500', 'hover:bg-red-600'); 
+                        delete runningTimers[timerId]; 
+                    } else { 
+                        const h = String(Math.floor(remaining / 3600000)).padStart(2, '0');
+                        const m = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0');
+                        const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
+                        document.getElementById(displayId).textContent = `${h}:${m}:${s}`; 
+                    }
+                };
+
+                const interval = setInterval(updateDisplay, 1000);
+                updateDisplay();
+                runningTimers[timerId] = { interval, endTime };
+            }
+        }
+        
+        // --- ANIMAL MODELS ---
+        function addAnimalModel() {
+            const modelIdInput = document.getElementById('new-model-id');
+            const modelId = modelIdInput.value.trim();
+            if (!modelId) {
+                showToast("Por favor, introduce un ID para el nuevo modelo.", "error");
+                return;
+            }
+            if (animalModels[modelId]) {
+                 showToast(`El modelo con ID "${modelId}" ya existe.`, "error");
+                return;
+            }
+            animalModels[modelId] = { id: modelId, data: [] }; 
+            modelIdInput.value = ''; 
+            renderAnimalModels(); 
+            showToast(`Modelo "${modelId}" añadido.`);
+        }
+
+        function renderAnimalModels() {
+            const container = document.getElementById('animal-models-container');
+            container.innerHTML = ''; 
+            const sortedModelIds = Object.keys(animalModels).sort(); 
+
+            if (sortedModelIds.length === 0) {
+                 container.innerHTML = '<p class="text-gray-500">No hay modelos añadidos todavía.</p>';
+                 return;
+            }
+
+            sortedModelIds.forEach(modelId => {
+                const model = animalModels[modelId];
+                const modelDiv = document.createElement('div');
+                modelDiv.className = 'p-4 border rounded-lg bg-white shadow';
+                modelDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-lg text-blue-700">${model.id}</h3>
+                        <div>
+                            <button onclick="openModelDataModal('${modelId}')" class="text-sm bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600">+ Añadir Registro</button>
+                            <button onclick="deleteAnimalModel('${modelId}')" class="text-sm bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 ml-2">Eliminar Modelo</button>
+                        </div>
+                    </div>
+                    <div class="max-h-60 overflow-y-auto">
+                        <table id="model-data-table-${modelId}" class="min-w-full text-sm">
+                            <thead>
+                                <tr><th>Fecha</th><th>Peso (g)</th><th>Talla (cm)</th><th>Glucosa (mg/dL)</th><th>Fuerza (gf)</th><th>Notas</th></tr>
+                            </thead>
+                            <tbody>
+                                ${model.data.sort((a,b) => new Date(b.date) - new Date(a.date)).map(entry => `
+                                    <tr>
+                                        <td>${new Date(entry.date).toLocaleDateString()}</td>
+                                        <td>${entry.weight ?? ''}</td>
+                                        <td>${entry.size ?? ''}</td>
+                                        <td>${entry.glucose ?? ''}</td>
+                                        <td>${entry.grip ?? ''}</td>
+                                        <td>${entry.notes ?? ''}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                container.appendChild(modelDiv);
+            });
+        }
+         function deleteAnimalModel(modelId) {
+             if (confirm(`¿Estás seguro de eliminar el modelo ${modelId} y todos sus registros?`)) {
+                 if (animalModels[modelId]) {
+                     delete animalModels[modelId];
+                     renderAnimalModels();
+                     showToast(`Modelo "${modelId}" eliminado.`);
+                 }
+             }
+        }
+
+
+        function openModelDataModal(modelId) {
+            currentEditingModelId = modelId; 
+            document.getElementById('modal-model-id').textContent = modelId; 
+            document.getElementById('modal-model-weight').value = '';
+            document.getElementById('modal-model-size').value = '';
+            document.getElementById('modal-model-glucose').value = '';
+            document.getElementById('modal-model-grip').value = '';
+            document.getElementById('modal-model-notes').value = '';
+            document.getElementById('model-data-modal').style.display = 'flex';
+        }
+
+        function closeModelDataModal() {
+            document.getElementById('model-data-modal').style.display = 'none';
+            currentEditingModelId = null; 
+        }
+
+        function saveModelDataEntry() {
+            if (!currentEditingModelId || !animalModels[currentEditingModelId]) return;
+
+            const entry = {
+                date: new Date().toISOString(), 
+                weight: parseFloat(document.getElementById('modal-model-weight').value) || null,
+                size: parseFloat(document.getElementById('modal-model-size').value) || null,
+                glucose: parseFloat(document.getElementById('modal-model-glucose').value) || null,
+                grip: parseFloat(document.getElementById('modal-model-grip').value) || null,
+                notes: document.getElementById('modal-model-notes').value.trim() || null,
+            };
+
+            animalModels[currentEditingModelId].data.push(entry);
+            renderAnimalModels(); 
+            closeModelDataModal(); 
+            showToast(`Registro añadido para ${currentEditingModelId}.`);
+        }
+
+        function saveModelData() {
+             if (Object.keys(animalModels).length === 0) {
+                 showToast("No hay datos de modelos para guardar.", "warning");
+                 return;
+             }
+             const dataString = JSON.stringify(animalModels, null, 2);
+             const blob = new Blob([dataString], { type: 'application/json' });
+             const url = URL.createObjectURL(blob);
+             const a = document.createElement('a');
+             a.href = url;
+             a.download = `datos_modelos_${new Date().toISOString().split('T')[0]}.json`;
+             document.body.appendChild(a);
+             a.click();
+             document.body.removeChild(a);
+             URL.revokeObjectURL(url);
+             showToast('Datos de modelos guardados.');
+        }
+
+        function loadModelData(event) {
+            const file = event.target.files[0]; 
+            if (!file) return; 
+            const reader = new FileReader(); 
+            reader.onload = (e) => {
+                try {
+                    const loadedData = JSON.parse(e.target.result);
+                     if (typeof loadedData === 'object' && loadedData !== null) {
+                         animalModels = loadedData; 
+                         renderAnimalModels(); 
+                         showToast('Datos de modelos cargados.');
+                     } else {
+                         throw new Error("El archivo no tiene el formato esperado.");
+                     }
+                } catch (error) {
+                    showToast(`Error al cargar datos de modelos: ${error.message}`, 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; 
+        }
+
+        function calculateModelDose() {
+             const doseAmount = parseFloat(document.getElementById('dose-amount').value);
+             const doseAmountUnit = document.getElementById('dose-amount-unit').value;
+             const doseWeightUnitVal = parseFloat(document.getElementById('dose-weight-unit-val').value) || 1; 
+             const doseWeightUnit = document.getElementById('dose-weight-unit').value; 
+             const modelWeight = parseFloat(document.getElementById('model-weight').value);
+             const modelWeightUnit = document.getElementById('model-weight-unit').value;
+             const stockConcAmount = parseFloat(document.getElementById('stock-conc-dose').value);
+             const stockConcUnit = document.getElementById('stock-conc-dose-unit').value; 
+             const outputUnit = document.getElementById('dose-output-unit').value; 
+             const resultDiv = document.getElementById('dose-calculation-result');
+
+             if (isNaN(doseAmount) || isNaN(modelWeight) || isNaN(stockConcAmount) || stockConcAmount === 0 || isNaN(doseWeightUnitVal) || doseWeightUnitVal === 0) {
+                 resultDiv.innerHTML = `<span class="text-red-500">Por favor, completa todos los campos numéricos requeridos.</span>`;
+                 return;
+             }
+
+             try {
+                 const modelWeightConverted = _pureConvertUnits(modelWeight, modelWeightUnit, doseWeightUnit);
+                  if (isNaN(modelWeightConverted)) throw new Error(`No se puede convertir el peso del modelo (${modelWeightUnit}) a la unidad de peso de la dosis (${doseWeightUnit}).`);
+                
+                  const totalAmountNeeded = (modelWeightConverted / doseWeightUnitVal) * doseAmount;
+                 
+                  const stockMassUnit = stockConcUnit.split('/')[0];
+                  const stockVolUnit = stockConcUnit.split('/')[1];
+                  if (!stockMassUnit || !stockVolUnit) throw new Error(`Unidad de concentración de stock inválida: ${stockConcUnit}`);
+
+                  const totalAmountConverted = _pureConvertUnits(totalAmountNeeded, doseAmountUnit, stockMassUnit);
+                   if (isNaN(totalAmountConverted)) throw new Error(`No se puede convertir la unidad de cantidad de dosis (${doseAmountUnit}) a la unidad de masa del stock (${stockMassUnit}).`);
+
+                  const volumeInStockVolUnit = totalAmountConverted / stockConcAmount;
+
+                  const finalVolume = _pureConvertUnits(volumeInStockVolUnit, stockVolUnit, outputUnit);
+                   if (isNaN(finalVolume)) throw new Error(`No se puede convertir el volumen calculado (${stockVolUnit}) a la unidad de salida (${outputUnit}).`);
+
+                  resultDiv.textContent = `Administrar: ${finalVolume.toPrecision(4)} ${outputUnit}`;
+
+             } catch (error) {
+                 resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+             }
+        }
+
+
+        // --- UTILITIES ---
+        function toggleSubCalc(targetId) {
+            const el = document.getElementById(targetId);
+            if(el) {
+                el.style.display = el.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message; 
+            toast.className = 'toast show fixed bottom-5 right-5 text-white py-4 px-8 rounded-xl shadow-2xl z-50'; 
+            toast.classList.add(type === 'error' ? 'bg-red-600' : 'bg-green-600');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        function populateUnitDropdowns(context = document) {
+            const massUnits = Object.keys(CONVERSION_FACTORS.mass);
+            const volUnits = Object.keys(CONVERSION_FACTORS.volume);
+            const concUnits = Object.keys(CONVERSION_FACTORS.concentration); 
+            const combinedUnits = [];
+            massUnits.forEach(m => volUnits.forEach(v => combinedUnits.push(`${m}/${v}`)));
+            const allConcUnits = [...concUnits, ...combinedUnits];
+            const allUnits = [...massUnits, ...volUnits, ...allConcUnits]; 
+
+            const ucFrom = context.querySelector('#uc-from'); 
+            if (ucFrom && context === document) { 
+                
+                ucFrom.innerHTML = allUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+                document.getElementById('uc-to').innerHTML = allUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+                
+                document.getElementById('c1-unit').innerHTML = allConcUnits.map(u => `<option value="${u}" ${u==='mM' ? 'selected':''}>${u}</option>`).join('');
+                document.getElementById('c2-unit').innerHTML = allConcUnits.map(u => `<option value="${u}" ${u==='µM' ? 'selected':''}>${u}</option>`).join('');
+                document.getElementById('v1-unit').innerHTML = volUnits.map(u => `<option value="${u}" ${u==='mL' ? 'selected':''}>${u}</option>`).join('');
+                document.getElementById('v2-unit').innerHTML = volUnits.map(u => `<option value="${u}" ${u==='µL' ? 'selected':''}>${u}</option>`).join('');
+
+                 document.getElementById('dose-amount-unit').innerHTML = massUnits.map(u => `<option value="${u}" ${u==='mg' ? 'selected':''}>${u}</option>`).join('');
+                 document.getElementById('stock-conc-dose-unit').innerHTML = allConcUnits.map(u => `<option value="${u}" ${u==='mg/mL' ? 'selected':''}>${u}</option>`).join('');
+            }
+            
+            const finalConcUnitSelects = context.querySelectorAll('.variable-final-conc-unit');
+            const stockConcUnitSelects = context.querySelectorAll('.variable-stock-conc-unit');
+            
+            finalConcUnitSelects.forEach(select => {
+                select.innerHTML = allConcUnits.map(u => `<option value="${u}" ${u === 'µM' ? 'selected' : ''}>${u}</option>`).join('');
+            });
+            stockConcUnitSelects.forEach(select => {
+                select.innerHTML = allConcUnits.map(u => `<option value="${u}" ${u === 'mM' ? 'selected' : ''}>${u}</option>`).join('');
+            });
+        }
+        
+        // --- SAVE / LOAD ---
+        function saveExperiment() {
+            const experimentState = {
+                experimentName: document.getElementById('exp-name').value,
+                plateType: document.getElementById('plate-type').value,
+                wellData: wellData, 
+            };
+
+            const jsonString = JSON.stringify(experimentState, null, 2); 
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url; 
+            const fileName = (experimentState.experimentName || 'experimento').replace(/\s+/g, '_');
+            a.download = `${fileName}.json`; 
+            document.body.appendChild(a); 
+            a.click(); 
+            document.body.removeChild(a); 
+            URL.revokeObjectURL(url); 
+            showToast('Experimento guardado exitosamente.'); 
+        }
+
+        function loadExperiment(event) {
+            const file = event.target.files[0]; 
+            if (!file) return; 
+
+            const reader = new FileReader(); 
+            reader.onload = function(e) { 
+                try {
+                    const loadedState = JSON.parse(e.target.result);
+                    
+                    document.getElementById('exp-name').value = loadedState.experimentName || ''; 
+                    wellData = loadedState.wellData || {}; 
+                    generatePlate(loadedState); 
+                    showToast('Experimento cargado exitosamente.'); 
+                } catch (error) {
+                    showToast('Error al cargar el archivo. Asegúrate de que es un archivo de experimento válido.', 'error'); 
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; 
+        }
+
+        // --- REPORTING ---
+        function generateReport() {
+            const output = document.getElementById('report-output');
+            const expName = document.getElementById('exp-name').value || 'Sin nombre';
+            const plateType = document.getElementById('plate-type').value;
+
+            if (Object.keys(wellData).length === 0) {
+                output.innerHTML = '<p class="text-red-500">No hay datos de experimento para reportar. Por favor, configura al menos un pozo.</p>';
+                document.getElementById('export-csv-btn').style.display = 'none'; 
+                return;
+            }
+
+            let html = `<h3>Información General</h3>
+                        <ul>
+                            <li><strong>Nombre del Experimento:</strong> ${expName}</li>
+                            <li><strong>Tipo de Placa:</strong> ${plateType} pozos</li>
+                        </ul>`;
+
+            const groupedWells = {};
+            for (const wellId in wellData) {
+                const configKey = JSON.stringify(wellData[wellId]); 
+                if (!groupedWells[configKey]) {
+                    groupedWells[configKey] = {
+                        config: wellData[wellId],
+                        wells: [] 
+                    };
+                }
+                groupedWells[configKey].wells.push(wellId);
+            }
+
+            html += `<h3>Configuración de Pozos</h3>`;
+            Object.values(groupedWells).forEach((group, index) => {
+                const config = group.config; 
+                html += `<div class="p-4 mb-4 border rounded-lg">
+                            <h4><strong>Grupo ${index + 1}:</strong> Pozos ${group.wells.join(', ')}</h4>
+                            <ul>
+                                <li><strong>Tipo:</strong> ${config.wellType}</li>
+                                <li><strong>Volumen Total:</strong> ${config.totalVolume ?? 'N/A'} µL</li>
+                                <li><strong>Células:</strong> ${config.cells?.count ?? 'N/A'}</li>
+                            </ul>`;
+                if (config.variables?.length > 0) {
+                    html += `<h5>Variables:</h5>
+                             <table class="min-w-full text-sm">
+                                 <thead class="bg-gray-100"><tr><th>Nombre</th><th>Conc. Final</th></tr></thead>
+                                 <tbody>`;
+                    config.variables.forEach(v => {
+                        html += `<tr><td>${v.name}</td><td>${v.finalConc} ${v.finalConcUnit}</td></tr>`;
+                    });
+                    html += `</tbody></table>`;
+                }
+                 if (config.protocol?.steps?.length > 0) {
+                    html += `<h5>Protocolo:</h5><ul>`;
+                    config.protocol.steps.forEach((step, i) => {
+                         const unitText = {3600000:'horas', 60000:'minutos', 86400000:'días'}[step.unit] || 'ms';
+                        html += `<li><strong>Paso ${i+1}:</strong> ${step.name} (${step.duration} ${unitText})</li>`;
+                    });
+                    html += `</ul>`;
+                }
+                html += `</div>`;
+            });
+            
+            output.innerHTML = html;
+            document.getElementById('export-csv-btn').style.display = 'inline-block';
+        }
+
+        function exportReportCSV() {
+            const expName = document.getElementById('exp-name').value || 'Sin nombre';
+            const plateType = document.getElementById('plate-type').value;
+            let csvContent = "\uFEFF"; 
+            
+            const escapeCSV = (str) => {
+                 const value = (str === undefined || str === null) ? '' : String(str);
+                if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                    return `"${value.replace(/"/g, '""')}"`; 
+                }
+                return value; 
+            };
+
+            csvContent += "Sección,Parámetro,Valor\n";
+            csvContent += `Información General,Nombre del Experimento,${escapeCSV(expName)}\n`;
+            csvContent += `Información General,Tipo de Placa,${escapeCSV(plateType + ' pozos')}\n\n`;
+
+            const headers = ['Pozo', 'Tipo de Pozo', 'Volumen Total (uL)', 'Cantidad de Células'];
+            const allVars = new Set();
+            let maxSteps = 0;
+            Object.values(wellData).forEach(d => {
+                d.variables?.forEach(v => allVars.add(v.name)); 
+                if(d.protocol?.steps?.length > maxSteps) maxSteps = d.protocol.steps.length; 
+            });
+            const varColumns = Array.from(allVars); 
+            varColumns.forEach(v => headers.push(`Variable: ${v} (Conc. Final)`));
+             for(let i=1; i<= maxSteps; i++) {
+                 headers.push(`Paso ${i}: Nombre`);
+                 headers.push(`Paso ${i}: Duración`);
+             }
+            csvContent += headers.map(escapeCSV).join(',') + '\n';
+            
+            const sortedWellIds = Object.keys(wellData).sort((a, b) => {
+                const rowA = a.match(/[A-Z]+/)[0];
+                const colA = parseInt(a.match(/\d+/)[0]);
+                const rowB = b.match(/[A-Z]+/)[0];
+                const colB = parseInt(b.match(/\d+/)[0]);
+                if (rowA !== rowB) return rowA.localeCompare(rowB);
+                return colA - colB;
+            });
+
+            for (const wellId of sortedWellIds) {
+                const d = wellData[wellId]; 
+                 const row = [
+                    wellId,
+                    d.wellType,
+                    d.totalVolume ?? '', 
+                    d.cells?.count ?? '' 
+                ];
+                varColumns.forEach(varName => {
+                    const variable = d.variables?.find(v => v.name === varName); 
+                    row.push(variable ? `${variable.finalConc ?? ''} ${variable.finalConcUnit ?? ''}`.trim() : ''); 
+                });
+
+                for(let i=0; i< maxSteps; i++) {
+                    const step = d.protocol?.steps?.[i]; 
+                    if (step) {
+                         const unitText = {3600000:'horas', 60000:'minutos', 86400000:'días'}[step.unit] || 'ms';
+                        row.push(step.name);
+                        row.push(`${step.duration} ${unitText}`);
+                    } else {
+                        row.push('');
+                        row.push('');
+                    }
+                }
+                csvContent += row.map(escapeCSV).join(',') + '\n';
+            }
+            csvContent += '\n'; 
+
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            const fileName = (expName || 'reporte').replace(/\s+/g, '_'); 
+            link.setAttribute("download", `${fileName}.csv`);
+            document.body.appendChild(link); 
+            link.click(); 
+            document.body.removeChild(link); 
+            URL.revokeObjectURL(url); 
+        }
+
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            generatePlate(); 
+            populateUnitDropdowns(); 
+            initializeUploadSlots(); // Inicializar los slots de la cámara de Neubauer
+            if (typeof Notification !== 'undefined' && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                Notification.requestPermission();
+            }
+            changeTab('guide'); 
+            document.getElementById('load-exp-input').addEventListener('change', loadExperiment);
+            document.getElementById('load-model-input').addEventListener('change', loadModelData);
+
+        };
     </script>
 </body>
 </html>
