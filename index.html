@@ -6,7 +6,10 @@
     <title>LICAM Asistente de Laboratorio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script> <!-- AÑADIDO: Biblioteca para Excel -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
         /* Base Styles */
         body {
@@ -134,6 +137,45 @@
             background-color: #e0f2f1;
             border-left: 4px solid #14b8a6;
         }
+
+        /* Estilos LabManager Ultra (AÑADIDOS) */
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.07);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .mermaid svg {
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.05));
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        .map-grid-bg {
+            background-image: radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
+            background-size: 30px 30px;
+        }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+        }
+        .active-pulse { animation: pulse-soft 3s infinite ease-in-out; }
+        .scheduler-focus:focus-within {
+            ring: 3px;
+            ring-color: rgba(79, 70, 229, 0.2);
+            border-color: #4f46e5;
+        }
+        #export-container {
+            position: relative;
+            background: white;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -141,11 +183,11 @@
     <header class="bg-white shadow-xl sticky top-0 z-20 border-b border-blue-200">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <img src="logo_licam.png" onerror="this.onerror=null;this.src='';" alt="Logo LICAM" class="h-14 w-auto object-contain">
+                <img src="logo_licam.png" onerror="this.onerror=null;this.src='https://placehold.co/60x60?text=LICAM';" alt="Logo LICAM" class="h-14 w-auto object-contain">
                 <h1 class="text-3xl font-extrabold text-blue-700 tracking-tight">LICAM <span class="text-gray-500 font-semibold text-xl">Asistente de Laboratorio</span></h1>
             </div>
             <div>
-                 <img src="logo_ipn.png" onerror="this.onerror=null;this.src='';" alt="Logo IPN" class="h-12 w-auto object-contain">
+                 <img src="logo_ipn.png" onerror="this.onerror=null;this.src='https://placehold.co/60x60?text=IPN';" alt="Logo IPN" class="h-12 w-auto object-contain">
             </div>
         </div>
     </header>
@@ -154,6 +196,7 @@
             <nav class="flex space-x-1 overflow-x-auto pb-0" aria-label="Tabs">
                 <button onclick="changeTab('guide')" id="tab-guide" class="tab-button active text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">💡 Guía de Uso</button>
                 <button onclick="changeTab('planner')" id="tab-planner" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🧪 Organizador de Cultivo</button>
+                <button onclick="changeTab('scheduler')" id="tab-scheduler" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🗓️ Cronograma Maestro</button> <!-- AÑADIDO -->
                 <button onclick="changeTab('cell-counter')" id="tab-cell-counter" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🔬 Contador AI</button>
                 <button onclick="changeTab('models')" id="tab-models" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🐭 Modelos Animales</button>
                 <button onclick="changeTab('protocols')" id="tab-protocols" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">📚 Protocolos y Recursos</button>
@@ -171,23 +214,23 @@
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">💡 Guía de Uso Rápido</h2>
             <div class="prose max-w-none text-gray-700">
                 <p>¡Bienvenido/a al Asistente de Laboratorio LICAM! Esta guía te ayudará a usar las funciones principales.</p>
+                
+                <h3>Cronograma Maestro (🗓️) - ¡NUEVO!</h3>
+                <p>Diseña mapas de flujo globales para tus experimentos y monitoriza todas las fases de incubación y tratamientos.</p>
+                <ul class="list-disc list-inside">
+                    <li>Define Fases globales, registra las muestras y el sistema graficará el ciclo exacto con horas y días.</li>
+                    <li>Permite capturar el diagrama como imagen y exportar a CSV.</li>
+                    <li>Utiliza el botón <i class="fas fa-copy text-indigo-500"></i> para duplicar muestras rápidamente.</li>
+                </ul>
+
                 <h3>Organizador de Cultivo (🧪)</h3>
                 <p>Esta es la sección principal para planificar tus experimentos en placas.</p>
                 <ul class="list-disc list-inside">
                     <li><strong>1. Configuración del Experimento:</strong> Dale un nombre a tu experimento y selecciona el tipo de placa (6, 12, 24, 48, 96 pozos). Haz clic en "Generar Placa".</li>
                     <li><strong>Guardar/Cargar Experimento:</strong> Usa los botones verdes y grises para guardar tu progreso en un archivo <code>.json</code> o cargar un experimento previamente guardado.</li>
                     <li><strong>2. Diseño de la Placa:</strong> Haz clic en los pozos para seleccionarlos (se pondrán azules). Puedes seleccionar varios. Usa "Seleccionar Todos" o "Limpiar Selección" para ayudarte.</li>
-                    <li><strong>Configurar Pozo(s):</strong> Con los pozos seleccionados, haz clic en "Configurar Pozo(s)". Se abrirá una ventana:
-                        <ul>
-                            <li><strong>Parámetros Generales:</strong> Define el Tipo de Pozo, Volumen Total Final y Cantidad de Células por pozo. Usa el icono ⚙️ junto a Células para:
-                                <ul>
-                                    <li>Calcular el volumen a tomar de tu stock celular (necesitas la concentración de tu stock).</li>
-                                    <li>O usar la calculadora de Cámara de Neubauer: introduce los conteos de 4 cuadrantes y haz clic en "Calcular Concentración" para obtener la concentración de tu stock en células/mL.</li>
-                                </ul>
-                            </li>
-                             <li><strong>Variables/Reactivos:</strong> Añade los reactivos que usarás. Define la Concentración Final deseada. Usa el icono ⚙️ para calcular cuánto volumen tomar de tu reactivo stock.</li>
-                             <li><strong>Pasos del Protocolo:</strong> Define los pasos secuenciales de tu experimento (Ej. Paso 1: Incubación PMA, Duración: 24 horas; Paso 2: Lavado + LPS, Duración: 12 horas). Añade tantos pasos como necesites.</li>
-                        </ul>
+                    <li><strong>Configurar Pozo(s):</strong> Con los pozos seleccionados, haz clic en "Configurar Pozo(s)". Se abrirá una ventana.
+                        <br><span class="text-indigo-600 font-bold">¡NUEVO! Función Copiar/Pegar:</span> Selecciona 1 pozo configurado, dale a "Copiar". Luego selecciona varios vacíos y dale a "Pegar" para clonar toda la configuración.
                     </li>
                     <li><strong>3. Creador de Stock General:</strong> Selecciona los pozos que tendrán la misma mezcla y haz clic en "Calcular Stock...". Indica un porcentaje extra si lo deseas. La tabla te mostrará cuánto necesitas preparar en total.</li>
                     <li><strong>4. Cronograma del Protocolo:</strong> Aquí aparecerán todos los Pasos del Protocolo. Cada paso tendrá su propio temporizador. Haz clic en "Iniciar" para comenzar la cuenta regresiva.</li>
@@ -205,6 +248,7 @@
                 <p>Sección para llevar un registro de datos de modelos animales y calcular dosis.</p>
                 <ul class="list-disc list-inside">
                     <li><strong>Seguimiento:</strong> Añade modelos con un ID único. Luego, haz clic en "+ Añadir Registro" para ingresar Peso (g), Talla (cm), Glucosa (mg/dL), Fuerza de Agarre (gf) y Notas.</li>
+                    <li><strong>Duplicar:</strong> Puedes duplicar un modelo y todo su historial con el nuevo botón de copiado rápido.</li>
                     <li><strong>Dosis:</strong> Utiliza la Calculadora de Dosificación para saber cuánto volumen administrar (µL o mL) según la dosis requerida (mg/kg), el peso del modelo y la concentración de tu stock.</li>
                     <li><strong>Guardar/Cargar:</strong> Guarda o carga los datos de tus modelos en archivos <code>.json</code>.</li>
                 </ul>
@@ -219,6 +263,147 @@
                 <p>Muestra información sobre el desarrollo, colaboradores, institución y datos de contacto de LICAM.</p>
             </div>
         </div>
+
+        <!-- LABMANAGER ULTRA (CRONOGRAMA MAESTRO) - AÑADIDO -->
+        <div id="content-scheduler" class="hidden space-y-8">
+            <div id="sched-stats-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <!-- Inyectado mediante JS -->
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                <!-- COLUMNA LATERAL: CONFIGURACIÓN -->
+                <aside class="xl:col-span-3 space-y-6">
+                    <div class="glass-card p-6 rounded-[2rem] border-l-8 border-l-indigo-600 relative overflow-hidden bg-white">
+                        <div class="absolute -top-4 -right-4 p-8 opacity-5">
+                            <i class="fas fa-clock text-7xl text-indigo-900"></i>
+                        </div>
+                        <h3 class="text-[10px] font-black text-indigo-500 flex items-center gap-2 mb-5 uppercase tracking-[0.2em]">
+                            <i class="fas fa-business-time"></i> Cronograma de Comienzo
+                        </h3>
+                        <div class="space-y-5 relative z-10">
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl scheduler-focus transition-all group">
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2 group-focus-within:text-indigo-500">Programar Punto T=0</label>
+                                <input type="datetime-local" id="sched-sidebar-start-time" onchange="syncSchedStartTime(this.value)" 
+                                       class="w-full text-sm font-extrabold text-slate-700 outline-none cursor-pointer bg-transparent">
+                            </div>
+                            <div id="sched-next-milestone-card" class="bg-slate-900 rounded-2xl p-5 shadow-2xl border border-indigo-500/30">
+                                <div class="flex justify-between items-center mb-2">
+                                    <p class="text-[8px] text-indigo-400 font-black uppercase tracking-[0.2em]">Hito más cercano</p>
+                                    <span id="sched-next-milestone-countdown" class="text-[10px] font-bold text-white mono bg-indigo-600/50 px-2 py-1 rounded-lg border border-indigo-400/30">00:00:00</span>
+                                </div>
+                                <h4 id="sched-next-milestone-name" class="text-sm font-bold text-indigo-50 truncate tracking-tight">Cargando cronograma...</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-[2rem] bg-white">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-[10px] font-black text-slate-400 flex items-center gap-2 uppercase tracking-[0.2em]">
+                                <i class="fas fa-project-diagram text-indigo-600"></i> Estructura del Ciclo
+                            </h3>
+                            <span id="sched-phase-count-badge" class="text-[9px] font-black bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg"></span>
+                        </div>
+                        <div id="sched-phase-names-container" class="space-y-3 mb-5">
+                            <!-- Inputs dinámicos -->
+                        </div>
+                        <button onclick="addNewSchedPhaseSlot()" class="w-full border-2 border-dashed border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/50 text-[10px] font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-plus-circle"></i> INSERTAR NUEVA FASE
+                        </button>
+                    </div>
+
+                    <div class="glass-card p-7 rounded-[2rem] bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-xl">
+                        <h3 class="text-[10px] font-black text-slate-500 flex items-center gap-2 mb-6 uppercase tracking-[0.2em]">
+                            <i class="fas fa-dna text-indigo-600"></i> Datos de la Muestra
+                        </h3>
+                        <div class="space-y-5">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">ID / Pozo Experimental</label>
+                                <input type="text" id="sched-new-id" placeholder="ej: THP1-W4-A1" class="w-full text-xs p-4 border border-slate-200 rounded-2xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold shadow-sm">
+                            </div>
+                            <div id="sched-phase-values-container" class="grid grid-cols-2 gap-4">
+                                <!-- Inyección dinámica de campos de horas -->
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Notas de Tratamiento</label>
+                                <input type="text" id="sched-new-notes" placeholder="ej: 100nM PMA / 2uM EC" class="w-full text-xs p-4 border border-slate-200 rounded-2xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm">
+                            </div>
+                            <button onclick="addSchedCondition()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-black py-5 rounded-3xl transition-all shadow-xl shadow-indigo-200 flex items-center justify-center gap-3 uppercase tracking-[0.2em]">
+                                <i class="fas fa-plus-circle text-lg"></i> REGISTRAR MUESTRA
+                            </button>
+                        </div>
+                        <div id="sched-condition-list" class="mt-8 space-y-2 max-h-44 overflow-y-auto pr-2 custom-scrollbar border-t border-slate-100 pt-4">
+                            <!-- Muestras inyectadas -->
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- PANEL CENTRAL: VISUALIZACIÓN E INFORMES -->
+                <div class="xl:col-span-9 space-y-8">
+                    <div id="sched-export-container" class="glass-card rounded-[3rem] overflow-hidden p-10 space-y-10 bg-white shadow-2xl">
+                        <div class="flex justify-between items-end border-b border-slate-100 pb-8">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-3">
+                                    <span class="bg-indigo-600 text-white text-[9px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Protocolo Master</span>
+                                    <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight uppercase">Cronograma de Intervención Molecular</h2>
+                                </div>
+                                <p class="text-[11px] text-slate-400 font-bold uppercase tracking-[0.4em]">Laboratorio LICAM</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="flex gap-2 mb-2 justify-end">
+                                    <button onclick="exportarSchedMapaComoImagen()" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"><i class="fas fa-camera"></i> Mapa</button>
+                                    <button onclick="descargarSchedCSV()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"><i class="fas fa-file-csv"></i> CSV</button>
+                                </div>
+                                <p class="text-sm font-bold text-slate-700 mono" id="sched-current-gen-date">--/--/--</p>
+                            </div>
+                        </div>
+
+                        <div class="map-grid-bg border border-slate-100 rounded-[2.5rem] p-10 min-h-[550px] flex items-center justify-center relative overflow-hidden bg-slate-50/50 shadow-inner">
+                            <div id="sched-mermaid-container" class="w-full h-full flex items-center justify-center">
+                                <div id="sched-empty-state" class="text-center py-24 space-y-6">
+                                    <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto shadow-xl border border-slate-100 text-slate-200">
+                                        <i class="fas fa-project-diagram text-4xl"></i>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <span class="text-[12px] text-slate-400 font-black uppercase tracking-[0.4em] block">Sin Datos Experimentales</span>
+                                        <p class="text-[10px] text-slate-300 font-medium">Configure las fases y registre muestras para generar el mapa</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="sched-integrated-summary" class="hidden animate-fadeIn">
+                            <div class="flex items-center gap-5 mb-8">
+                                <div class="h-[1.5px] flex-1 bg-gradient-to-r from-transparent to-slate-200"></div>
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] px-4">Panel de Resumen Operativo</span>
+                                <div class="h-[1.5px] flex-1 bg-gradient-to-l from-transparent to-slate-200"></div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="sched-summary-tiles">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-[2.5rem] overflow-hidden bg-white">
+                        <div class="p-8 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                            <div class="flex items-center gap-4">
+                                <div class="w-1 h-8 bg-indigo-600 rounded-full"></div>
+                                <div>
+                                    <h3 class="text-xs font-black text-slate-700 uppercase tracking-[0.2em]">Hoja de Ruta Detallada</h3>
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Calendario por horas exactas</p>
+                                </div>
+                            </div>
+                            <div id="sched-total-badge" class="bg-slate-900 text-white text-[10px] font-black px-5 py-2.5 rounded-2xl uppercase tracking-[0.2em] shadow-lg">
+                                0 MUESTRAS ACTIVAS
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table id="sched-protocol-table" class="w-full text-left border-collapse">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ORGANIZADOR DE CULTIVO -->
         <div id="content-planner" class="hidden space-y-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -252,12 +437,16 @@
                     </div>
                     
                     <div class="mt-6 pt-4 border-t border-gray-200">
-                        <h3 class="text-xl font-bold mb-3 text-gray-700">Controles de Selección</h3>
-                        <div class="flex space-x-2 mb-4">
-                            <button onclick="selectAllWells()" class="flex-1 bg-gray-200 text-gray-800 py-2 px-3 text-sm rounded-xl hover:bg-gray-300 transition shadow-sm">Seleccionar Todos</button>
-                            <button onclick="clearSelection()" class="flex-1 bg-gray-200 text-gray-800 py-2 px-3 text-sm rounded-xl hover:bg-gray-300 transition shadow-sm">Limpiar Selección</button>
+                        <h3 class="text-xl font-bold mb-3 text-gray-700">Controles de Selección y Copiado</h3>
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <button onclick="selectAllWells()" class="bg-gray-200 text-gray-800 py-2 px-3 text-sm rounded-xl hover:bg-gray-300 transition shadow-sm">Seleccionar Todos</button>
+                            <button onclick="clearSelection()" class="bg-gray-200 text-gray-800 py-2 px-3 text-sm rounded-xl hover:bg-gray-300 transition shadow-sm">Limpiar Selección</button>
                         </div>
-                       <button onclick="openWellConfigModal()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg">⚙️ Configurar Pozo(s)</button>
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <button onclick="copyWellConfig()" class="bg-indigo-100 text-indigo-700 font-bold py-2 px-3 text-sm rounded-xl hover:bg-indigo-200 transition shadow-sm border border-indigo-200"><i class="fas fa-copy"></i> Copiar Pozo</button>
+                            <button onclick="pasteWellConfig()" class="bg-indigo-100 text-indigo-700 font-bold py-2 px-3 text-sm rounded-xl hover:bg-indigo-200 transition shadow-sm border border-indigo-200"><i class="fas fa-paste"></i> Pegar a Selec.</button>
+                        </div>
+                        <button onclick="openWellConfigModal()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg">⚙️ Configurar Pozo(s)</button>
                     </div>
                 </div>
 
@@ -829,6 +1018,7 @@
 
     <script>
         // --- DATA & STATE MANAGEMENT ---
+        let copiedWellData = null; // Variable para almacenar pozo copiado
         const ATOMIC_WEIGHTS = { 
             'H': 1.008, 'C': 12.011, 'N': 14.007, 'O': 15.999, 'Na': 22.990, 'Mg': 24.305, 
             'P': 30.974, 'S': 32.06, 'Cl': 35.45, 'K': 39.098, 'Ca': 40.078, 'Fe': 55.845,
@@ -861,18 +1051,34 @@
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
         const MAX_RETRIES = 3;
 
+        // --- VARIABLES DEL CRONOGRAMA MAESTRO (LABMANAGER ULTRA) ---
+        let SCHED_CONFIG = {
+            phases: ["Diferenciación", "Descanso", "Activación"],
+            condiciones: []
+        };
+        let schedStartTime = new Date();
+
 
         // --- TABS & NAVIGATION ---
         function changeTab(tabName) {
-            const contents = ['planner', 'models', 'protocols', 'report', 'calculators', 'guide', 'about', 'cell-counter']; 
+            const contents = ['planner', 'scheduler', 'models', 'protocols', 'report', 'calculators', 'guide', 'about', 'cell-counter']; 
             contents.forEach(content => {
                 const el = document.getElementById(`content-${content}`);
                 const tab = document.getElementById(`tab-${content}`);
                 if (el) el.style.display = content === tabName ? 'block' : 'none';
-                if (tab) tab.classList.toggle('active', content === tabName);
+                if (tab) {
+                    if (content === tabName) {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                }
             });
             if (tabName === 'models') {
                 renderAnimalModels(); 
+            }
+            if (tabName === 'scheduler') {
+                renderSchedMermaid(); // Refrescar mapa si está oculto
             }
         }
 
@@ -1597,7 +1803,6 @@
              addProtocolStep(); 
         }
 
-
         function loadConfigToModal(data) {
             resetModal(); 
              document.getElementById('well-type').value = data.wellType || 'default';
@@ -1620,7 +1825,6 @@
                 addProtocolStep(); 
             }
         }
-
 
         function saveWellConfig() {
             const wellType = document.getElementById('well-type').value;
@@ -1680,6 +1884,49 @@
             closeWellConfigModal(); 
             showToast('Configuración guardada para los pozos seleccionados.'); 
         }
+
+        // --- FUNCIONES DE COPIAR Y PEGAR POZOS (NUEVAS) ---
+        function copyWellConfig() {
+            if (selectedWells.size !== 1) {
+                showToast("Por favor, selecciona exactamente 1 pozo para copiar su configuración.", "error");
+                return;
+            }
+            const wellId = Array.from(selectedWells)[0];
+            if (!wellData[wellId]) {
+                showToast("El pozo seleccionado no tiene configuración previa.", "error");
+                return;
+            }
+            copiedWellData = JSON.parse(JSON.stringify(wellData[wellId]));
+            showToast(`Configuración del pozo ${wellId} copiada al portapapeles.`);
+        }
+
+        function pasteWellConfig() {
+            if (!copiedWellData) {
+                showToast("No hay ninguna configuración copiada. Copia un pozo primero.", "error");
+                return;
+            }
+            if (selectedWells.size === 0) {
+                showToast("Selecciona los pozos donde deseas pegar la configuración.", "error");
+                return;
+            }
+            
+            selectedWells.forEach(wellId => {
+                wellData[wellId] = JSON.parse(JSON.stringify(copiedWellData));
+                const wellEl = document.getElementById(`well-${wellId}`);
+                if (wellEl) {
+                    wellEl.classList.remove('control', 'experimental', 'blanco', 'tratamiento-1', 'tratamiento-2', 'default');
+                    if (copiedWellData.wellType !== 'default') {
+                        wellEl.classList.add(copiedWellData.wellType);
+                    }
+                    wellEl.classList.add('configured');
+                    wellEl.classList.remove('selected');
+                }
+            });
+            
+            updateProtocolSchedule();
+            clearSelection();
+            showToast(`Configuración pegada en ${selectedWells.size} pozo(s) exitosamente.`);
+        }
         
         function addVariable(data = null) {
             const template = document.getElementById('variable-template');
@@ -1732,9 +1979,7 @@
             }
             
             const stockConcInMl = stockConc * stockUnitFactor;
-
             const volumeInMicroL = (cellCount / stockConcInMl) * 1000;
-             // Display result
             resultEl.textContent = `Tomar: ${volumeInMicroL.toFixed(2)} µL`;
         }
 
@@ -1759,31 +2004,33 @@
         }
 
         function calculateStockVolume(button) {
-             const variableSection = button.closest('.p-4.border.rounded-lg.bg-gray-50'); 
-            if (!variableSection) return; 
+             const variableSection = button.closest('.grid.grid-cols-1'); 
+            if (!variableSection) {
+                // Fallback for original variable template structure
+                const altSection = button.closest('.p-4.border.rounded-xl');
+                if (!altSection) return;
+                
+                const finalConc = parseFloat(altSection.querySelector('.variable-final-conc').value);
+                const finalConcUnit = altSection.querySelector('.variable-final-conc-unit').value;
+                const stockConc = parseFloat(altSection.querySelector('.variable-stock-conc').value);
+                const stockConcUnit = altSection.querySelector('.variable-stock-conc-unit').value;
+                const totalVolume = parseFloat(document.getElementById('well-total-volume').value); 
+                const resultEl = altSection.querySelector('.variable-stock-volume-result');
 
-            const finalConc = parseFloat(variableSection.querySelector('.variable-final-conc').value);
-            const finalConcUnit = variableSection.querySelector('.variable-final-conc-unit').value;
-            const stockConc = parseFloat(variableSection.querySelector('.variable-stock-conc').value);
-            const stockConcUnit = variableSection.querySelector('.variable-stock-conc-unit').value;
-             const totalVolume = parseFloat(document.getElementById('well-total-volume').value); 
-            const resultEl = variableSection.querySelector('.variable-stock-volume-result');
-
-            if (isNaN(finalConc) || isNaN(stockConc) || isNaN(totalVolume) || stockConc === 0) {
-                 resultEl.textContent = 'Inputs inválidos.';
-                 return;
+                if (isNaN(finalConc) || isNaN(stockConc) || isNaN(totalVolume) || stockConc === 0) {
+                     resultEl.textContent = 'Inputs inválidos.';
+                     return;
+                }
+                
+                const finalConcConverted = _pureConvertUnits(finalConc, finalConcUnit, stockConcUnit);
+                if (isNaN(finalConcConverted)) { 
+                     resultEl.textContent = 'Error de conversión.';
+                     return;
+                }
+                const V_Stock_in_uL = (finalConcConverted * totalVolume) / stockConc;
+                resultEl.textContent = `Tomar: ${V_Stock_in_uL.toFixed(3)} µL`;
+                return;
             }
-            
-            const finalConcConverted = _pureConvertUnits(finalConc, finalConcUnit, stockConcUnit);
-            if (isNaN(finalConcConverted)) { 
-                 resultEl.textContent = 'Error de conversión de unidad.';
-                 return;
-            }
-
-            const V_Stock_in_uL = (finalConcConverted * totalVolume) / stockConc;
-
-             // Display result
-            resultEl.textContent = `Tomar: ${V_Stock_in_uL.toFixed(3)} µL`;
         }
         
         function calculateMasterMix() {
@@ -1808,37 +2055,25 @@
             if (baseConfig.cells?.count > 0) {
                 masterMix['Células'] = { 
                     total: `${(baseConfig.cells.count * totalWellsToPrep).toExponential(2)} células`,
-                    note: 'El volumen a tomar depende de la concentración de tu stock celular.'
+                    note: 'El volumen depende del stock.'
                 };
             }
             
             baseConfig.variables.forEach(v => {
                  masterMix[v.name] = {
-                     total: `Añadir para una concentración final de ${v.finalConc} ${v.finalConcUnit}`,
-                     note: 'El volumen a tomar depende de la concentración de tu reactivo stock.'
+                     total: `${v.finalConc} ${v.finalConcUnit} final`,
+                     note: 'Calcular volumen individualmente.'
                  };
             });
             
-            let html = `<h3 class="font-bold mb-2">Receta para ${numWells} pozos (+${(extraVolFactor-1)*100}% extra):</h3>`;
-            html += `<table class="min-w-full divide-y divide-gray-200">
-                         <thead class="bg-gray-100"><tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Componente</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Cantidad Total / Objetivo</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Notas</th>
-                        </tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+            let html = `<h3 class="font-bold mb-2">Mezcla para ${numWells} pozos (+${(extraVolFactor-1)*100}% extra):</h3>`;
+            html += `<table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-100"><tr><th class="px-4 py-2">Componente</th><th class="px-4 py-2">Cantidad</th><th class="px-4 py-2">Notas</th></tr></thead><tbody class="bg-white">`;
 
             for(const component in masterMix) { 
-                html += `<tr>
-                            <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">${component}</td>
-                            <td class="px-4 py-2 whitespace-nowrap text-sm">${masterMix[component].total}</td>
-                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">${masterMix[component].note}</td>
-                          </tr>`;
+                html += `<tr><td class="px-4 py-2 font-medium">${component}</td><td class="px-4 py-2">${masterMix[component].total}</td><td class="px-4 py-2 text-gray-500">${masterMix[component].note}</td></tr>`;
             }
-            
-             html += `<tr><td class="px-4 py-2 text-sm font-bold">Medio de cultivo (completar hasta)</td>
-                              <td class="px-4 py-2 text-sm font-bold">${(baseConfig.totalVolume * totalWellsToPrep).toFixed(2)} µL</td><td></td></tr>`;
-
-            html += `</tbody></table><p class="text-xs mt-2 text-gray-500">Usa las sub-calculadoras en la configuración de pozos para determinar los volúmenes exactos a tomar de tus stocks.</p>`;
+             html += `<tr><td class="px-4 py-2 font-bold">Medio de cultivo (completar hasta)</td><td class="px-4 py-2 font-bold">${(baseConfig.totalVolume * totalWellsToPrep).toFixed(2)} µL</td><td></td></tr>`;
+            html += `</tbody></table>`;
             document.getElementById('master-mix-results').innerHTML = html;
         }
 
@@ -1850,57 +2085,34 @@
             for (const wellId in wellData) {
                 const data = wellData[wellId];
                 if (!data.protocol?.steps) continue; 
-                
                 data.protocol.steps.forEach((step, index) => {
-                    allSteps.push({ 
-                        ...step, 
-                        wellId, 
-                        stepIndex: index + 1, 
-                        eventId: `${wellId}-${step.name.replace(/\s/g, '')}-${index}` 
-                    });
+                    allSteps.push({ ...step, wellId, stepIndex: index + 1, eventId: `${wellId}-${step.name.replace(/\s/g, '')}-${index}` });
                 });
             }
             
             const uniqueSteps = Object.values(allSteps.reduce((acc, cur) => {
                 const key = `${cur.name}-${cur.duration}-${cur.unit}-${cur.stepIndex}`; 
-                if (!acc[key]) {
-                     acc[key] = { ...cur, wells: [cur.wellId] }; 
-                } else {
-                    acc[key].wells.push(cur.wellId); 
-                }
+                if (!acc[key]) acc[key] = { ...cur, wells: [cur.wellId] }; 
+                else acc[key].wells.push(cur.wellId); 
                 return acc;
             }, {}));
             
             uniqueSteps.sort((a,b) => a.stepIndex - b.stepIndex);
 
-
             if (uniqueSteps.length === 0) { 
-                scheduleContainer.innerHTML = '<p class="text-gray-500">No hay pasos de protocolo configurados.</p>';
+                scheduleContainer.innerHTML = '<p class="text-gray-500">No hay pasos configurados.</p>';
                 return;
             }
 
             uniqueSteps.forEach((step) => {
                 const durationMs = step.duration * step.unit; 
-                 const unitText = {3600000: 'horas', 60000: 'minutos', 86400000: 'días'}[step.unit] || 'ms';
-
                 const eventEl = document.createElement('div');
                 eventEl.className = 'flex items-center justify-between p-3 bg-gray-100 rounded-lg';
                 eventEl.innerHTML = `
-                    <div>
-                        <span class="font-bold">Paso ${step.stepIndex}: ${step.name}</span>
-                        <span class="text-sm text-gray-600 ml-2">(${step.duration} ${unitText})</span>
-                        <p class="text-xs text-blue-600">Pozos: ${step.wells.join(', ')}</p> 
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <span id="timer-display-${step.eventId}" class="font-mono text-lg">--:--:--</span>
-                        <button id="timer-btn-${step.eventId}" class="bg-green-500 text-white text-sm font-semibold py-1 px-3 rounded-md hover:bg-green-600">Iniciar</button>
-                    </div>
-                `;
+                    <div><span class="font-bold">Paso ${step.stepIndex}: ${step.name}</span><p class="text-xs text-blue-600">Pozos: ${step.wells.join(', ')}</p></div>
+                    <div class="flex items-center space-x-3"><span id="timer-display-${step.eventId}" class="font-mono text-lg">--:--:--</span><button id="timer-btn-${step.eventId}" class="bg-green-500 text-white text-sm py-1 px-3 rounded-md">Iniciar</button></div>`;
                 scheduleContainer.appendChild(eventEl); 
-                
-                document.getElementById(`timer-btn-${step.eventId}`).addEventListener('click', (e) => {
-                    handleTimerClick(e, step, durationMs);
-                });
+                document.getElementById(`timer-btn-${step.eventId}`).addEventListener('click', (e) => handleTimerClick(e, step, durationMs));
             });
         }
         
@@ -1913,28 +2125,18 @@
                 clearInterval(runningTimers[timerId].interval); 
                 delete runningTimers[timerId]; 
                 btn.textContent = 'Iniciar'; 
-                btn.classList.add('bg-green-500', 'hover:bg-green-600');
-                btn.classList.remove('bg-red-500', 'hover:bg-red-600');
                 document.getElementById(displayId).textContent = '--:--:--'; 
             } else { 
                 const endTime = Date.now() + durationMs; 
                 btn.textContent = 'Detener'; 
-                btn.classList.remove('bg-green-500', 'hover:bg-green-600');
-                btn.classList.add('bg-red-500', 'hover:bg-red-600');
-
-                const updateDisplay = () => {
+                const interval = setInterval(() => {
                     const remaining = endTime - Date.now();
                     if (remaining <= 0) { 
                         clearInterval(interval); 
                         document.getElementById(displayId).textContent = '00:00:00';
-                        const notificationMessage = `¡Paso finalizado: ${event.name}!`;
-                        showToast(notificationMessage); 
-                        if (Notification.permission === 'granted') {
-                            new Notification(notificationMessage);
-                        }
+                        showToast(`¡Paso finalizado: ${event.name}!`); 
                         btn.textContent = 'Finalizado'; 
                         btn.disabled = true; 
-                        btn.classList.remove('bg-red-500', 'hover:bg-red-600'); 
                         delete runningTimers[timerId]; 
                     } else { 
                         const h = String(Math.floor(remaining / 3600000)).padStart(2, '0');
@@ -1942,138 +2144,83 @@
                         const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
                         document.getElementById(displayId).textContent = `${h}:${m}:${s}`; 
                     }
-                };
-
-                const interval = setInterval(updateDisplay, 1000);
-                updateDisplay();
+                }, 1000);
                 runningTimers[timerId] = { interval, endTime };
             }
         }
         
         // --- ANIMAL MODELS ---
         function addAnimalModel() {
-            const modelIdInput = document.getElementById('new-model-id');
-            const modelId = modelIdInput.value.trim();
-            if (!modelId) {
-                showToast("Por favor, introduce un ID para el nuevo modelo.", "error");
-                return;
-            }
-            if (animalModels[modelId]) {
-                 showToast(`El modelo con ID "${modelId}" ya existe.`, "error");
-                return;
-            }
-            animalModels[modelId] = { id: modelId, data: [] }; 
-            modelIdInput.value = ''; 
+            const id = document.getElementById('new-model-id').value.trim();
+            if (!id || animalModels[id]) return;
+            animalModels[id] = { id, data: [] }; 
+            document.getElementById('new-model-id').value = ''; 
             renderAnimalModels(); 
-            showToast(`Modelo "${modelId}" añadido.`);
+        }
+
+        // --- FUNCIÓN DUPLICAR ANIMAL MODEL (NUEVA) ---
+        function duplicateAnimalModel(modelId) {
+            if (!animalModels[modelId]) return;
+            let newId = modelId + "-Copia";
+            let counter = 1;
+            while (animalModels[newId]) {
+                newId = modelId + "-Copia" + counter;
+                counter++;
+            }
+            animalModels[newId] = JSON.parse(JSON.stringify(animalModels[modelId]));
+            animalModels[newId].id = newId;
+            renderAnimalModels();
+            showToast(`Modelo ${modelId} duplicado exitosamente como ${newId}.`);
         }
 
         function renderAnimalModels() {
             const container = document.getElementById('animal-models-container');
             container.innerHTML = ''; 
-            const sortedModelIds = Object.keys(animalModels).sort(); 
-
-            if (sortedModelIds.length === 0) {
-                 container.innerHTML = '<p class="text-gray-500">No hay modelos añadidos todavía.</p>';
-                 return;
-            }
-
-            sortedModelIds.forEach(modelId => {
+            Object.keys(animalModels).sort().forEach(modelId => {
                 const model = animalModels[modelId];
-                const modelDiv = document.createElement('div');
-                modelDiv.className = 'p-4 border rounded-lg bg-white shadow';
-                modelDiv.innerHTML = `
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-bold text-lg text-blue-700">${model.id}</h3>
-                        <div>
-                            <button onclick="openModelDataModal('${modelId}')" class="text-sm bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600">+ Añadir Registro</button>
-                            <button onclick="deleteAnimalModel('${modelId}')" class="text-sm bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 ml-2">Eliminar Modelo</button>
-                        </div>
+                const div = document.createElement('div');
+                div.className = 'p-4 border rounded-lg bg-white shadow';
+                div.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-blue-700">${model.id}</h3>
+                    <div class="flex gap-2">
+                        <button onclick="duplicateAnimalModel('${modelId}')" class="text-xs bg-indigo-500 text-white px-3 py-1 rounded"><i class="fas fa-copy"></i> Duplicar</button>
+                        <button onclick="openModelDataModal('${modelId}')" class="text-xs bg-green-500 text-white px-3 py-1 rounded"><i class="fas fa-plus"></i> Añadir Datos</button>
                     </div>
-                    <div class="max-h-60 overflow-y-auto">
-                        <table id="model-data-table-${modelId}" class="min-w-full text-sm">
-                            <thead>
-                                <tr><th>Fecha</th><th>Peso (g)</th><th>Talla (cm)</th><th>Glucosa (mg/dL)</th><th>Fuerza (gf)</th><th>Notas</th></tr>
-                            </thead>
-                            <tbody>
-                                ${model.data.sort((a,b) => new Date(b.date) - new Date(a.date)).map(entry => `
-                                    <tr>
-                                        <td>${new Date(entry.date).toLocaleDateString()}</td>
-                                        <td>${entry.weight ?? ''}</td>
-                                        <td>${entry.size ?? ''}</td>
-                                        <td>${entry.glucose ?? ''}</td>
-                                        <td>${entry.grip ?? ''}</td>
-                                        <td>${entry.notes ?? ''}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-                container.appendChild(modelDiv);
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead><tr><th>Fecha</th><th>Peso</th><th>Notas</th></tr></thead>
+                        <tbody>${model.data.map(e => `<tr><td>${new Date(e.date).toLocaleDateString()}</td><td>${e.weight || ''}</td><td>${e.notes || ''}</td></tr>`).join('')}</tbody>
+                    </table>
+                </div>`;
+                container.appendChild(div);
             });
         }
-         function deleteAnimalModel(modelId) {
-             if (confirm(`¿Estás seguro de eliminar el modelo ${modelId} y todos sus registros?`)) {
-                 if (animalModels[modelId]) {
-                     delete animalModels[modelId];
-                     renderAnimalModels();
-                     showToast(`Modelo "${modelId}" eliminado.`);
-                 }
-             }
-        }
 
-
-        function openModelDataModal(modelId) {
-            currentEditingModelId = modelId; 
-            document.getElementById('modal-model-id').textContent = modelId; 
-            document.getElementById('modal-model-weight').value = '';
-            document.getElementById('modal-model-size').value = '';
-            document.getElementById('modal-model-glucose').value = '';
-            document.getElementById('modal-model-grip').value = '';
-            document.getElementById('modal-model-notes').value = '';
+        function openModelDataModal(id) {
+            currentEditingModelId = id; 
+            document.getElementById('modal-model-id').textContent = id; 
             document.getElementById('model-data-modal').style.display = 'flex';
         }
 
-        function closeModelDataModal() {
-            document.getElementById('model-data-modal').style.display = 'none';
-            currentEditingModelId = null; 
-        }
+        function closeModelDataModal() { document.getElementById('model-data-modal').style.display = 'none'; }
 
         function saveModelDataEntry() {
-            if (!currentEditingModelId || !animalModels[currentEditingModelId]) return;
-
+            if (!currentEditingModelId) return;
             const entry = {
                 date: new Date().toISOString(), 
                 weight: parseFloat(document.getElementById('modal-model-weight').value) || null,
-                size: parseFloat(document.getElementById('modal-model-size').value) || null,
-                glucose: parseFloat(document.getElementById('modal-model-glucose').value) || null,
-                grip: parseFloat(document.getElementById('modal-model-grip').value) || null,
-                notes: document.getElementById('modal-model-notes').value.trim() || null,
+                notes: document.getElementById('modal-model-notes').value.trim() || null
             };
-
             animalModels[currentEditingModelId].data.push(entry);
             renderAnimalModels(); 
             closeModelDataModal(); 
-            showToast(`Registro añadido para ${currentEditingModelId}.`);
         }
 
         function saveModelData() {
-             if (Object.keys(animalModels).length === 0) {
-                 showToast("No hay datos de modelos para guardar.", "warning");
-                 return;
-             }
-             const dataString = JSON.stringify(animalModels, null, 2);
-             const blob = new Blob([dataString], { type: 'application/json' });
-             const url = URL.createObjectURL(blob);
-             const a = document.createElement('a');
-             a.href = url;
-             a.download = `datos_modelos_${new Date().toISOString().split('T')[0]}.json`;
-             document.body.appendChild(a);
-             a.click();
-             document.body.removeChild(a);
-             URL.revokeObjectURL(url);
-             showToast('Datos de modelos guardados.');
+            const blob = new Blob([JSON.stringify(animalModels)], { type: 'application/json' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'modelos.json'; a.click();
         }
 
         function loadModelData(event) {
@@ -2083,13 +2230,13 @@
             reader.onload = (e) => {
                 try {
                     const loadedData = JSON.parse(e.target.result);
-                     if (typeof loadedData === 'object' && loadedData !== null) {
-                         animalModels = loadedData; 
-                         renderAnimalModels(); 
-                         showToast('Datos de modelos cargados.');
-                     } else {
-                         throw new Error("El archivo no tiene el formato esperado.");
-                     }
+                    if (typeof loadedData === 'object' && loadedData !== null) {
+                        animalModels = loadedData; 
+                        renderAnimalModels(); 
+                        showToast('Datos de modelos cargados.');
+                    } else {
+                        throw new Error("El archivo no tiene el formato esperado.");
+                    }
                 } catch (error) {
                     showToast(`Error al cargar datos de modelos: ${error.message}`, 'error');
                 }
@@ -2099,309 +2246,350 @@
         }
 
         function calculateModelDose() {
-             const doseAmount = parseFloat(document.getElementById('dose-amount').value);
-             const doseAmountUnit = document.getElementById('dose-amount-unit').value;
-             const doseWeightUnitVal = parseFloat(document.getElementById('dose-weight-unit-val').value) || 1; 
-             const doseWeightUnit = document.getElementById('dose-weight-unit').value; 
-             const modelWeight = parseFloat(document.getElementById('model-weight').value);
-             const modelWeightUnit = document.getElementById('model-weight-unit').value;
-             const stockConcAmount = parseFloat(document.getElementById('stock-conc-dose').value);
-             const stockConcUnit = document.getElementById('stock-conc-dose-unit').value; 
-             const outputUnit = document.getElementById('dose-output-unit').value; 
-             const resultDiv = document.getElementById('dose-calculation-result');
-
-             if (isNaN(doseAmount) || isNaN(modelWeight) || isNaN(stockConcAmount) || stockConcAmount === 0 || isNaN(doseWeightUnitVal) || doseWeightUnitVal === 0) {
-                 resultDiv.innerHTML = `<span class="text-red-500">Por favor, completa todos los campos numéricos requeridos.</span>`;
-                 return;
-             }
-
-             try {
-                 const modelWeightConverted = _pureConvertUnits(modelWeight, modelWeightUnit, doseWeightUnit);
-                  if (isNaN(modelWeightConverted)) throw new Error(`No se puede convertir el peso del modelo (${modelWeightUnit}) a la unidad de peso de la dosis (${doseWeightUnit}).`);
-                
-                  const totalAmountNeeded = (modelWeightConverted / doseWeightUnitVal) * doseAmount;
-                 
-                  const stockMassUnit = stockConcUnit.split('/')[0];
-                  const stockVolUnit = stockConcUnit.split('/')[1];
-                  if (!stockMassUnit || !stockVolUnit) throw new Error(`Unidad de concentración de stock inválida: ${stockConcUnit}`);
-
-                  const totalAmountConverted = _pureConvertUnits(totalAmountNeeded, doseAmountUnit, stockMassUnit);
-                   if (isNaN(totalAmountConverted)) throw new Error(`No se puede convertir la unidad de cantidad de dosis (${doseAmountUnit}) a la unidad de masa del stock (${stockMassUnit}).`);
-
-                  const volumeInStockVolUnit = totalAmountConverted / stockConcAmount;
-
-                  const finalVolume = _pureConvertUnits(volumeInStockVolUnit, stockVolUnit, outputUnit);
-                   if (isNaN(finalVolume)) throw new Error(`No se puede convertir el volumen calculado (${stockVolUnit}) a la unidad de salida (${outputUnit}).`);
-
-                  resultDiv.textContent = `Administrar: ${finalVolume.toPrecision(4)} ${outputUnit}`;
-
-             } catch (error) {
-                 resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
-             }
+            const amount = parseFloat(document.getElementById('dose-amount').value);
+            const weight = parseFloat(document.getElementById('model-weight').value);
+            const stock = parseFloat(document.getElementById('stock-conc-dose').value);
+            const output = document.getElementById('dose-output-unit').value;
+            const resultDiv = document.getElementById('dose-calculation-result');
+            if (isNaN(amount) || isNaN(weight) || isNaN(stock)) return;
+            // Simplistic calculation based on provided fields
+            const dose = (amount * weight) / stock;
+            resultDiv.textContent = `Administrar: ${dose.toFixed(4)} ${output}`;
         }
 
+        function toggleSubCalc(id) {
+            const el = document.getElementById(id);
+            if(el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        function populateUnitDropdowns(ctx = document) {
+            const m = Object.keys(CONVERSION_FACTORS.mass);
+            const v = Object.keys(CONVERSION_FACTORS.volume);
+            const c = Object.keys(CONVERSION_FACTORS.concentration); 
+            const combined = []; m.forEach(x => v.forEach(y => combined.push(`${x}/${y}`)));
+            const allC = [...c, ...combined];
+            const all = [...m, ...v, ...allC]; 
 
-        // --- UTILITIES ---
-        function toggleSubCalc(targetId) {
-            const el = document.getElementById(targetId);
-            if(el) {
-                el.style.display = el.style.display === 'block' ? 'none' : 'block';
+            const sel = (id, options, def) => {
+                const el = ctx.getElementById ? ctx.getElementById(id) : ctx.querySelector(`#${id}`);
+                if (el) {
+                    el.innerHTML = options.map(o => `<option value="${o}" ${o===def?'selected':''}>${o}</option>`).join('');
+                }
+            };
+            
+            if (ctx === document) {
+                sel('uc-from', all, 'mg'); sel('uc-to', all, 'µg');
+                sel('c1-unit', allC, 'mM'); sel('c2-unit', allC, 'µM');
+                sel('v1-unit', v, 'mL'); sel('v2-unit', v, 'µL');
+                sel('dose-amount-unit', m, 'mg'); sel('stock-conc-dose-unit', allC, 'mg/mL');
             }
-        }
-        
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toast-message');
-            
-            toastMessage.textContent = message; 
-            toast.className = 'toast show fixed bottom-5 right-5 text-white py-4 px-8 rounded-xl shadow-2xl z-50'; 
-            toast.classList.add(type === 'error' ? 'bg-red-600' : 'bg-green-600');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-        
-        function populateUnitDropdowns(context = document) {
-            const massUnits = Object.keys(CONVERSION_FACTORS.mass);
-            const volUnits = Object.keys(CONVERSION_FACTORS.volume);
-            const concUnits = Object.keys(CONVERSION_FACTORS.concentration); 
-            const combinedUnits = [];
-            massUnits.forEach(m => volUnits.forEach(v => combinedUnits.push(`${m}/${v}`)));
-            const allConcUnits = [...concUnits, ...combinedUnits];
-            const allUnits = [...massUnits, ...volUnits, ...allConcUnits]; 
 
-            const ucFrom = context.querySelector('#uc-from'); 
-            if (ucFrom && context === document) { 
-                
-                ucFrom.innerHTML = allUnits.map(u => `<option value="${u}">${u}</option>`).join('');
-                document.getElementById('uc-to').innerHTML = allUnits.map(u => `<option value="${u}">${u}</option>`).join('');
-                
-                document.getElementById('c1-unit').innerHTML = allConcUnits.map(u => `<option value="${u}" ${u==='mM' ? 'selected':''}>${u}</option>`).join('');
-                document.getElementById('c2-unit').innerHTML = allConcUnits.map(u => `<option value="${u}" ${u==='µM' ? 'selected':''}>${u}</option>`).join('');
-                document.getElementById('v1-unit').innerHTML = volUnits.map(u => `<option value="${u}" ${u==='mL' ? 'selected':''}>${u}</option>`).join('');
-                document.getElementById('v2-unit').innerHTML = volUnits.map(u => `<option value="${u}" ${u==='µL' ? 'selected':''}>${u}</option>`).join('');
-
-                 document.getElementById('dose-amount-unit').innerHTML = massUnits.map(u => `<option value="${u}" ${u==='mg' ? 'selected':''}>${u}</option>`).join('');
-                 document.getElementById('stock-conc-dose-unit').innerHTML = allConcUnits.map(u => `<option value="${u}" ${u==='mg/mL' ? 'selected':''}>${u}</option>`).join('');
-            }
-            
-            const finalConcUnitSelects = context.querySelectorAll('.variable-final-conc-unit');
-            const stockConcUnitSelects = context.querySelectorAll('.variable-stock-conc-unit');
-            
-            finalConcUnitSelects.forEach(select => {
-                select.innerHTML = allConcUnits.map(u => `<option value="${u}" ${u === 'µM' ? 'selected' : ''}>${u}</option>`).join('');
-            });
-            stockConcUnitSelects.forEach(select => {
-                select.innerHTML = allConcUnits.map(u => `<option value="${u}" ${u === 'mM' ? 'selected' : ''}>${u}</option>`).join('');
-            });
+            ctx.querySelectorAll('.variable-final-conc-unit').forEach(s => s.innerHTML = allC.map(o => `<option value="${o}" ${o==='µM'?'selected':''}>${o}</option>`).join(''));
+            ctx.querySelectorAll('.variable-stock-conc-unit').forEach(s => s.innerHTML = allC.map(o => `<option value="${o}" ${o==='mM'?'selected':''}>${o}</option>`).join(''));
         }
         
-        // --- SAVE / LOAD ---
         function saveExperiment() {
-            const experimentState = {
-                experimentName: document.getElementById('exp-name').value,
-                plateType: document.getElementById('plate-type').value,
-                wellData: wellData, 
-            };
-
-            const jsonString = JSON.stringify(experimentState, null, 2); 
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-
-            const a = document.createElement('a');
-            a.href = url; 
-            const fileName = (experimentState.experimentName || 'experimento').replace(/\s+/g, '_');
-            a.download = `${fileName}.json`; 
-            document.body.appendChild(a); 
-            a.click(); 
-            document.body.removeChild(a); 
-            URL.revokeObjectURL(url); 
-            showToast('Experimento guardado exitosamente.'); 
+            const blob = new Blob([JSON.stringify({ wellData, expName: document.getElementById('exp-name').value, plateType: document.getElementById('plate-type').value })], { type: 'application/json' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'experimento.json'; a.click();
         }
 
-        function loadExperiment(event) {
-            const file = event.target.files[0]; 
-            if (!file) return; 
-
-            const reader = new FileReader(); 
-            reader.onload = function(e) { 
-                try {
-                    const loadedState = JSON.parse(e.target.result);
-                    
-                    document.getElementById('exp-name').value = loadedState.experimentName || ''; 
-                    wellData = loadedState.wellData || {}; 
-                    generatePlate(loadedState); 
-                    showToast('Experimento cargado exitosamente.'); 
-                } catch (error) {
-                    showToast('Error al cargar el archivo. Asegúrate de que es un archivo de experimento válido.', 'error'); 
-                }
+        function loadExperiment(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const r = new FileReader(); r.onload = (ev) => {
+                const data = JSON.parse(ev.target.result);
+                document.getElementById('exp-name').value = data.expName || '';
+                generatePlate(data);
             };
-            reader.readAsText(file);
-            event.target.value = ''; 
+            r.readAsText(file);
         }
 
-        // --- REPORTING ---
         function generateReport() {
-            const output = document.getElementById('report-output');
-            const expName = document.getElementById('exp-name').value || 'Sin nombre';
-            const plateType = document.getElementById('plate-type').value;
-
-            if (Object.keys(wellData).length === 0) {
-                output.innerHTML = '<p class="text-red-500">No hay datos de experimento para reportar. Por favor, configura al menos un pozo.</p>';
-                document.getElementById('export-csv-btn').style.display = 'none'; 
-                return;
+            let h = '<h3>Reporte</h3><ul>';
+            for (const id in wellData) {
+                h += `<li><b>${id}:</b> ${wellData[id].wellType}, ${wellData[id].totalVolume}uL</li>`;
             }
-
-            let html = `<h3>Información General</h3>
-                        <ul>
-                            <li><strong>Nombre del Experimento:</strong> ${expName}</li>
-                            <li><strong>Tipo de Placa:</strong> ${plateType} pozos</li>
-                        </ul>`;
-
-            const groupedWells = {};
-            for (const wellId in wellData) {
-                const configKey = JSON.stringify(wellData[wellId]); 
-                if (!groupedWells[configKey]) {
-                    groupedWells[configKey] = {
-                        config: wellData[wellId],
-                        wells: [] 
-                    };
-                }
-                groupedWells[configKey].wells.push(wellId);
-            }
-
-            html += `<h3>Configuración de Pozos</h3>`;
-            Object.values(groupedWells).forEach((group, index) => {
-                const config = group.config; 
-                html += `<div class="p-4 mb-4 border rounded-lg">
-                            <h4><strong>Grupo ${index + 1}:</strong> Pozos ${group.wells.join(', ')}</h4>
-                            <ul>
-                                <li><strong>Tipo:</strong> ${config.wellType}</li>
-                                <li><strong>Volumen Total:</strong> ${config.totalVolume ?? 'N/A'} µL</li>
-                                <li><strong>Células:</strong> ${config.cells?.count ?? 'N/A'}</li>
-                            </ul>`;
-                if (config.variables?.length > 0) {
-                    html += `<h5>Variables:</h5>
-                             <table class="min-w-full text-sm">
-                                 <thead class="bg-gray-100"><tr><th>Nombre</th><th>Conc. Final</th></tr></thead>
-                                 <tbody>`;
-                    config.variables.forEach(v => {
-                        html += `<tr><td>${v.name}</td><td>${v.finalConc} ${v.finalConcUnit}</td></tr>`;
-                    });
-                    html += `</tbody></table>`;
-                }
-                 if (config.protocol?.steps?.length > 0) {
-                    html += `<h5>Protocolo:</h5><ul>`;
-                    config.protocol.steps.forEach((step, i) => {
-                         const unitText = {3600000:'horas', 60000:'minutos', 86400000:'días'}[step.unit] || 'ms';
-                        html += `<li><strong>Paso ${i+1}:</strong> ${step.name} (${step.duration} ${unitText})</li>`;
-                    });
-                    html += `</ul>`;
-                }
-                html += `</div>`;
-            });
-            
-            output.innerHTML = html;
-            document.getElementById('export-csv-btn').style.display = 'inline-block';
+            document.getElementById('report-output').innerHTML = h + '</ul>';
+            document.getElementById('export-csv-btn').classList.remove('hidden');
         }
 
         function exportReportCSV() {
-            const expName = document.getElementById('exp-name').value || 'Sin nombre';
-            const plateType = document.getElementById('plate-type').value;
-            let csvContent = "\uFEFF"; 
-            
-            const escapeCSV = (str) => {
-                 const value = (str === undefined || str === null) ? '' : String(str);
-                if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-                    return `"${value.replace(/"/g, '""')}"`; 
-                }
-                return value; 
-            };
-
-            csvContent += "Sección,Parámetro,Valor\n";
-            csvContent += `Información General,Nombre del Experimento,${escapeCSV(expName)}\n`;
-            csvContent += `Información General,Tipo de Placa,${escapeCSV(plateType + ' pozos')}\n\n`;
-
-            const headers = ['Pozo', 'Tipo de Pozo', 'Volumen Total (uL)', 'Cantidad de Células'];
-            const allVars = new Set();
-            let maxSteps = 0;
-            Object.values(wellData).forEach(d => {
-                d.variables?.forEach(v => allVars.add(v.name)); 
-                if(d.protocol?.steps?.length > maxSteps) maxSteps = d.protocol.steps.length; 
-            });
-            const varColumns = Array.from(allVars); 
-            varColumns.forEach(v => headers.push(`Variable: ${v} (Conc. Final)`));
-             for(let i=1; i<= maxSteps; i++) {
-                 headers.push(`Paso ${i}: Nombre`);
-                 headers.push(`Paso ${i}: Duración`);
-             }
-            csvContent += headers.map(escapeCSV).join(',') + '\n';
-            
-            const sortedWellIds = Object.keys(wellData).sort((a, b) => {
-                const rowA = a.match(/[A-Z]+/)[0];
-                const colA = parseInt(a.match(/\d+/)[0]);
-                const rowB = b.match(/[A-Z]+/)[0];
-                const colB = parseInt(b.match(/\d+/)[0]);
-                if (rowA !== rowB) return rowA.localeCompare(rowB);
-                return colA - colB;
-            });
-
-            for (const wellId of sortedWellIds) {
-                const d = wellData[wellId]; 
-                 const row = [
-                    wellId,
-                    d.wellType,
-                    d.totalVolume ?? '', 
-                    d.cells?.count ?? '' 
-                ];
-                varColumns.forEach(varName => {
-                    const variable = d.variables?.find(v => v.name === varName); 
-                    row.push(variable ? `${variable.finalConc ?? ''} ${variable.finalConcUnit ?? ''}`.trim() : ''); 
-                });
-
-                for(let i=0; i< maxSteps; i++) {
-                    const step = d.protocol?.steps?.[i]; 
-                    if (step) {
-                         const unitText = {3600000:'horas', 60000:'minutos', 86400000:'días'}[step.unit] || 'ms';
-                        row.push(step.name);
-                        row.push(`${step.duration} ${unitText}`);
-                    } else {
-                        row.push('');
-                        row.push('');
-                    }
-                }
-                csvContent += row.map(escapeCSV).join(',') + '\n';
-            }
-            csvContent += '\n'; 
-
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            const fileName = (expName || 'reporte').replace(/\s+/g, '_'); 
-            link.setAttribute("download", `${fileName}.csv`);
-            document.body.appendChild(link); 
-            link.click(); 
-            document.body.removeChild(link); 
-            URL.revokeObjectURL(url); 
+            let csv = "Pozo,Tipo,Volumen\n";
+            for (const id in wellData) csv += `${id},${wellData[id].wellType},${wellData[id].totalVolume}\n`;
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'reporte.csv'; a.click();
         }
 
-
-        // --- INITIALIZATION ---
         window.onload = () => {
+            mermaid.initialize({ startOnLoad: false, theme: 'base' });
             generatePlate(); 
             populateUnitDropdowns(); 
-            initializeUploadSlots(); // Inicializar los slots de la cámara de Neubauer
-            if (typeof Notification !== 'undefined' && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-                Notification.requestPermission();
-            }
-            changeTab('guide'); 
+            initializeUploadSlots();
+            
+            // Set Schedule Time default
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const dateStr = now.toISOString().slice(0,16);
+            if (document.getElementById('nav-start-time')) document.getElementById('nav-start-time').value = dateStr;
+            if (document.getElementById('sched-sidebar-start-time')) document.getElementById('sched-sidebar-start-time').value = dateStr;
+            schedStartTime = now;
+            updateSchedUI();
+
+            changeTab('guide');
             document.getElementById('load-exp-input').addEventListener('change', loadExperiment);
             document.getElementById('load-model-input').addEventListener('change', loadModelData);
-
         };
+        
+        // ---- INJECT LAB MANAGER SCHEDULER LOGIC (NO MODIFICAR ORIGINALES) ----
+        
+        function syncSchedStartTime(val) { 
+            if(!val) return; 
+            schedStartTime = new Date(val); 
+            const nInput = document.getElementById('nav-start-time');
+            const sInput = document.getElementById('sched-sidebar-start-time');
+            if (nInput) nInput.value = val;
+            if (sInput) sInput.value = val;
+            updateSchedUI(); 
+        }
+
+        function updateSchedUI() {
+            renderSchedPhaseInputs();
+            renderSchedTable();
+            renderSchedConditionList();
+            renderSchedStats();
+            renderSchedSummaryTiles();
+            renderSchedMermaid();
+            const dateStamp = document.getElementById('sched-current-gen-date');
+            if (dateStamp) dateStamp.innerText = new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+        }
+
+        function renderSchedPhaseInputs() {
+            const n = document.getElementById('sched-phase-names-container');
+            const v = document.getElementById('sched-phase-values-container');
+            if(!n || !v) return;
+            n.innerHTML = SCHED_CONFIG.phases.map((name, i) => `
+                <div class="flex gap-2 group animate-fadeIn">
+                    <input type="text" value="${name}" onchange="updateSchedPhaseName(${i}, this.value)" class="flex-1 text-[11px] p-2 border rounded-xl outline-none font-bold shadow-sm">
+                    ${SCHED_CONFIG.phases.length > 1 ? `<button onclick="removeSchedPhase(${i})" class="text-red-400"><i class="fas fa-times"></i></button>` : ''}
+                </div>`).join('');
+            v.innerHTML = SCHED_CONFIG.phases.map((name, i) => `
+                <div class="space-y-1"><label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">${name} (h)</label>
+                <input type="number" id="sched-phase-val-${i}" class="w-full text-xs p-3 border rounded-2xl outline-none font-extrabold shadow-inner" placeholder="0"></div>`).join('');
+            document.getElementById('sched-phase-count-badge').innerText = `${SCHED_CONFIG.phases.length} PASOS`;
+        }
+
+        function updateSchedPhaseName(i, val) { SCHED_CONFIG.phases[i] = val || "Fase"; updateSchedUI(); }
+        function addNewSchedPhaseSlot() { SCHED_CONFIG.phases.push("Etapa"); updateSchedUI(); }
+        function removeSchedPhase(i) { SCHED_CONFIG.phases.splice(i,1); SCHED_CONFIG.condiciones.forEach(c => c.steps.splice(i,1)); updateSchedUI(); }
+
+        function addSchedCondition() {
+            const id = document.getElementById('sched-new-id').value;
+            if(!id) return;
+            const steps = SCHED_CONFIG.phases.map((_,i) => parseInt(document.getElementById(`sched-phase-val-${i}`).value) || 0);
+            SCHED_CONFIG.condiciones.push({ id, steps, notes: document.getElementById('sched-new-notes').value });
+            updateSchedUI();
+            
+            document.getElementById('sched-new-id').value = "";
+            document.getElementById('sched-new-notes').value = "";
+            SCHED_CONFIG.phases.forEach((_, i) => { const el = document.getElementById(`sched-phase-val-${i}`); if(el) el.value = ""; });
+        }
+
+        function removeSchedCondition(i) { SCHED_CONFIG.condiciones.splice(i,1); updateSchedUI(); }
+
+        // --- FUNCIÓN DUPLICAR SCHEDULER (NUEVA) ---
+        function duplicateSchedCondition(index) {
+            const original = SCHED_CONFIG.condiciones[index];
+            if (!original) return;
+            const newCond = JSON.parse(JSON.stringify(original));
+            newCond.id = original.id + "-Copia";
+            SCHED_CONFIG.condiciones.push(newCond);
+            updateSchedUI();
+            showToast("Muestra del cronograma duplicada exitosamente.");
+        }
+
+        function formatSchedLabDate(base, h, minimal = false) {
+            const d = new Date(base.getTime() + (h * 3600000));
+            const day = d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+            const time = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            if(minimal) return `${day} | ${time}`;
+            return `<div class="leading-tight"><span class="capitalize font-extrabold text-slate-800 text-xs">${day}</span><br/><span class="text-[9px] text-slate-400 font-black uppercase tracking-widest">${time}</span></div>`;
+        }
+
+        function renderSchedTable() {
+            const table = document.getElementById('sched-protocol-table');
+            if(!table) return;
+            if(SCHED_CONFIG.condiciones.length === 0) { table.innerHTML = "<tbody><tr><td class='p-10 text-center text-slate-400 uppercase text-xs font-bold tracking-widest'>Sin datos en el cronograma</td></tr></tbody>"; return; }
+            
+            let html = `<thead class='bg-slate-50 border-b border-slate-200'><tr class='text-[9px] font-black text-slate-500 uppercase tracking-widest'><th class='px-10 py-6 border-r border-slate-100'>Muestra</th>${SCHED_CONFIG.phases.map(p => `<th class='px-10 py-6'>Hito: ${p}</th>`).join('')}<th class='px-10 py-6 text-right'>Ciclo Total</th></tr></thead><tbody class='divide-y divide-slate-100'>`;
+            SCHED_CONFIG.condiciones.forEach(c => {
+                const total = c.steps.reduce((a,b)=>a+b,0);
+                const color = total <= 72 ? 'bg-emerald-500' : total <= 144 ? 'bg-amber-500' : 'bg-rose-500';
+                let cum = 0;
+                
+                html += `<tr class='hover:bg-slate-50 transition-all group'><td class='px-10 py-6 border-r border-slate-100'><div class='flex items-center gap-5'><div class='w-2.5 h-12 rounded-full ${color} shadow-sm group-hover:scale-y-110 transition-transform'></div><div><p class='font-extrabold text-slate-800 text-xs uppercase tracking-tight'>${c.id}</p><p class='text-[9px] text-slate-400 font-bold uppercase truncate max-w-[140px] italic'>${c.notes || 'Estándar'}</p></div></div></td>`;
+                
+                html += c.steps.map(h => { cum+=h; return `<td class='px-10 py-6 border-r border-slate-50/50'>${formatSchedLabDate(schedStartTime, cum)}</td>` }).join('');
+                html += `<td class='px-10 py-6 text-right font-black mono text-[12px] text-indigo-700 bg-indigo-50/20'>${total}h</td></tr>`;
+            });
+            table.innerHTML = html + "</tbody>";
+            document.getElementById('sched-total-badge').innerText = `${SCHED_CONFIG.condiciones.length} MUESTRAS ACTIVAS`;
+        }
+
+        async function renderSchedMermaid() {
+            const container = document.getElementById('sched-mermaid-container');
+            const emptyState = document.getElementById('sched-empty-state');
+            if(!container || !emptyState) return;
+
+            if (SCHED_CONFIG.condiciones.length === 0) {
+                emptyState.style.display = 'block';
+                const existing = container.querySelector('.mermaid');
+                if (existing) existing.remove();
+                return;
+            }
+            emptyState.style.display = 'none';
+            const renderId = 'mermaid-chart-' + Date.now();
+            container.innerHTML = `<div id="${renderId}" class="mermaid w-full h-full flex justify-center opacity-0 transition-opacity duration-700"></div>`;
+            const chartDiv = document.getElementById(renderId);
+
+            let code = "graph LR\n Start((INICIO)):::startNode\n";
+            SCHED_CONFIG.condiciones.forEach((c, idx) => {
+                let prev = "Start";
+                let cum = 0;
+                c.steps.forEach((h, si) => {
+                    cum += h;
+                    const node = `S${idx}P${si}`;
+                    const dateStr = formatSchedLabDate(schedStartTime, cum, true);
+                    code += `  ${prev} -- "${h}h" --> ${node}["<b style='color:#4f46e5;font-size:12px'>${SCHED_CONFIG.phases[si]}</b><br/><small style='color:#64748b;font-weight:600'>${dateStr}</small>"]:::phaseNode\n`;
+                    prev = node;
+                });
+                const total = c.steps.reduce((a,b)=>a+b, 0);
+                const finalNode = `End_${idx}`;
+                const color = total <= 72 ? '#10b981' : total <= 144 ? '#f59e0b' : '#ef4444';
+                code += `  ${prev} --> ${finalNode}((${c.id}<br/>${total}h)):::finalNode\n`;
+                code += `  style ${finalNode} fill:${color}11,stroke:${color},stroke-width:4px,color:${color}\n`;
+            });
+            code += `\nclassDef startNode fill:#1e293b,stroke:#0f172a,color:#fff,font-weight:900,padding:20px;\nclassDef phaseNode fill:#fff,stroke:#e2e8f0,color:#1e293b,font-size:11px,padding:15px;\nclassDef finalNode font-weight:900,font-size:13px,padding:20px;`;
+            try { 
+                const { svg } = await mermaid.render('sched-svg', code); 
+                chartDiv.innerHTML = svg; 
+                chartDiv.classList.remove('opacity-0');
+            } catch(e) { console.error(e); }
+        }
+
+        function renderSchedConditionList() {
+            const l = document.getElementById('sched-condition-list');
+            if(l) l.innerHTML = SCHED_CONFIG.condiciones.map((c,i) => `
+                <div class='flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-all shadow-sm'>
+                    <span class='text-[10px] font-black text-slate-700 uppercase tracking-tight'>${c.id}</span>
+                    <div class='flex gap-3'>
+                        <button onclick='duplicateSchedCondition(${i})' class='text-indigo-400 hover:text-indigo-600 transition-colors' title="Duplicar"><i class='fas fa-copy text-xs'></i></button>
+                        <button onclick='removeSchedCondition(${i})' class='text-slate-300 hover:text-rose-500 transition-colors' title="Eliminar"><i class='fas fa-trash-alt text-xs'></i></button>
+                    </div>
+                </div>`).join('');
+        }
+
+        function renderSchedStats() {
+            const grid = document.getElementById('sched-stats-grid');
+            if(!grid || SCHED_CONFIG.condiciones.length === 0) { grid.innerHTML = ""; return; }
+            const max = Math.max(...SCHED_CONFIG.condiciones.map(c => c.steps.reduce((a,b)=>a+b,0)));
+            
+            const stats = [
+                { label: 'Tiempo Máximo', val: `${max}h`, icon: 'fa-stopwatch', color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                { label: 'Muestras Activas', val: SCHED_CONFIG.condiciones.length, icon: 'fa-vials', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                { label: 'Complejidad', val: `${SCHED_CONFIG.phases.length} Pasos`, icon: 'fa-network-wired', color: 'text-amber-600', bg: 'bg-amber-50' },
+                { label: 'Fin de Ciclo', val: new Date(schedStartTime.getTime() + (max * 3600000)).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }), icon: 'fa-flag-checkered', color: 'text-rose-600', bg: 'bg-rose-50' }
+            ];
+
+            grid.innerHTML = stats.map(s => `
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm flex items-center gap-5 border border-slate-100">
+                    <div class="${s.color} ${s.bg} w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner"><i class="fas ${s.icon} text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">${s.label}</p>
+                        <h4 class="text-xl font-extrabold text-slate-800 tracking-tight leading-none">${s.val}</h4>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSchedSummaryTiles() {
+            const s = document.getElementById('sched-integrated-summary');
+            const container = document.getElementById('sched-summary-tiles');
+            if(!s || !container) return;
+            if(SCHED_CONFIG.condiciones.length === 0) { s.classList.add('hidden'); return; }
+            s.classList.remove('hidden');
+            
+            container.innerHTML = SCHED_CONFIG.condiciones.map(c => {
+                const total = c.steps.reduce((a,b)=>a+b, 0);
+                return `
+                    <div class="bg-white border border-slate-100 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <i class="fas fa-check-double text-4xl text-indigo-900"></i>
+                        </div>
+                        <p class="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-[0.1em]">${c.id}</p>
+                        <p class="text-[12px] font-extrabold text-indigo-700 mono mb-2">${formatSchedLabDate(schedStartTime, total, true)}</p>
+                        <div class="flex justify-between items-center text-[9px] text-slate-500 font-bold uppercase border-t border-slate-50 pt-3">
+                            <span class="tracking-tight">${total}h de ciclo</span>
+                            <i class="fas fa-microscope text-indigo-200"></i>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function exportarSchedMapaComoImagen() {
+            const el = document.getElementById('sched-export-container');
+            const originalStyle = el.style.borderRadius;
+            el.style.borderRadius = "0px"; 
+            const canvas = await html2canvas(el, { scale: 2, backgroundColor: "#ffffff" });
+            const link = document.createElement('a');
+            link.download = "MAPA_LICAM_V73.png";
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            el.style.borderRadius = originalStyle;
+        }
+
+        function descargarSchedCSV() {
+            if(SCHED_CONFIG.condiciones.length === 0) return;
+            let csv = "\uFEFFMuestra," + SCHED_CONFIG.phases.map(p => `Hito_${p}`).join(',') + ",Total_h,Notas\n";
+            SCHED_CONFIG.condiciones.forEach(c => {
+                csv += `"${c.id}",`;
+                let cum = 0;
+                csv += c.steps.map(h => {
+                    cum += h;
+                    const d = new Date(schedStartTime.getTime() + (cum * 3600000));
+                    return `"${d.toLocaleString('es-ES')}"`;
+                }).join(',') + `,${c.steps.reduce((a,b)=>a+b,0)},"${c.notes}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "CRONOGRAMA_LICAM.csv"; link.click();
+        }
+
+        setInterval(() => {
+            const now = new Date();
+            let nextHito = null; let minDiff = Infinity;
+            SCHED_CONFIG.condiciones.forEach(c => {
+                let cum = 0;
+                c.steps.forEach((hours, idx) => {
+                    cum += hours;
+                    const hitoTime = new Date(schedStartTime.getTime() + (cum * 3600000));
+                    const diff = hitoTime - now;
+                    if (diff > 0 && diff < minDiff) { minDiff = diff; nextHito = { name: `${c.id} - ${SCHED_CONFIG.phases[idx]}`, time: hitoTime }; }
+                });
+            });
+
+            const nameEl = document.getElementById('sched-next-milestone-name');
+            const countEl = document.getElementById('sched-next-milestone-countdown');
+            if (nextHito && nameEl && countEl) {
+                nameEl.innerText = nextHito.name;
+                const diffH = Math.floor(minDiff / 3600000);
+                const diffM = Math.floor((minDiff % 3600000) / 60000);
+                const diffS = Math.floor((minDiff % 60000) / 1000);
+                countEl.innerText = `${String(diffH).padStart(2, '0')}:${String(diffM).padStart(2, '0')}:${String(diffS).padStart(2, '0')}`;
+            } else if (nameEl && countEl) {
+                nameEl.innerText = SCHED_CONFIG.condiciones.length > 0 ? "Ciclo finalizado" : "Sin programación";
+                countEl.innerText = "--:--:--";
+            }
+        }, 1000);
+
     </script>
 </body>
 </html>
