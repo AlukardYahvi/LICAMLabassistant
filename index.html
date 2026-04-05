@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LICAM Asistente de Laboratorio</title>
+    <title>LICAM Asistente de Laboratorio - Master Suite</title>
+    
+    <!-- Librerías Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script> <!-- AÑADIDO: Biblioteca para Excel -->
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
     <style>
         /* Base Styles */
         body {
@@ -191,30 +194,36 @@
             </div>
         </div>
     </header>
+    
     <div class="bg-white shadow-md z-10 sticky top-14">
         <div class="container mx-auto px-4 border-b border-gray-200">
             <nav class="flex space-x-1 overflow-x-auto pb-0" aria-label="Tabs">
                 <button onclick="changeTab('guide')" id="tab-guide" class="tab-button active text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">💡 Guía de Uso</button>
                 <button onclick="changeTab('planner')" id="tab-planner" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🧪 Organizador de Cultivo</button>
-                <button onclick="changeTab('scheduler')" id="tab-scheduler" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🗓️ Cronograma Maestro</button> <!-- AÑADIDO -->
+                <button onclick="changeTab('scheduler')" id="tab-scheduler" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🗓️ Cronograma Maestro</button>
                 <button onclick="changeTab('cell-counter')" id="tab-cell-counter" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🔬 Contador AI</button>
                 <button onclick="changeTab('models')" id="tab-models" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🐭 Modelos Animales</button>
                 <button onclick="changeTab('protocols')" id="tab-protocols" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">📚 Protocolos y Recursos</button>
                 <button onclick="changeTab('report')" id="tab-report" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">📄 Reporte del Experimento</button>
                 <button onclick="changeTab('calculators')" id="tab-calculators" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🔢 Calculadoras Rápidas</button>
                 <button onclick="changeTab('about')" id="tab-about" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">ℹ️ Acerca del Proyecto</button>
+                <!-- PESTAÑA AÑADIDA: PERFIL Y NUBE -->
+                <button onclick="changeTab('profile')" id="tab-profile" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2 text-indigo-600 font-black">☁️ Perfil en la Nube</button>
             </nav>
         </div>
     </div>
 
-
     <main class="container mx-auto p-4 md:p-8">
-        <!-- GUÍA DE USO -->
+        
+        <!-- SECCIÓN: GUÍA DE USO -->
         <div id="content-guide" class="space-y-6 bg-white p-8 rounded-3xl shadow-2xl border border-gray-200">
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">💡 Guía de Uso Rápido</h2>
             <div class="prose max-w-none text-gray-700">
                 <p>¡Bienvenido/a al Asistente de Laboratorio LICAM! Esta guía te ayudará a usar las funciones principales.</p>
                 
+                <h3>☁️ Perfil en la Nube - ¡NUEVO!</h3>
+                <p>Al iniciar sesión en el asistente a través de tu cuenta, toda tu información, placas y modelos pueden almacenarse en tiempo real de manera privada.</p>
+
                 <h3>Cronograma Maestro (🗓️) - ¡NUEVO!</h3>
                 <p>Diseña mapas de flujo globales para tus experimentos y monitoriza todas las fases de incubación y tratamientos.</p>
                 <ul class="list-disc list-inside">
@@ -264,7 +273,59 @@
             </div>
         </div>
 
-        <!-- LABMANAGER ULTRA (CRONOGRAMA MAESTRO) - AÑADIDO -->
+        <!-- SECCIÓN: SINC. NUBE Y PERFILES -->
+        <div id="content-profile" class="hidden space-y-8">
+            <div class="bg-white p-8 rounded-3xl shadow-2xl border border-gray-200">
+                <div class="flex items-center justify-between border-b pb-4 mb-6">
+                    <h2 class="text-3xl font-bold text-indigo-700">☁️ Sincronización Segura en la Nube</h2>
+                    <div id="cloud-status" class="px-4 py-2 rounded-xl bg-gray-100 text-sm font-bold text-gray-500 shadow-inner">Verificando conexión...</div>
+                </div>
+                
+                <!-- Tarjeta de Usuario Logueado (Oculta por defecto) -->
+                <div id="user-info-card" class="hidden items-center gap-5 mb-8 p-5 bg-indigo-50 border border-indigo-100 rounded-2xl shadow-sm">
+                    <img id="user-photo" src="" class="w-16 h-16 rounded-full border-2 border-indigo-500 shadow-md">
+                    <div>
+                        <p class="text-xs text-indigo-500 font-bold uppercase tracking-wider">Investigador Conectado</p>
+                        <p id="user-name" class="text-xl font-black text-gray-800"></p>
+                        <p id="user-email" class="text-sm text-gray-600 font-medium"></p>
+                    </div>
+                    <button onclick="window.logoutGoogle()" class="ml-auto bg-white border border-red-200 text-red-600 px-5 py-2.5 rounded-xl font-bold hover:bg-red-50 transition shadow-sm">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </button>
+                </div>
+
+                <!-- Botón de Login de Google (Visible por defecto) -->
+                <div id="login-section" class="text-center py-10 mb-8 bg-gray-50 rounded-2xl border border-gray-200">
+                    <i class="fas fa-lock text-4xl text-gray-300 mb-4"></i>
+                    <h3 class="text-lg font-bold text-gray-700 mb-2">Inicia sesión para guardar tu progreso</h3>
+                    <p class="text-sm text-gray-500 mb-6">Tus datos experimentales se guardarán de forma privada y segura.</p>
+                    <button onclick="window.loginWithGoogle()" class="bg-white border-2 border-gray-200 text-gray-700 font-extrabold py-3 px-8 rounded-xl hover:bg-gray-100 transition shadow-md flex items-center justify-center gap-3 mx-auto">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6" alt="Google">
+                        Continuar con Google
+                    </button>
+                </div>
+
+                <div id="cloud-actions" class="grid md:grid-cols-2 gap-8" style="opacity: 0.5; pointer-events: none;">
+                    <div class="p-8 border border-indigo-100 bg-indigo-50/50 rounded-[2rem]">
+                        <h3 class="text-xl font-black text-indigo-800 mb-2">Guardar Espacio de Trabajo</h3>
+                        <p class="text-sm text-gray-600 mb-8">Esto guardará tu Configuración de Placa (Organizador), tu Cronograma Maestro y los Modelos Animales asociados permanentemente a tu cuenta de Google actual.</p>
+                        <button id="cloud-save-btn" onclick="window.saveToCloud()" disabled class="w-full bg-indigo-600 text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg shadow-indigo-600/30 hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center justify-center gap-3 tracking-widest uppercase">
+                            <i class="fas fa-cloud-upload-alt text-xl"></i> Respaldar en la Nube
+                        </button>
+                    </div>
+
+                    <div class="p-8 border border-emerald-100 bg-emerald-50/50 rounded-[2rem]">
+                        <h3 class="text-xl font-black text-emerald-800 mb-2">Cargar Espacio de Trabajo</h3>
+                        <p class="text-sm text-gray-600 mb-8">Restaura tu último experimento sincronizado desde cualquier dispositivo vinculado a tu cuenta en tiempo real. <i>(Sobrescribirá tus datos actuales no guardados)</i>.</p>
+                        <button id="cloud-load-btn" onclick="window.loadFromCloud()" disabled class="w-full bg-emerald-600 text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 disabled:opacity-50 transition-all flex items-center justify-center gap-3 tracking-widest uppercase">
+                            <i class="fas fa-cloud-download-alt text-xl"></i> Recuperar de la Nube
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LABMANAGER ULTRA (CRONOGRAMA MAESTRO) -->
         <div id="content-scheduler" class="hidden space-y-8">
             <div id="sched-stats-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 <!-- Inyectado mediante JS -->
@@ -428,10 +489,10 @@
                     </div>
                     
                     <div class="mt-8 pt-4 border-t border-gray-200">
-                        <h3 class="text-xl font-bold mb-3 text-gray-700">Guardar / Cargar Experimento</h3>
+                        <h3 class="text-xl font-bold mb-3 text-gray-700">Guardar / Cargar Experimento Local</h3>
                         <div class="flex space-x-2">
-                            <button onclick="saveExperiment()" class="flex-1 bg-green-600 text-white font-bold py-2 px-3 text-sm rounded-xl hover:bg-green-700 transition shadow-md">💾 Guardar</button>
-                            <label for="load-exp-input" class="flex-1 bg-gray-600 text-white font-bold py-2 px-3 text-sm rounded-xl hover:bg-gray-700 cursor-pointer text-center transition shadow-md">📂 Cargar</label>
+                            <button onclick="saveExperiment()" class="flex-1 bg-green-600 text-white font-bold py-2 px-3 text-sm rounded-xl hover:bg-green-700 transition shadow-md">💾 Guardar Local</button>
+                            <label for="load-exp-input" class="flex-1 bg-gray-600 text-white font-bold py-2 px-3 text-sm rounded-xl hover:bg-gray-700 cursor-pointer text-center transition shadow-md">📂 Cargar Local</label>
                             <input type="file" id="load-exp-input" class="hidden" accept=".json">
                         </div>
                     </div>
@@ -493,20 +554,18 @@
             </div>
         </div>
         
-        <!-- CONTADOR CELULAR AI (NUEVA PESTAÑA) -->
+        <!-- CONTADOR CELULAR AI -->
         <div id="content-cell-counter" class="hidden space-y-8">
             <div class="bg-white p-8 rounded-3xl shadow-2xl border border-gray-200">
                 <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">🔬 Contador de Células (Neubauer AI)</h2>
                 <p class="text-gray-500 mt-2 mb-6">Analiza hasta 4 imágenes de cuadrantes grandes ("L") para el conteo de células y cálculo de concentración.</p>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Columna de Carga de Imagen y Parámetros (lg:col-span-1) -->
+                    <!-- Columna de Carga de Imagen y Parámetros -->
                     <div class="lg:col-span-1 space-y-4">
                         <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Paso 1: Cargar Regiones (Máx. 4)</h3>
                         
-                        <!-- Slots de Carga -->
                         <div id="cellUploadSlots" class="grid grid-cols-2 gap-4">
-                            <!-- Los slots se inicializan vía JS -->
                             <template id="cellUploadSlotTemplate">
                                 <div class="bg-gray-50 p-3 rounded-lg shadow-inner border border-gray-200">
                                     <label class="block text-sm font-medium text-gray-600 mb-2" data-slot-label>Región N</label>
@@ -527,14 +586,13 @@
                             <p class="text-xs text-gray-500">El cálculo de concentración asume que no se ha diluido la muestra, usando un factor de <span class="font-extrabold text-teal-700">1</span>.</p>
                         </div>
 
-
                         <button id="analyzeButton" onclick="analyzeImage()" disabled
                             class="w-full py-3 px-4 bg-gray-400 text-white font-bold rounded-lg transition duration-200 shadow-md disabled:opacity-50 mt-6">
                             Paso 3: Analizar y Calcular Concentración
                         </button>
                     </div>
 
-                    <!-- Columna de Resultados (lg:col-span-2) -->
+                    <!-- Columna de Resultados -->
                     <div class="lg:col-span-2 space-y-6">
                         <div id="loadingIndicator" class="hidden bg-yellow-100 p-6 rounded-lg shadow-md border-l-4 border-yellow-500">
                             <div class="flex items-center space-x-3">
@@ -557,7 +615,6 @@
                                 <h4 class="text-lg font-bold text-green-800">Resumen del Conteo:</h4>
                                 <p class="text-sm text-gray-600 mb-4">El conteo sumado de todas las regiones analizadas es: <span id="totalCountDisplay" class="text-2xl font-bold ml-1 text-green-700">0</span> Células.</p>
                                 
-                                <!-- Resultado de concentración -->
                                 <div id="concentrationResult" class="calculation-result-ai p-4 rounded-lg">
                                     <h5 class="text-md font-bold text-teal-700 mb-1">Concentración de la Muestra (Células/mL):</h5>
                                     <p class="text-2xl font-extrabold text-teal-800"><span id="finalConcentrationDisplay">0</span></p>
@@ -584,12 +641,11 @@
 
         <!-- MODELOS ANIMALES -->
         <div id="content-models" class="hidden space-y-8">
-            <!-- ... (CONTENIDO DE MODELOS ANIMALES) ... -->
             <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
                 <h2 class="text-2xl font-bold mb-5 text-indigo-700 border-b pb-3">🐭 Seguimiento de Modelos Animales</h2>
                 <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 mb-6">
-                    <button onclick="saveModelData()" class="bg-green-600 text-white font-bold py-2 px-4 text-sm rounded-xl hover:bg-green-700 transition shadow-md">💾 Guardar Datos Modelos</button>
-                    <label for="load-model-input" class="bg-gray-600 text-white font-bold py-2 px-4 text-sm rounded-xl hover:bg-gray-700 cursor-pointer text-center transition shadow-md">📂 Cargar Datos Modelos</label>
+                    <button onclick="saveModelData()" class="bg-green-600 text-white font-bold py-2 px-4 text-sm rounded-xl hover:bg-green-700 transition shadow-md">💾 Guardar Datos Modelos Localmente</button>
+                    <label for="load-model-input" class="bg-gray-600 text-white font-bold py-2 px-4 text-sm rounded-xl hover:bg-gray-700 cursor-pointer text-center transition shadow-md">📂 Cargar Datos Localmente</label>
                     <input type="file" id="load-model-input" class="hidden" accept=".json">
                     <div class="flex space-x-2 w-full md:w-auto">
                         <input type="text" id="new-model-id" placeholder="ID Nuevo Modelo (Ej: Ratón-01)" class="border-gray-300 rounded-lg shadow-sm p-2 w-full">
@@ -651,7 +707,6 @@
 
         <!-- PROTOCOLOS Y RECURSOS -->
         <div id="content-protocols" class="hidden space-y-6 bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
-            <!-- ... (CONTENIDO DE PROTOCOLOS Y RECURSOS) ... -->
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">📚 Protocolos Comunes y Recursos Externos</h2>
             <div class="prose max-w-none grid grid-cols-1 md:grid-cols-2 gap-8 text-gray-700">
                 <div>
@@ -687,7 +742,6 @@
 
         <!-- REPORTE -->
         <div id="content-report" class="hidden space-y-6 bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
-            <!-- ... (CONTENIDO DE REPORTE) ... -->
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">📄 Reporte del Experimento</h2>
             <div class="flex space-x-4">
                 <button onclick="generateReport()" class="bg-teal-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-teal-700 transition shadow-md">Generar Reporte Completo</button>
@@ -700,7 +754,6 @@
 
         <!-- CALCULADORAS RÁPIDAS -->
         <div id="content-calculators" class="hidden space-y-8">
-            <!-- ... (CONTENIDO DE CALCULADORAS) ... -->
             <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
                 <h2 class="text-2xl font-bold mb-5 text-indigo-700">🔢 Calculadora de Masa Molar</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -783,13 +836,12 @@
 
         <!-- ACERCA DEL PROYECTO -->
         <div id="content-about" class="hidden space-y-8 bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
-            <!-- ... (CONTENIDO DE ACERCA DE) ... -->
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">ℹ️ Información del Proyecto y Colaboradores</h2>
             <div class="prose max-w-none text-gray-700">
                 <p class="text-lg">Esta aplicación es una herramienta de apoyo desarrollada como parte de un proyecto de tesis para optimizar el trabajo en el laboratorio, especialmente en la planificación y seguimiento de cultivos celulares.</p>
                 
                 <h3 class="font-bold text-2xl text-indigo-600 mt-8 mb-4 border-b border-indigo-100 pb-2">Equipo de Desarrollo y Asesoría</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl shadow-md transition hover:shadow-lg">
                         <p class="text-xl font-extrabold text-indigo-700">Tesista</p>
                         <p class="mt-1 font-semibold">Edsel Yahvi Méndez Hernández</p>
@@ -797,7 +849,7 @@
                     <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl shadow-md transition hover:shadow-lg">
                         <p class="text-xl font-extrabold text-indigo-700">Asesora Externa</p>
                         <p class="mt-1 font-semibold">Dra. Nayelli Nájera García</p>
-                     </div>
+                    </div>
                     <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl shadow-md transition hover:shadow-lg">
                         <p class="text-xl font-extrabold text-indigo-700">Asesora Externa</p>
                         <p class="mt-1 font-semibold">Dra. Yuridia Martínez Meza</p>
@@ -843,13 +895,12 @@
                         </a>
                     </div>
                 </div>
-
             </div>
         </div>
     </main>
 
+    <!-- MODAL DE CONFIGURACIÓN DE POZO -->
     <div id="well-config-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center p-4">
-        <!-- ... (CONTENIDO DEL MODAL DE CONFIGURACIÓN DE POZO) ... -->
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto p-8 border-4 border-indigo-500/50">
             <div class="flex justify-between items-center border-b pb-4 mb-6">
                 <h2 class="text-2xl font-bold text-gray-800">Configurar Pozo(s): <span id="well-ids-display" class="text-indigo-600 font-extrabold"></span></h2>
@@ -933,8 +984,8 @@
         </div>
     </div>
 
+    <!-- MODAL DE DATOS DEL MODELO ANIMAL -->
     <div id="model-data-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center p-4">
-        <!-- ... (CONTENIDO DEL MODAL DE DATOS DEL MODELO) ... -->
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 border-4 border-green-500/50">
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Añadir Registro para Modelo <span id="modal-model-id" class="text-green-600 font-extrabold"></span></h2>
             <div class="space-y-4">
@@ -967,8 +1018,8 @@
     </div>
 
 
+    <!-- PLANTILLAS OCULTAS -->
     <div id="variable-template" class="hidden p-4 border rounded-xl bg-gray-50 transition hover:bg-gray-100">
-        <!-- ... (CONTENIDO DE PLANTILLA DE VARIABLE) ... -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-3 items-center">
             <div class="md:col-span-12 flex justify-between items-center border-b pb-2 mb-2">
                 <input type="text" class="variable-name w-full md:w-1/3 border-0 bg-transparent font-extrabold text-gray-800 focus:ring-0 text-lg" placeholder="Nombre (Ej: PMA)">
@@ -999,7 +1050,6 @@
     </div>
 
     <div id="protocol-step-template" class="hidden p-3 border rounded-xl bg-white shadow-sm hover:shadow-md transition">
-        <!-- ... (CONTENIDO DE PLANTILLA DE PASO) ... -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
             <input type="text" class="protocol-step-name md:col-span-1 border-gray-300 rounded-lg p-2" placeholder="Nombre (Ej: Incubación PMA)">
             <div class="flex items-center space-x-2 md:col-span-2">
@@ -1022,7 +1072,7 @@
 
     <script>
         // --- DATA & STATE MANAGEMENT ---
-        let copiedWellData = null; // Variable para almacenar pozo copiado
+        let copiedWellData = null; 
         const ATOMIC_WEIGHTS = { 
             'H': 1.008, 'C': 12.011, 'N': 14.007, 'O': 15.999, 'Na': 22.990, 'Mg': 24.305, 
             'P': 30.974, 'S': 32.06, 'Cl': 35.45, 'K': 39.098, 'Ca': 40.078, 'Fe': 55.845,
@@ -1046,12 +1096,12 @@
         let currentEditingModelId = null; 
 
         // --- VARIABLES DEL CONTADOR AI ---
-        let base64Images = []; // Almacena hasta 4 objetos de imagen
-        let currentResults = []; // Almacena resultados de la tabla para Excel
+        let base64Images = []; 
+        let currentResults = []; 
         const MAX_SLOTS = 4;
-        const CORRECTION_FACTOR = 2500; // Factor para 4 cuadrantes grandes (1 / 0.0004 mL)
-        const DILUTION_FACTOR_FIXED = 1; // Dilución asumida: Muestra Pura (1:1)
-        const apiKey = ""; // Clave API gestionada por el entorno
+        const CORRECTION_FACTOR = 2500; 
+        const DILUTION_FACTOR_FIXED = 1; 
+        const apiKey = ""; 
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
         const MAX_RETRIES = 3;
 
@@ -1062,10 +1112,9 @@
         };
         let schedStartTime = new Date();
 
-
         // --- TABS & NAVIGATION ---
         function changeTab(tabName) {
-            const contents = ['planner', 'scheduler', 'models', 'protocols', 'report', 'calculators', 'guide', 'about', 'cell-counter']; 
+            const contents = ['planner', 'scheduler', 'models', 'protocols', 'report', 'calculators', 'guide', 'about', 'cell-counter', 'profile']; 
             contents.forEach(content => {
                 const el = document.getElementById(`content-${content}`);
                 const tab = document.getElementById(`tab-${content}`);
@@ -1082,7 +1131,7 @@
                 renderAnimalModels(); 
             }
             if (tabName === 'scheduler') {
-                renderSchedMermaid(); // Refrescar mapa si está oculto
+                renderSchedMermaid(); 
             }
         }
 
@@ -1183,7 +1232,6 @@
             }
             return stack[0]; 
         }
-
 
         function calculateMolarMass() {
             const formula = document.getElementById('chem-formula').value.replace(/\s+/g, ''); 
@@ -1287,15 +1335,11 @@
             }
         }
 
-
         // --- CONTADOR CELULAR AI FUNCTIONS ---
-
-        /** Inicializa los slots de carga de imágenes */
         function initializeUploadSlots() {
             const cellUploadSlotsContainer = document.getElementById('cellUploadSlots');
             const cellUploadSlotTemplate = document.getElementById('cellUploadSlotTemplate');
             
-            // Limpiar slots existentes antes de inicializar
             cellUploadSlotsContainer.innerHTML = ''; 
             base64Images = [];
 
@@ -1316,14 +1360,11 @@
                 input.onchange = function(event) { handleImageUpload(event, this); };
 
                 cellUploadSlotsContainer.appendChild(slot);
-                base64Images[i] = null; // Inicializar array
+                base64Images[i] = null; 
             }
             updateAnalyzeButtonState();
         }
 
-        /**
-         * Convierte el archivo seleccionado a una cadena base64.
-         */
         function getBase64Image(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1337,9 +1378,6 @@
             });
         }
 
-        /**
-         * Maneja la carga de la imagen en un slot específico.
-         */
         async function handleImageUpload(event, inputElement) {
             document.getElementById('errorCard').classList.add('hidden');
             document.getElementById('resultsContent').innerHTML = '<p>Los resultados del conteo aparecerán aquí en una tabla detallada por cada región cargada.</p>';
@@ -1369,21 +1407,19 @@
             updateAnalyzeButtonState();
         }
 
-        /** Limpia un slot de imagen. */
         function clearImageSlot(buttonElement) {
             const slotIndex = parseInt(buttonElement.dataset.slotIndex);
             const container = buttonElement.closest('div');
             const input = container.querySelector('.cell-upload-input');
             const preview = container.querySelector('.image-preview-slot');
 
-            input.value = ''; // Resetear el input file
+            input.value = ''; 
             preview.src = `https://placehold.co/150x150/e5e7eb/9ca3af?text=Slot`;
             base64Images[slotIndex] = null;
             buttonElement.classList.add('hidden');
             updateAnalyzeButtonState();
         }
 
-        /** Habilita/deshabilita el botón de análisis. */
         function updateAnalyzeButtonState() {
             const loadedImages = base64Images.filter(img => img !== null && img !== undefined);
             const analyzeButton = document.getElementById('analyzeButton');
@@ -1398,19 +1434,12 @@
             }
         }
         
-        /**
-         * Formato de números grandes con separador de miles.
-         */
         function formatNumber(num) {
             if (num === 0) return '0';
             const options = { maximumSignificantDigits: 4 };
             return new Intl.NumberFormat('es-MX', options).format(num);
         }
 
-        /**
-         * Calcula la concentración final de la muestra.
-         * Células/mL = (Conteo Total / N Cuadrantes) * 1 (Dilución Fija) * 2,500
-         */
         function calculateConcentration(totalCount) {
             const dilutionFactor = DILUTION_FACTOR_FIXED; 
             const numRegions = base64Images.filter(img => img !== null && img !== undefined).length;
@@ -1423,10 +1452,6 @@
             return concentration;
         }
 
-
-        /**
-         * Llama a la API de Gemini para analizar las imágenes.
-         */
         async function analyzeImage() {
             const loadedImages = base64Images.filter(img => img !== null && img !== undefined);
             const analyzeButton = document.getElementById('analyzeButton');
@@ -1446,7 +1471,6 @@
             document.getElementById('totalSummary').classList.add('hidden');
             currentResults = [];
 
-            // Construir la lista de partes del contenido (texto + imágenes)
             const parts = [{ 
                 text: `Analiza las ${loadedImages.length} imágenes proporcionadas. Identifícalas como Región ${loadedImages.map(img => img.slotIndex).join(', Región ')}. Para cada imagen, realiza el conteo total de células. Luego, proporciona un análisis estructurado y profesional. Tu respuesta debe ser una lista numerada (1. Región X, 2. Región Y, etc.) donde cada entrada contiene: a) El conteo total como primer valor numérico, y b) una descripción con las siguientes secciones obligatorias, usando el formato **Título** para los encabezados: **CONTEO Y DENSIDAD**, **MORFOLOGÍA CELULAR**, **DISTRIBUCIÓN EN LA CUADRÍCULA**, y **APUNTES ADICIONALES**. No incluyas ningún saludo, introducción o descripción de tu persona ni notas de cierre.` 
             }];
@@ -1475,36 +1499,28 @@
                         body: JSON.stringify(payload)
                     });
                     
-                    // --- NUEVA LÓGICA DE MANEJO DE RESPUESTA ROBUSTA ---
                     const responseText = await response.text();
                     let result;
 
                     try {
                         result = JSON.parse(responseText);
                     } catch (e) {
-                        // Captura el error de sintaxis JSON (ej: Unexpected end of input)
                         if (!response.ok) {
-                            // Si el status NO es OK y falla JSON, es un error HTTP con respuesta malformada
                             throw new Error(`Error HTTP ${response.status} (${response.statusText}). La respuesta no es JSON válido. Contenido: ${responseText.substring(0, 100)}...`);
                         }
-                        // Si el status SÍ es OK (200) pero falla JSON (cuerpo vacío o incompleto)
                         throw new Error(`Error de sintaxis JSON, la respuesta de la API fue inválida. Contenido: ${responseText.substring(0, 100)}...`);
                     }
 
                     if (!response.ok) {
-                        // Si la respuesta fue HTTP error pero el cuerpo sí era JSON válido.
                         throw new Error(`Error HTTP ${response.status} (${response.statusText}): ${result.error?.message || 'Fallo en la llamada a la API.'}`);
                     }
-                    // --- FIN LÓGICA DE MANEJO DE RESPUESTA ---
 
-                    // Continuar con el procesamiento del resultado
                     const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
                     if (text) {
                         formatAndDisplayResult(text);
-                        return; // Éxito, salir del bucle
+                        return; 
                     } else {
-                        // El JSON es válido (cuerpo no vacío), pero faltan los datos esperados
                         throw new Error("La respuesta de la IA no contenía texto generado (candidatos vacíos o estructura inesperada).");
                     }
 
@@ -1523,19 +1539,14 @@
             }
         }
 
-        /**
-         * Formatea el resultado de texto de la IA (múltiples regiones) en una tabla y lo muestra.
-         */
         function formatAndDisplayResult(text) {
             const lines = text.split('\n').filter(line => line.trim() !== '');
             const regionData = [];
             let totalCount = 0;
             let currentRegion = {};
 
-            // Expresión para detectar el inicio de una nueva región (ej. "1. Región X" o "1.")
             const regionStartRegex = /^(\d+\.\s*|\[?Región\s*(\d+)\]?\.?)(.*)/i; 
             
-            // Reconstruir la data basada en las líneas
             lines.forEach(line => {
                 const match = line.match(regionStartRegex);
                 
@@ -1572,31 +1583,27 @@
                 regionData.push(currentRegion);
             }
 
-            // CALCULAR CONCENTRACIÓN
             const finalConcentration = calculateConcentration(totalCount);
             const numRegions = base64Images.filter(img => img !== null && img !== undefined).length;
             
-            // Actualizar visualización del resumen
             document.getElementById('totalCountDisplay').textContent = formatNumber(totalCount);
             document.getElementById('finalConcentrationDisplay').textContent = formatNumber(finalConcentration);
             document.getElementById('calcRegions').textContent = numRegions;
 
 
-            // Mapear los resultados para la tabla HTML y el Excel
             currentResults = regionData.map(data => {
                 const interpretationHTML = data.Interpretacion
-                    .replace(/\*\*(.*?)\*\*/g, '<h4>$1</h4>') // Markdown a <h4>
+                    .replace(/\*\*(.*?)\*\*/g, '<h4>$1</h4>') 
                     .split('\n').map(line => line.trim() === '' ? '<br>' : line).join('');
 
                 return {
                     'Región': data.Region,
                     'Conteo': data.Conteo,
                     'Interpretación (HTML)': interpretationHTML,
-                    'Interpretación (Texto Simple)': data.Interpretacion.replace(/<\/?h4>/g, ' ').replace(/<br>/g, ' ').replace(/\s+/g, ' ').trim() // Para Excel
+                    'Interpretación (Texto Simple)': data.Interpretacion.replace(/<\/?h4>/g, ' ').replace(/<br>/g, ' ').replace(/\s+/g, ' ').trim() 
                 };
             });
             
-            // Generar HTML de la tabla
             let tableHtml = `
                 <div class="table-responsive">
                     <table id="cell-counter-results-table" class="min-w-full divide-y divide-gray-200">
@@ -1631,9 +1638,6 @@
             document.getElementById('downloadExcelButton').classList.remove('hidden'); 
         }
 
-        /**
-         * Muestra un mensaje de error y limpia el estado de carga.
-         */
         function displayError(message) {
             document.getElementById('loadingIndicator').classList.add('hidden');
             document.getElementById('analyzeButton').disabled = false;
@@ -1644,9 +1648,6 @@
             document.getElementById('totalSummary').classList.add('hidden');
         }
 
-        /**
-         * Descarga los resultados actuales en un archivo Excel.
-         */
         function downloadExcel() {
             if (currentResults.length === 0) {
                 document.getElementById('errorMessage').textContent = "No hay resultados para descargar.";
@@ -1657,14 +1658,12 @@
             const totalCount = currentResults.reduce((sum, item) => sum + item['Conteo'], 0);
             const finalConcentration = calculateConcentration(totalCount);
             
-            // Preparamos los datos para Excel (usando solo las columnas de texto simple)
             const excelData = currentResults.map(data => ({
                 'Región': data['Región'],
                 'Células Contadas': data['Conteo'],
                 'Análisis Detallado': data['Interpretación (Texto Simple)']
             }));
             
-            // Añadir la fila de resumen
             excelData.push(
                 {}, 
                 {
@@ -1736,7 +1735,6 @@
             }
             updateProtocolSchedule(); 
         }
-
 
         function toggleWellSelection(wellId) {
             const wellEl = document.getElementById(`well-${wellId}`);
@@ -1889,7 +1887,7 @@
             showToast('Configuración guardada para los pozos seleccionados.'); 
         }
 
-        // --- FUNCIONES DE COPIAR Y PEGAR POZOS (NUEVAS) ---
+        // --- FUNCIONES DE COPIAR Y PEGAR POZOS ---
         function copyWellConfig() {
             if (selectedWells.size !== 1) {
                 showToast("Por favor, selecciona exactamente 1 pozo para copiar su configuración.", "error");
@@ -2341,6 +2339,11 @@
             changeTab('guide');
             document.getElementById('load-exp-input').addEventListener('change', loadExperiment);
             document.getElementById('load-model-input').addEventListener('change', loadModelData);
+            
+            // --- Inicializar base de datos ---
+            if (typeof window.initFirebase === 'function') {
+                window.initFirebase();
+            }
         };
         
         // ---- INJECT LAB MANAGER SCHEDULER LOGIC (NO MODIFICAR ORIGINALES) ----
@@ -2594,6 +2597,188 @@
             }
         }, 1000);
 
+    </script>
+    
+    <!-- SCRIPT DE FIREBASE INYECTADO SIN ROMPER TUS FUNCIONES -->
+    <script type="module">
+        let dbCloud, authCloud, currentUserProfile = null;
+        let providerCloud = null;
+
+        window.initFirebase = async function() {
+            try {
+                // Importación dinámica para no romper tu código global original
+                const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
+                const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+                const { getFirestore, doc, setDoc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+                
+                // --- TUS LLAVES REALES ---
+                const firebaseConfig = {
+                  apiKey: "AIzaSyC3YoiEtHUv53QHWlL-JAzczEwNZVhUjX8",
+                  authDomain: "licam-ultra.firebaseapp.com",
+                  projectId: "licam-ultra",
+                  storageBucket: "licam-ultra.firebasestorage.app",
+                  messagingSenderId: "856235550817",
+                  appId: "1:856235550817:web:61fc04df8dfe0b36776220",
+                  measurementId: "G-TPFZ0FQLZ1"
+                };
+
+                const app = initializeApp(firebaseConfig);
+                authCloud = getAuth(app);
+                dbCloud = getFirestore(app);
+                providerCloud = new GoogleAuthProvider();
+
+                onAuthStateChanged(authCloud, (user) => {
+                    currentUserProfile = user;
+                    const statusEl = document.getElementById('cloud-status');
+                    const loginSection = document.getElementById('login-section');
+                    const userInfoCard = document.getElementById('user-info-card');
+                    const cloudActions = document.getElementById('cloud-actions');
+
+                    if (user) {
+                        if(statusEl) statusEl.innerHTML = `<span class="text-emerald-600"><i class="fas fa-check-circle"></i> Conectado y Sincronizado</span>`;
+                        if(loginSection) loginSection.classList.add('hidden');
+                        if(userInfoCard) {
+                            userInfoCard.classList.remove('hidden');
+                            userInfoCard.classList.add('flex');
+                        }
+                        
+                        const nameEl = document.getElementById('user-name');
+                        const emailEl = document.getElementById('user-email');
+                        const photoEl = document.getElementById('user-photo');
+                        
+                        if(nameEl) nameEl.textContent = user.displayName || 'Investigador';
+                        if(emailEl) emailEl.textContent = user.email;
+                        if(photoEl) photoEl.src = user.photoURL || 'https://placehold.co/100x100?text=USR';
+
+                        if(cloudActions) {
+                            cloudActions.style.opacity = '1';
+                            cloudActions.style.pointerEvents = 'auto';
+                        }
+                        const btnSave = document.getElementById('cloud-save-btn');
+                        const btnLoad = document.getElementById('cloud-load-btn');
+                        if(btnSave) btnSave.disabled = false;
+                        if(btnLoad) btnLoad.disabled = false;
+                    } else {
+                        if(statusEl) statusEl.innerHTML = `<span class="text-gray-500"><i class="fas fa-cloud-moon"></i> Desconectado</span>`;
+                        if(loginSection) loginSection.classList.remove('hidden');
+                        if(userInfoCard) {
+                            userInfoCard.classList.add('hidden');
+                            userInfoCard.classList.remove('flex');
+                        }
+                        if(cloudActions) {
+                            cloudActions.style.opacity = '0.5';
+                            cloudActions.style.pointerEvents = 'none';
+                        }
+                        const btnSave = document.getElementById('cloud-save-btn');
+                        const btnLoad = document.getElementById('cloud-load-btn');
+                        if(btnSave) btnSave.disabled = true;
+                        if(btnLoad) btnLoad.disabled = true;
+                    }
+                });
+
+                // Attach to window so HTML buttons work
+                window.loginWithGoogle = async function() {
+                    try {
+                        await signInWithPopup(authCloud, providerCloud);
+                        showToast("Sesión iniciada correctamente.");
+                    } catch (error) {
+                        console.error("Error al iniciar sesión:", error);
+                        showToast("Error al iniciar sesión con Google.", "error");
+                    }
+                };
+
+                window.logoutGoogle = async function() {
+                    try {
+                        await signOut(authCloud);
+                        showToast("Sesión cerrada.");
+                    } catch (error) {
+                        console.error("Error Logout:", error);
+                    }
+                };
+
+                window.saveToCloud = async function() {
+                    if (!currentUserProfile || !dbCloud) {
+                        showToast("Conexión a la nube no establecida.", "error");
+                        return;
+                    }
+                    
+                    const btn = document.getElementById('cloud-save-btn');
+                    const origContent = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+                    
+                    try {
+                        const projectData = {
+                            wellData: typeof wellData !== 'undefined' ? wellData : {},
+                            animalModels: typeof animalModels !== 'undefined' ? animalModels : {},
+                            SCHED_CONFIG: typeof SCHED_CONFIG !== 'undefined' ? SCHED_CONFIG : null,
+                            expName: document.getElementById('exp-name') ? document.getElementById('exp-name').value : '',
+                            plateType: document.getElementById('plate-type') ? document.getElementById('plate-type').value : '',
+                            lastSaved: new Date().toISOString()
+                        };
+                        
+                        const docRef = doc(dbCloud, 'usuarios', currentUserProfile.uid, 'proyectos', 'main_workspace');
+                        await setDoc(docRef, projectData);
+                        
+                        showToast("✅ Espacio de trabajo guardado en la nube.");
+                    } catch (error) {
+                        console.error("Error guardando:", error);
+                        showToast("Error al guardar en la nube.", "error");
+                    } finally {
+                        btn.innerHTML = origContent;
+                    }
+                };
+
+                window.loadFromCloud = async function() {
+                    if (!currentUserProfile || !dbCloud) {
+                        showToast("Conexión a la nube no establecida.", "error");
+                        return;
+                    }
+                    
+                    const btn = document.getElementById('cloud-load-btn');
+                    const origContent = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+                    
+                    try {
+                        const docRef = doc(dbCloud, 'usuarios', currentUserProfile.uid, 'proyectos', 'main_workspace');
+                        const docSnap = await getDoc(docRef);
+                        
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            
+                            // Restaurar datos a variables globales
+                            window.wellData = data.wellData || {};
+                            window.animalModels = data.animalModels || {};
+                            if(data.SCHED_CONFIG) window.SCHED_CONFIG = data.SCHED_CONFIG;
+                            
+                            if(document.getElementById('exp-name')) document.getElementById('exp-name').value = data.expName || '';
+                            if(document.getElementById('plate-type') && data.plateType) document.getElementById('plate-type').value = data.plateType;
+                            
+                            // Refrescar vistas
+                            if(typeof generatePlate === 'function') generatePlate({ wellData: window.wellData, plateType: data.plateType });
+                            if(typeof updateSchedUI === 'function') updateSchedUI();
+                            if(typeof renderAnimalModels === 'function') renderAnimalModels();
+                            
+                            showToast("☁️ Datos recuperados exitosamente.");
+                        } else {
+                            showToast("No tienes datos previos en la nube.", "error");
+                        }
+                    } catch (error) {
+                        console.error("Error cargando:", error);
+                        showToast("Error al recuperar datos.", "error");
+                    } finally {
+                        btn.innerHTML = origContent;
+                    }
+                };
+
+            } catch(e) {
+                console.error("Error de importación Firebase:", e);
+                const statusEl = document.getElementById('cloud-status');
+                if(statusEl) statusEl.innerHTML = '<span class="text-red-500"><i class="fas fa-exclamation-triangle"></i> Error cargando librerías</span>';
+            }
+        };
+        
+        // Ejecutamos la función de inicialización de la nube
+        window.initFirebase();
     </script>
 </body>
 </html>
