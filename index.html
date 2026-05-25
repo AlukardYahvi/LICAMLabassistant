@@ -5,84 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LICAM Asistente de Laboratorio - Master Suite</title>
     
-    <!-- Librerías Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     
-    <!-- Librerías para React, Babel y Recharts (Necesarias para QpcrAnalyzer) -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.2.0",
+          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+          "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+        }
+      }
+    </script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.7.2/prop-types.min.js"></script>
-    <script src="https://unpkg.com/react-is@18/umd/react-is.production.min.js"></script>
-    <!-- Fijamos la versión de Recharts a una estable (2.1.9) -->
-    <script src="https://unpkg.com/recharts@2.1.9/umd/Recharts.js"></script>
 
     <style>
         /* Base Styles */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9; /* Slate 100 - Fondo más profesional */
+            background-color: #f1f5f9; 
         }
         
-        /* Tab Navigation Styles (for a clean, indicator-only look) */
+        /* Tab Navigation Styles */
         .tab-button {
             transition: all 0.3s ease;
             font-weight: 600;
             border-bottom: 3px solid transparent;
         }
         .tab-button:hover {
-            color: #1d4ed8; /* Blue 700 */
+            color: #1d4ed8; 
         }
         .tab-button.active {
-            border-color: #1d4ed8; /* Blue 700 para el indicador activo */
-            color: #1d4ed8; /* Blue 700 para el texto activo */
-            background-color: #f0f4f8; /* Un fondo muy ligero para la pestaña activa */
+            border-color: #1d4ed8; 
+            color: #1d4ed8; 
+            background-color: #f0f4f8; 
         }
 
         /* Well/Plate Styles */
         .well {
             transition: all 0.2s ease;
-            border: 3px solid #e2e8f0; /* Color de borde más sutil */
+            border: 3px solid #e2e8f0; 
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-            /* Soft default background */
             background-color: #f7fafc; 
         }
         .well.selected {
-            /* Sombra interna para indicar el color del borde */
             box-shadow: inset 0 0 0 3px #2563eb, 0 6px 12px -3px rgba(0, 0, 0, 0.2); 
-            border-color: transparent; /* El borde ya no es visible por el shadow */
-            background-color: #eff6ff; /* Blue 50 */
-            transform: scale(1.05); /* Efecto de "lift" sutil */
+            border-color: transparent; 
+            background-color: #eff6ff; 
+            transform: scale(1.05); 
         }
         .well:not(.configured) .well-label {
             opacity: 0.6;
             font-style: italic;
         }
-        /* Well Type Colors (Usando box-shadow: inset para el anillo) */
-        .well.control { box-shadow: inset 0 0 0 3px #10b981; } /* Green 500 */
-        .well.experimental { box-shadow: inset 0 0 0 3px #ef4444; } /* Red 500 */
-        .well.blanco { box-shadow: inset 0 0 0 3px #6366f1; } /* Indigo 500 */
-        .well.tratamiento-1 { box-shadow: inset 0 0 0 3px #f97316; } /* Orange 500 */
-        .well.tratamiento-2 { box-shadow: inset 0 0 0 3px #8b5cf6; } /* Violet 500 */
+        .well.control { box-shadow: inset 0 0 0 3px #10b981; } 
+        .well.experimental { box-shadow: inset 0 0 0 3px #ef4444; } 
+        .well.blanco { box-shadow: inset 0 0 0 3px #6366f1; } 
+        .well.tratamiento-1 { box-shadow: inset 0 0 0 3px #f97316; } 
+        .well.tratamiento-2 { box-shadow: inset 0 0 0 3px #8b5cf6; } 
 
         /* General Dynamic/Modal Styles */
         .modal {
             display: none;
             animation: fadeIn 0.3s ease;
-            backdrop-filter: blur(4px); /* Efecto de desenfoque */
-            z-index: 50; /* Ensure modals are on top */
+            backdrop-filter: blur(4px); 
+            z-index: 50; 
         }
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
         .toast {
-            /* Use Tailwind for visibility/opacity control in JS */
             z-index: 60;
         }
         .sub-calc {
@@ -91,14 +90,13 @@
 
         /* Styles for inner content tables/boxes */
         .calc-result-box {
-            background-color: #f0f9ff; /* Blue 50 */
-            border-left: 4px solid #3b82f6; /* Blue 500 */
+            background-color: #f0f9ff; 
+            border-left: 4px solid #3b82f6; 
             padding: 1rem;
             border-radius: 0.5rem;
             font-family: monospace;
-            color: #1e3a8a; /* Dark blue text for contrast */
+            color: #1e3a8a; 
         }
-        /* Prose Styles Enhancement */
         .prose h3, .prose h4 { margin-top: 1.5em; margin-bottom: 0.5em; font-weight: 700; color: #1e3a8a; }
         #model-data-table th, #model-data-table td {
             border: 1px solid #e5e7eb;
@@ -106,8 +104,8 @@
             text-align: left;
         }
         #model-data-table th {
-            background-color: #eef2ff; /* Indigo 50 */
-            color: #4338ca; /* Indigo 700 */
+            background-color: #eef2ff; 
+            color: #4338ca; 
         }
         
         /* Estilos específicos para el Contador AI */
@@ -188,6 +186,10 @@
             position: relative;
             background: white;
         }
+
+        /* Estilos Internos de Pestañas qPCR */
+        .qpcr-tab { display: none; }
+        .qpcr-tab.active { display: block; animation: fadeIn 0.4s ease; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -211,12 +213,13 @@
                 <button onclick="changeTab('planner')" id="tab-planner" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🧪 Organizador de Cultivo</button>
                 <button onclick="changeTab('scheduler')" id="tab-scheduler" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🗓️ Cronograma Maestro</button>
                 <button onclick="changeTab('cell-counter')" id="tab-cell-counter" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🔬 Contador AI</button>
-                <button onclick="changeTab('qpcr')" id="tab-qpcr" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🧬 Asistente qPCR</button>
+                <button onclick="changeTab('analyzer')" id="tab-analyzer" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">📸 Analizador de Fotos</button>
+                <button onclick="changeTab('qpcr')" id="tab-qpcr" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2 font-bold text-blue-800">🧬 Análisis qPCR</button>
                 <button onclick="changeTab('models')" id="tab-models" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🐭 Modelos Animales</button>
                 <button onclick="changeTab('protocols')" id="tab-protocols" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">📚 Protocolos y Recursos</button>
-                <button onclick="changeTab('report')" id="tab-report" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">📄 Reporte del Experimento</button>
-                <button onclick="changeTab('calculators')" id="tab-calculators" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🔢 Calculadoras Rápidas</button>
-                <button onclick="changeTab('about')" id="tab-about" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">ℹ️ Acerca del Proyecto</button>
+                <button onclick="changeTab('report')" id="tab-report" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">📄 Reporte</button>
+                <button onclick="changeTab('calculators')" id="tab-calculators" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🔢 Calculadoras</button>
+                <button onclick="changeTab('about')" id="tab-about" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">ℹ️ Acerca de</button>
                 <button onclick="changeTab('profile')" id="tab-profile" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2 text-indigo-600 font-black">☁️ Perfil en la Nube</button>
             </nav>
         </div>
@@ -224,29 +227,23 @@
 
     <main class="container mx-auto p-4 md:p-8">
         
-        <!-- SECCIÓN: GUÍA DE USO -->
         <div id="content-guide" class="space-y-6 bg-white p-8 rounded-3xl shadow-2xl border border-gray-200">
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">💡 Guía de Uso Rápido</h2>
             <div class="prose max-w-none text-gray-700">
                 <p>¡Bienvenido/a al Asistente de Laboratorio LICAM! Esta guía te ayudará a usar las funciones principales.</p>
                 
-                <h3>☁️ Perfil en la Nube - ¡NUEVO!</h3>
+                <h3>🧬 Análisis qPCR - ¡NUEVO!</h3>
+                <p>Sube los resultados de tu equipo QuantStudio para limpiar la "basura técnica", excluir automáticamente los blancos (BCO/NTC) y calcular la expresión génica relativa (Fold Change) mediante el Método Livak ($2^{-\Delta\Delta Ct}$). Genera gráficas listas para publicación y exporta la tabla completa de resultados con su respectivo error estadístico.</p>
+
+                <h3>☁️ Perfil en la Nube</h3>
                 <p>Al iniciar sesión en el asistente a través de tu cuenta, toda tu información, placas y modelos pueden almacenarse en tiempo real de manera privada.</p>
 
-                <h3>Cronograma Maestro (🗓️) - ¡NUEVO!</h3>
+                <h3>Cronograma Maestro (🗓️)</h3>
                 <p>Diseña mapas de flujo globales para tus experimentos y monitoriza todas las fases de incubación y tratamientos.</p>
                 <ul class="list-disc list-inside">
                     <li>Define Fases globales, registra las muestras y el sistema graficará el ciclo exacto con horas y días.</li>
                     <li>Permite capturar el diagrama como imagen y exportar a CSV.</li>
                     <li>Utiliza el botón <i class="fas fa-copy text-indigo-500"></i> para duplicar muestras rápidamente.</li>
-                </ul>
-
-                <h3>Asistente qPCR (🧬) - ¡NUEVO!</h3>
-                <p>Herramienta integrada para analizar los resultados de corridas en termocicladores QuantStudio.</p>
-                <ul class="list-disc list-inside">
-                    <li>Sube tu archivo <span class="bg-yellow-100 font-mono px-1 rounded">Results.csv</span> directamente desde el equipo.</li>
-                    <li>Cálculo automático del método de Livak (2^-ΔΔCt) con barras de error propagadas.</li>
-                    <li>Visualización con opciones de escala lineal y logarítmica (Log2).</li>
                 </ul>
 
                 <h3>Organizador de Cultivo (🧪)</h3>
@@ -256,7 +253,7 @@
                     <li><strong>Guardar/Cargar Experimento:</strong> Usa los botones verdes y grises para guardar tu progreso en un archivo <code>.json</code> o cargar un experimento previamente guardado.</li>
                     <li><strong>2. Diseño de la Placa:</strong> Haz clic en los pozos para seleccionarlos (se pondrán azules). Puedes seleccionar varios. Usa "Seleccionar Todos" o "Limpiar Selección" para ayudarte.</li>
                     <li><strong>Configurar Pozo(s):</strong> Con los pozos seleccionados, haz clic en "Configurar Pozo(s)". Se abrirá una ventana.
-                        <br><span class="text-indigo-600 font-bold">¡NUEVO! Función Copiar/Pegar:</span> Selecciona 1 pozo configurado, dale a "Copiar". Luego selecciona varios vacíos y dale a "Pegar" para clonar toda la configuración.
+                        <br><span class="text-indigo-600 font-bold">Función Copiar/Pegar:</span> Selecciona 1 pozo configurado, dale a "Copiar". Luego selecciona varios vacíos y dale a "Pegar" para clonar toda la configuración.
                     </li>
                     <li><strong>3. Creador de Stock General:</strong> Selecciona los pozos que tendrán la misma mezcla y haz clic en "Calcular Stock...". Indica un porcentaje extra si lo deseas. La tabla te mostrará cuánto necesitas preparar en total.</li>
                     <li><strong>4. Cronograma del Protocolo:</strong> Aquí aparecerán todos los Pasos del Protocolo. Cada paso tendrá su propio temporizador. Haz clic en "Iniciar" para comenzar la cuenta regresiva.</li>
@@ -290,7 +287,167 @@
             </div>
         </div>
 
-        <!-- SECCIÓN: SINC. NUBE Y PERFILES -->
+        <div id="content-analyzer" class="hidden">
+            <div id="react-analyzer-root"></div>
+        </div>
+
+        <div id="content-qpcr" class="hidden">
+            <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden">
+                <div class="bg-slate-900 text-white p-6 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <i class="fas fa-dna text-3xl text-blue-400"></i>
+                        <div>
+                            <h1 class="text-2xl font-bold">Asistente qPCR QuantStudio</h1>
+                            <p class="text-slate-400 text-sm">Cálculo de Fold Change (Livak) y limpieza automática de datos</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex border-b border-slate-200 bg-slate-100 px-4">
+                    <button onclick="QpcrApp.showStep('input')" id="qpcr-btn-input" class="py-3 px-6 text-sm font-semibold flex items-center gap-2 border-b-2 border-blue-500 text-blue-600 bg-white transition-all">
+                        <i class="fas fa-file-excel"></i> 1. Ingresar Datos
+                    </button>
+                    <button onclick="QpcrApp.showStep('config')" id="qpcr-btn-config" class="py-3 px-6 text-sm font-semibold flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all cursor-not-allowed">
+                        <i class="fas fa-sliders-h"></i> 2. Calibrar Ensayo
+                    </button>
+                    <button onclick="QpcrApp.showStep('results')" id="qpcr-btn-results" class="py-3 px-6 text-sm font-semibold flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all cursor-not-allowed">
+                        <i class="fas fa-chart-bar"></i> 3. Resultados
+                    </button>
+                </div>
+
+                <div class="p-8">
+                    <div id="qpcr-error-box" class="hidden mb-6 bg-red-50 border-l-4 border-red-500 p-4 flex gap-3 text-red-700 rounded-r-md">
+                        <i class="fas fa-exclamation-circle text-xl mt-0.5"></i>
+                        <p id="qpcr-error-msg"></p>
+                    </div>
+
+                    <div id="qpcr-step-input" class="qpcr-tab active space-y-8">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div class="border border-blue-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col">
+                                <div class="bg-blue-50 p-4 border-b border-blue-100 flex items-center gap-2">
+                                    <i class="fas fa-file-excel text-xl text-blue-600"></i>
+                                    <h3 class="font-bold text-blue-900">Método 1: Archivo Excel/CSV</h3>
+                                </div>
+                                <div class="p-6 flex-grow flex flex-col justify-between">
+                                    <div class="space-y-4 text-sm text-slate-600 mb-6">
+                                        <p><strong>Paso a Paso:</strong></p>
+                                        <ol class="list-decimal pl-5 space-y-2">
+                                            <li>El QuantStudio genera múltiples archivos por corrida. Sube los archivos originales con terminación en <strong>.xls</strong>, <strong>.xlsx</strong> o <strong>.csv</strong>.</li>
+                                            <li>Si tienes varios archivos, sube ÚNICAMENTE el que contiene la palabra <span class="bg-yellow-100 text-yellow-800 px-1 rounded font-mono">Results</span>.</li>
+                                            <li>Súbelo aquí. <span class="text-blue-600 font-semibold">La app es inteligente:</span> escanea el libro de Excel, ignorará metadatos, descartará Blancos (BCO) y leerá tu tabla.</li>
+                                        </ol>
+                                    </div>
+                                    <label class="bg-blue-600 text-white px-6 py-4 rounded-xl font-bold cursor-pointer hover:bg-blue-700 transition shadow-md flex justify-center items-center gap-2 w-full text-lg">
+                                        <i class="fas fa-upload text-xl"></i> Subir archivo "Results"
+                                        <input type="file" id="qpcr-file-input" class="hidden" accept=".csv,.txt,.xls,.xlsx" onchange="QpcrApp.handleFileUpload(event)">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col">
+                                <div class="bg-slate-50 p-4 border-b border-slate-200 flex items-center gap-2">
+                                    <i class="fas fa-paste text-xl text-slate-600"></i>
+                                    <h3 class="font-bold text-slate-800">Método 2: Pegado Manual</h3>
+                                </div>
+                                <div class="p-6 flex-grow flex flex-col">
+                                    <div class="space-y-2 text-sm text-slate-600 mb-4">
+                                        <p><strong>Reglas de uso para pegar:</strong></p>
+                                        <ul class="list-disc pl-5 space-y-1">
+                                            <li>Debes incluir la fila de títulos. Ej: <span class="font-mono bg-slate-100 px-1">Sample Name | Target Name | CT</span></li>
+                                            <li>Copia solo esas 3 columnas directo desde tu Excel.</li>
+                                        </ul>
+                                    </div>
+                                    <textarea id="qpcr-paste-area" class="w-full h-32 border border-slate-300 rounded-lg p-3 text-sm font-mono text-slate-600 focus:ring-2 focus:ring-blue-500 outline-none shadow-inner bg-slate-50 mb-4 flex-grow" placeholder="C-A1&#9;GAPDH&#9;28.442&#10;C-A1&#9;TNF-a&#9;30.486&#10;C2-A1&#9;GAPDH&#9;29.069" oninput="QpcrApp.checkPasteArea()"></textarea>
+                                    <button id="qpcr-paste-btn" onclick="QpcrApp.handlePasteSubmit()" disabled class="bg-slate-800 text-white px-4 py-3 rounded-xl font-bold hover:bg-slate-900 disabled:opacity-50 transition w-full shadow-md">
+                                        Procesar Datos Pegados
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="qpcr-step-config" class="qpcr-tab space-y-8">
+                        <div id="qpcr-stats-container" class="space-y-4">
+                            </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white border border-slate-200 p-6 rounded-xl shadow-sm">
+                            <div class="space-y-3">
+                                <label class="block font-bold text-lg text-slate-800">1. Define tu Control (Calibrador)</label>
+                                <p class="text-sm text-slate-500">¿Qué muestra representa tu estado base (ej. C-A1)?</p>
+                                <select id="qpcr-select-control" onchange="QpcrApp.updateSelections()" class="w-full border-2 border-blue-200 rounded-lg p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50 font-semibold text-blue-900 transition-all cursor-pointer"></select>
+                            </div>
+
+                            <div class="space-y-3">
+                                <label class="block font-bold text-lg text-slate-800">2. Define tu Gen de Referencia</label>
+                                <p class="text-sm text-slate-500">¿Qué gen usaste como control endógeno (ej. GAPDH)?</p>
+                                <select id="qpcr-select-ref" onchange="QpcrApp.updateSelections()" class="w-full border-2 border-emerald-200 rounded-lg p-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 bg-emerald-50 font-semibold text-emerald-900 transition-all cursor-pointer"></select>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button onclick="QpcrApp.calculateAndShowResults()" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800 shadow-md flex items-center gap-2 text-lg transition-transform hover:scale-105">
+                                Generar Gráficas <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="qpcr-step-results" class="qpcr-tab space-y-6">
+                        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div class="flex items-center gap-2 text-blue-700 font-bold">
+                                <i class="fas fa-sliders-h"></i> Controles de Visualización
+                            </div>
+                            <div class="flex flex-wrap gap-4 items-center">
+                                <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-lg border border-slate-200">
+                                    <span class="text-sm font-semibold text-slate-700 ml-1">Escala:</span>
+                                    <select id="qpcr-scale-type" onchange="QpcrApp.renderChart()" class="bg-white border border-slate-300 rounded px-3 py-1.5 text-sm font-medium text-slate-800 outline-none cursor-pointer focus:ring-2 focus:ring-blue-500">
+                                        <option value="linear">Lineal (Clásica 2^-ΔΔCt)</option>
+                                        <option value="log2">Logarítmica 2 (Ideal para inhibiciones)</option>
+                                    </select>
+                                </div>
+                                <label class="flex items-center gap-2 bg-slate-100 p-2.5 rounded-lg border border-slate-200 cursor-pointer select-none hover:bg-slate-200 transition">
+                                    <input type="checkbox" id="qpcr-show-errors" checked onchange="QpcrApp.renderChart()" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                                    <span class="text-sm font-semibold text-slate-700">Mostrar Barras de Error</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm relative">
+                            <h3 id="qpcr-chart-title" class="text-xl font-bold text-slate-800 mb-2 text-center">Expresión Génica Relativa (Fold Change)</h3>
+                            <p id="qpcr-chart-subtitle" class="text-center text-sm text-slate-500 mb-4 hidden">Valores negativos indican supresión del gen.</p>
+                            <div id="qpcr-plotly-div" class="w-full h-[450px]"></div>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            <div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
+                                <h3 class="font-bold text-slate-800">Tabla de Ecuaciones (Resultados Desglosados)</h3>
+                                <button onclick="QpcrApp.exportCSV()" class="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-md font-bold hover:bg-indigo-700 shadow-sm transition">
+                                    <i class="fas fa-download"></i> CSV
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm whitespace-nowrap">
+                                    <thead class="bg-slate-100 text-slate-600 border-b border-slate-200">
+                                        <tr>
+                                            <th class="p-4 font-bold">Muestra</th>
+                                            <th class="p-4 font-bold">Gen</th>
+                                            <th class="p-4 border-l border-slate-200 font-bold">Ct (Gen)</th>
+                                            <th class="p-4 border-l border-slate-200 font-bold text-slate-500">Ct (Ref)</th>
+                                            <th class="p-4 border-l border-slate-200 font-bold text-blue-600">ΔCt</th>
+                                            <th class="p-4 border-l border-slate-200 font-bold text-purple-600">ΔΔCt</th>
+                                            <th class="p-4 border-l border-slate-200 font-black text-slate-800">Fold Change</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="qpcr-table-body" class="divide-y divide-slate-100">
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
         <div id="content-profile" class="hidden space-y-8">
             <div class="bg-white p-8 rounded-3xl shadow-2xl border border-gray-200">
                 <div class="flex items-center justify-between border-b pb-4 mb-6">
@@ -298,7 +455,6 @@
                     <div id="cloud-status" class="px-4 py-2 rounded-xl bg-gray-100 text-sm font-bold text-gray-500 shadow-inner">Verificando conexión...</div>
                 </div>
                 
-                <!-- Tarjeta de Usuario Logueado (Oculta por defecto) -->
                 <div id="user-info-card" class="hidden items-center gap-5 mb-8 p-5 bg-indigo-50 border border-indigo-100 rounded-2xl shadow-sm">
                     <img id="user-photo" src="" class="w-16 h-16 rounded-full border-2 border-indigo-500 shadow-md">
                     <div>
@@ -311,7 +467,6 @@
                     </button>
                 </div>
 
-                <!-- Botón de Login de Google (Visible por defecto) -->
                 <div id="login-section" class="text-center py-10 mb-8 bg-gray-50 rounded-2xl border border-gray-200">
                     <i class="fas fa-lock text-4xl text-gray-300 mb-4"></i>
                     <h3 class="text-lg font-bold text-gray-700 mb-2">Inicia sesión para guardar tu progreso</h3>
@@ -342,14 +497,11 @@
             </div>
         </div>
 
-        <!-- LABMANAGER ULTRA (CRONOGRAMA MAESTRO) -->
         <div id="content-scheduler" class="hidden space-y-8">
             <div id="sched-stats-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                <!-- Inyectado mediante JS -->
-            </div>
+                </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
-                <!-- COLUMNA LATERAL: CONFIGURACIÓN -->
                 <aside class="xl:col-span-3 space-y-6">
                     <div class="glass-card p-6 rounded-[2rem] border-l-8 border-l-indigo-600 relative overflow-hidden bg-white">
                         <div class="absolute -top-4 -right-4 p-8 opacity-5">
@@ -382,8 +534,7 @@
                             <span id="sched-phase-count-badge" class="text-[9px] font-black bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg"></span>
                         </div>
                         <div id="sched-phase-names-container" class="space-y-3 mb-5">
-                            <!-- Inputs dinámicos -->
-                        </div>
+                            </div>
                         <button onclick="addNewSchedPhaseSlot()" class="w-full border-2 border-dashed border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/50 text-[10px] font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2">
                             <i class="fas fa-plus-circle"></i> INSERTAR NUEVA FASE
                         </button>
@@ -399,8 +550,7 @@
                                 <input type="text" id="sched-new-id" placeholder="ej: THP1-W4-A1" class="w-full text-xs p-4 border border-slate-200 rounded-2xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold shadow-sm">
                             </div>
                             <div id="sched-phase-values-container" class="grid grid-cols-2 gap-4">
-                                <!-- Inyección dinámica de campos de horas -->
-                            </div>
+                                </div>
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Notas de Tratamiento</label>
                                 <input type="text" id="sched-new-notes" placeholder="ej: 100nM PMA / 2uM EC" class="w-full text-xs p-4 border border-slate-200 rounded-2xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm">
@@ -410,12 +560,10 @@
                             </button>
                         </div>
                         <div id="sched-condition-list" class="mt-8 space-y-2 max-h-44 overflow-y-auto pr-2 custom-scrollbar border-t border-slate-100 pt-4">
-                            <!-- Muestras inyectadas -->
-                        </div>
+                            </div>
                     </div>
                 </aside>
 
-                <!-- PANEL CENTRAL: VISUALIZACIÓN E INFORMES -->
                 <div class="xl:col-span-9 space-y-8">
                     <div id="sched-export-container" class="glass-card rounded-[3rem] overflow-hidden p-10 space-y-10 bg-white shadow-2xl">
                         <div class="flex justify-between items-end border-b border-slate-100 pb-8">
@@ -482,7 +630,6 @@
             </div>
         </div>
 
-        <!-- ORGANIZADOR DE CULTIVO -->
         <div id="content-planner" class="hidden space-y-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-1 bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
@@ -571,14 +718,12 @@
             </div>
         </div>
         
-        <!-- CONTADOR CELULAR AI -->
         <div id="content-cell-counter" class="hidden space-y-8">
             <div class="bg-white p-8 rounded-3xl shadow-2xl border border-gray-200">
                 <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">🔬 Contador de Células (Neubauer AI)</h2>
                 <p class="text-gray-500 mt-2 mb-6">Analiza hasta 4 imágenes de cuadrantes grandes ("L") para el conteo de células y cálculo de concentración.</p>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Columna de Carga de Imagen y Parámetros -->
                     <div class="lg:col-span-1 space-y-4">
                         <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Paso 1: Cargar Regiones (Máx. 4)</h3>
                         
@@ -586,12 +731,12 @@
                             <template id="cellUploadSlotTemplate">
                                 <div class="bg-gray-50 p-3 rounded-lg shadow-inner border border-gray-200">
                                     <label class="block text-sm font-medium text-gray-600 mb-2" data-slot-label>Región N</label>
-                                    <input type="file" accept="image/*" class="cell-upload-input hidden" onchange="handleImageUpload(event, this)">
+                                    <input type="file" accept="image/*" class="cell-upload-input hidden">
                                     <img class="image-preview-slot cursor-pointer border border-gray-300" 
                                          src="https://placehold.co/150x150/e5e7eb/9ca3af?text=Slot" 
                                          alt="Vista previa de la región" 
                                          onclick="this.previousElementSibling.click()">
-                                    <button onclick="clearImageSlot(this)" class="clear-button w-full mt-2 py-1 text-xs bg-red-500 text-white rounded-md hover:bg-red-600 hidden">Eliminar</button>
+                                    <button class="clear-button w-full mt-2 py-1 text-xs bg-red-500 text-white rounded-md hover:bg-red-600 hidden">Eliminar</button>
                                 </div>
                             </template>
                         </div>
@@ -609,7 +754,6 @@
                         </button>
                     </div>
 
-                    <!-- Columna de Resultados -->
                     <div class="lg:col-span-2 space-y-6">
                         <div id="loadingIndicator" class="hidden bg-yellow-100 p-6 rounded-lg shadow-md border-l-4 border-yellow-500">
                             <div class="flex items-center space-x-3">
@@ -650,32 +794,25 @@
                             <h3 class="text-xl font-bold text-red-700 mb-2">Error en el Análisis</h3>
                             <p id="errorMessage" class="text-red-700"></p>
                         </div>
-
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- CONTENIDO ASISTENTE qPCR (NUEVO TAB) -->
-        <div id="content-qpcr" class="hidden space-y-8">
-            <div id="qpcr-root"></div>
-        </div>
-
-        <!-- MODELOS ANIMALES -->
         <div id="content-models" class="hidden space-y-8">
             <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
                 <h2 class="text-2xl font-bold mb-5 text-indigo-700 border-b pb-3">🐭 Seguimiento de Modelos Animales</h2>
                 <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 mb-6">
-                    <button onclick="saveModelData()" class="bg-green-600 text-white font-bold py-2 px-4 text-sm rounded-xl hover:bg-green-700 transition shadow-md">💾 Guardar Datos Modelos Localmente</button>
+                    <button onclick="saveModelData()" class="bg-green-600 text-white font-bold py-2 px-4 text-sm rounded-xl hover:bg-green-700 transition shadow-md">💾 Guardar Datos Localmente</button>
                     <label for="load-model-input" class="bg-gray-600 text-white font-bold py-2 px-4 text-sm rounded-xl hover:bg-gray-700 cursor-pointer text-center transition shadow-md">📂 Cargar Datos Localmente</label>
                     <input type="file" id="load-model-input" class="hidden" accept=".json">
                     <div class="flex space-x-2 w-full md:w-auto">
-                        <input type="text" id="new-model-id" placeholder="ID Nuevo Modelo (Ej: Ratón-01)" class="border-gray-300 rounded-lg shadow-sm p-2 w-full">
+                        <input type="text" id="new-model-id" placeholder="ID Nuevo Modelo" class="border-gray-300 rounded-lg shadow-sm p-2 w-full">
                         <button onclick="addAnimalModel()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-xl hover:bg-blue-700 transition shadow-md flex-shrink-0">Añadir</button>
                     </div>
                 </div>
                 <div id="animal-models-container" class="space-y-6">
-                    </div>
+                </div>
             </div>
             <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
                 <h2 class="text-2xl font-bold mb-5 text-indigo-700 border-b pb-3">💉 Calculadora de Dosificación por Peso</h2>
@@ -727,7 +864,6 @@
             </div>
         </div>
 
-        <!-- PROTOCOLOS Y RECURSOS -->
         <div id="content-protocols" class="hidden space-y-6 bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">📚 Protocolos Comunes y Recursos Externos</h2>
             <div class="prose max-w-none grid grid-cols-1 md:grid-cols-2 gap-8 text-gray-700">
@@ -745,24 +881,22 @@
                             <li>Cuantificación (Nanodrop/Qubit)</li>
                             <li>Control de Calidad (Gel/Bioanalyzer)</li>
                         </ul>
-                        <p class="text-xs text-gray-500 mt-3">Puedes editar este archivo HTML para añadir detalles específicos de tus kits o protocolos.</p>
                     </div>
                 </div>
                 <div>
                     <h3>Bases de Datos Externas</h3>
                     <p>Enlaces rápidos a recursos útiles de ciencia:</p>
                     <ul class="list-disc list-inside space-y-2">
-                        <li><a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold">PubMed (NCBI):</a> Búsqueda de literatura biomédica.</li>
-                        <li><a href="https://www.ncbi.nlm.nih.gov/gene/" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold">NCBI Gene:</a> Información sobre genes específicos.</li>
-                        <li><a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold">NCBI BLAST:</a> Búsqueda de secuencias.</li>
-                        <li><a href="https://www.uniprot.org/" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold">UniProt:</a> Información sobre proteínas.</li>
-                        <li><a href="https://www.rcsb.org/" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold">Protein Data Bank (PDB):</a> Estructuras 3D.</li>
+                        <li><a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold">PubMed (NCBI)</a></li>
+                        <li><a href="https://www.ncbi.nlm.nih.gov/gene/" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold">NCBI Gene</a></li>
+                        <li><a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold">NCBI BLAST</a></li>
+                        <li><a href="https://www.uniprot.org/" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold">UniProt</a></li>
+                        <li><a href="https://www.rcsb.org/" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold">Protein Data Bank (PDB)</a></li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <!-- REPORTE -->
         <div id="content-report" class="hidden space-y-6 bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">📄 Reporte del Experimento</h2>
             <div class="flex space-x-4">
@@ -774,7 +908,6 @@
             </div>
         </div>
 
-        <!-- CALCULADORAS RÁPIDAS -->
         <div id="content-calculators" class="hidden space-y-8">
             <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
                 <h2 class="text-2xl font-bold mb-5 text-indigo-700">🔢 Calculadora de Masa Molar</h2>
@@ -856,7 +989,6 @@
             </div>
         </div>
 
-        <!-- ACERCA DEL PROYECTO -->
         <div id="content-about" class="hidden space-y-8 bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">ℹ️ Información del Proyecto y Colaboradores</h2>
             <div class="prose max-w-none text-gray-700">
@@ -893,35 +1025,11 @@
                         <p class="mt-1 font-semibold">Investigación Integral Cardiometabólica (IPN)</p>
                     </div>
                 </div>
-                
-                <div class="mt-10 pt-6 border-t border-gray-200">
-                    <h3 class="font-bold text-2xl text-indigo-600">Contacto y Redes</h3>
-                    <p class="mt-4">
-                        <span class="font-bold">Dirección:</span> Plan de San Luis y Díaz Mirón s/n Col. Casco de Santo Tomás, Miguel Hidalgo, 11340, Ciudad de México, CDMX.
-                    </p>
-                    <p>
-                        <span class="font-bold">Correo:</span> nnajerag@ipn.mx
-                    </p>
-                    <p>
-                        <span class="font-bold">Teléfono:</span> 55 5729 6300 ext 62820
-                    </p>
-                    <div class="mt-4 flex space-x-4 text-lg">
-                        <a href="https://cemiztli.wixsite.com/cardiometabolismo" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold transition flex items-center">
-                            🌐 Website
-                        </a>
-                        <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold transition flex items-center">
-                            📘 Facebook
-                        </a>
-                        <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold transition flex items-center">
-                            📸 Instagram
-                        </a>
-                    </div>
-                </div>
             </div>
         </div>
+
     </main>
 
-    <!-- MODAL DE CONFIGURACIÓN DE POZO -->
     <div id="well-config-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto p-8 border-4 border-indigo-500/50">
             <div class="flex justify-between items-center border-b pb-4 mb-6">
@@ -955,18 +1063,17 @@
                                 <button onclick="toggleSubCalc('cell-calc')" class="bg-gray-200 p-2 rounded-lg hover:bg-gray-300 transition">⚙️</button>
                             </div>
                             <div id="cell-calc" class="sub-calc p-3 border rounded-lg bg-white mt-2 space-y-3 shadow-inner">
-                                <div class="space-y-2">
-                                    <p class="text-xs font-semibold text-gray-700 border-b pb-1">Calcular volumen de stock celular:</p>
-                                    <div class="flex items-center space-x-2">
-                                        <input type="number" id="cell-stock-conc" placeholder="Conc. stock" class="w-full text-sm border-gray-300 rounded-lg p-2">
-                                        <select id="cell-stock-conc-unit" class="text-sm border-gray-300 rounded-lg p-2">
-                                            <option value="1">células/mL</option>
-                                            <option value="1000">células/µL</option>
-                                        </select>
-                                    </div>
-                                    <button onclick="calculateCellVolume()" class="w-full text-sm bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition shadow-sm">Calcular Volumen (µL)</button>
-                                    <p id="cell-volume-result" class="text-sm font-medium text-blue-700 bg-blue-100 p-2 rounded-lg"></p>
+                                <p class="text-xs font-semibold text-gray-700 border-b pb-1">Calcular volumen de stock celular:</p>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" id="cell-stock-conc" placeholder="Conc. stock" class="w-full text-sm border-gray-300 rounded-lg p-2">
+                                    <select id="cell-stock-conc-unit" class="text-sm border-gray-300 rounded-lg p-2">
+                                        <option value="1">células/mL</option>
+                                        <option value="1000">células/µL</option>
+                                    </select>
                                 </div>
+                                <button onclick="calculateCellVolume()" class="w-full text-sm bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition shadow-sm">Calcular Volumen (µL)</button>
+                                <p id="cell-volume-result" class="text-sm font-medium text-blue-700 bg-blue-100 p-2 rounded-lg"></p>
+                                
                                 <div class="mt-4 pt-4 border-t border-gray-200 space-y-2">
                                     <p class="text-xs font-semibold text-gray-700 border-b pb-1">Calculadora Cámara de Neubauer:</p>
                                     <div class="grid grid-cols-2 gap-2">
@@ -984,16 +1091,14 @@
 
                 <div>
                     <h3 class="font-bold text-xl mb-3 text-indigo-700 border-b border-indigo-100 pb-2">Variables / Reactivos</h3>
-                    <div id="variables-container" class="space-y-4">
-                        </div>
+                    <div id="variables-container" class="space-y-4"></div>
                     <button onclick="addVariable()" class="mt-4 text-sm bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-xl hover:bg-gray-300 transition shadow-sm">+ Añadir Variable</button>
                 </div>
 
                 <div>
                     <h3 class="font-bold text-xl mb-3 text-indigo-700 border-b border-indigo-100 pb-2">Pasos del Protocolo</h3>
                     <div class="p-4 border rounded-xl bg-indigo-50 space-y-4">
-                        <div id="protocol-steps-container" class="space-y-3">
-                            </div>
+                        <div id="protocol-steps-container" class="space-y-3"></div>
                         <button onclick="addProtocolStep()" class="text-sm bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-xl hover:bg-gray-300 transition shadow-sm">+ Añadir Paso</button>
                     </div>
                 </div>
@@ -1006,7 +1111,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE DATOS DEL MODELO ANIMAL -->
     <div id="model-data-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 border-4 border-green-500/50">
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Añadir Registro para Modelo <span id="modal-model-id" class="text-green-600 font-extrabold"></span></h2>
@@ -1039,12 +1143,11 @@
         </div>
     </div>
 
-    <!-- PLANTILLAS OCULTAS -->
     <div id="variable-template" class="hidden p-4 border rounded-xl bg-gray-50 transition hover:bg-gray-100">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-3 items-center">
             <div class="md:col-span-12 flex justify-between items-center border-b pb-2 mb-2">
                 <input type="text" class="variable-name w-full md:w-1/3 border-0 bg-transparent font-extrabold text-gray-800 focus:ring-0 text-lg" placeholder="Nombre (Ej: PMA)">
-                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold transition">🗑️ Eliminar</button>
+                <button onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold transition">🗑️ Eliminar</button>
             </div>
 
             <label class="md:col-span-2 text-sm font-medium text-gray-700">Conc. Final:</label>
@@ -1082,12 +1185,12 @@
                 </select>
             </div>
             <div class="md:col-span-1 flex justify-end">
-                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold transition">🗑️ Eliminar</button>
+                <button onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold transition">🗑️ Eliminar</button>
             </div>
         </div>
     </div>
     
-    <div id="toast" class="toast fixed bottom-5 right-5 bg-green-600 text-white py-4 px-8 rounded-xl shadow-2xl z-50">
+    <div id="toast" class="toast fixed bottom-5 right-5 bg-green-600 text-white py-4 px-8 rounded-xl shadow-2xl z-50" style="display: none; opacity: 0; transition: opacity 0.3s ease;">
         <p id="toast-message" class="font-semibold"></p>
     </div>
 
@@ -1098,18 +1201,24 @@
             messageEl.textContent = message;
             toast.className = `toast fixed bottom-5 right-5 text-white py-4 px-8 rounded-xl shadow-2xl z-50 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
             toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+            void toast.offsetWidth;
+            toast.style.opacity = '1';
+            
+            setTimeout(() => { 
+                toast.style.opacity = '0';
+                setTimeout(() => { toast.style.display = 'none'; }, 300);
+            }, 3000);
         }
 
-        // --- DATA & STATE MANAGEMENT ---
-        let copiedWellData = null; 
-        const ATOMIC_WEIGHTS = { 
+        // --- DATA & STATE MANAGEMENT GLOBALS ---
+        var copiedWellData = null; 
+        var ATOMIC_WEIGHTS = { 
             'H': 1.008, 'C': 12.011, 'N': 14.007, 'O': 15.999, 'Na': 22.990, 'Mg': 24.305, 
             'P': 30.974, 'S': 32.06, 'Cl': 35.45, 'K': 39.098, 'Ca': 40.078, 'Fe': 55.845,
             'He': 4.0026, 'Li': 6.94, 'Be': 9.0122, 'B': 10.81, 'F': 18.998, 'Ne': 20.180, 'Al': 26.982, 'Si': 28.085, 'Ar': 39.948, 'Sc': 44.956, 'Ti': 47.867, 'V': 50.942, 'Cr': 51.996, 'Mn': 54.938, 'Co': 58.933, 'Ni': 58.693, 'Cu': 63.546, 'Zn': 65.38, 'Ga': 69.723, 'Ge': 72.630, 'As': 74.922, 'Se': 78.971, 'Br': 79.904, 'Kr': 83.798, 'Rb': 85.468, 'Sr': 87.62, 'Y': 88.906, 'Zr': 91.224, 'Nb': 92.906, 'Mo': 95.96, 'Tc': 98, 'Ru': 101.07, 'Rh': 102.91, 'Pd': 106.42, 'Ag': 107.87, 'Cd': 112.41, 'In': 114.82, 'Sn': 118.71, 'Sb': 121.76, 'Te': 127.60, 'I': 126.90, 'Xe': 131.29, 'Cs': 132.91, 'Ba': 137.33,
         };
 
-        const CONVERSION_FACTORS = {
+        var CONVERSION_FACTORS = {
             'mass': { 'kg': 1000, 'g': 1, 'mg': 1e-3, 'µg': 1e-6, 'ng': 1e-9, 'pg': 1e-12 },
             'volume': { 'L': 1, 'mL': 1e-3, 'µL': 1e-6, 'nL': 1e-9 },
             'concentration': { 'M': 1, 'mM': 1e-3, 'µM': 1e-6, 'nM': 1e-9 },
@@ -1118,33 +1227,31 @@
             'pressure': { 'Pa': 1, 'mmHg': 133.322 },
         };
         
-        let wellData = {}; 
-        let selectedWells = new Set();
-        let variableCounter = 0;
-        let runningTimers = {};
-        let animalModels = {}; 
-        let currentEditingModelId = null; 
+        var wellData = {}; 
+        var selectedWells = new Set();
+        var variableCounter = 0;
+        var runningTimers = {};
+        var animalModels = {}; 
+        var currentEditingModelId = null; 
 
         // --- VARIABLES DEL CONTADOR AI ---
-        let base64Images = []; 
-        let currentResults = []; 
-        const MAX_SLOTS = 4;
-        const CORRECTION_FACTOR = 2500; 
-        const DILUTION_FACTOR_FIXED = 1; 
-        const apiKey = ""; 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-        const MAX_RETRIES = 3;
+        var base64Images = []; 
+        var currentResults = []; 
+        var MAX_SLOTS = 4;
+        var CORRECTION_FACTOR = 2500; 
+        var DILUTION_FACTOR_FIXED = 1; 
+        var apiKey = ""; 
+        var apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        var MAX_RETRIES = 3;
 
         // --- VARIABLES DEL CRONOGRAMA MAESTRO ---
-        let SCHED_CONFIG = {
-            phases: ["Diferenciación", "Descanso", "Activación"],
-            condiciones: []
-        };
-        let schedStartTime = new Date();
+        var SCHED_CONFIG = { phases: ["Diferenciación", "Descanso", "Activación"], condiciones: [] };
+        var schedStartTime = new Date();
 
         // --- TABS & NAVIGATION ---
         function changeTab(tabName) {
-            const contents = ['planner', 'scheduler', 'models', 'protocols', 'report', 'calculators', 'guide', 'about', 'cell-counter', 'profile', 'qpcr']; 
+            // AGREGAMOS EL 'analyzer' A LA LISTA DE TABS
+            const contents = ['planner', 'scheduler', 'models', 'protocols', 'report', 'calculators', 'guide', 'about', 'cell-counter', 'profile', 'qpcr', 'analyzer']; 
             contents.forEach(content => {
                 const el = document.getElementById(`content-${content}`);
                 const tab = document.getElementById(`tab-${content}`);
@@ -1152,16 +1259,19 @@
                 if (tab) {
                     if (content === tabName) {
                         tab.classList.add('active');
+                        if(tabName === 'qpcr') tab.classList.add('text-blue-800', 'font-bold');
                     } else {
                         tab.classList.remove('active');
+                        if(content === 'qpcr') tab.classList.remove('text-blue-800', 'font-bold');
                     }
                 }
             });
-            if (tabName === 'models') {
-                renderAnimalModels(); 
-            }
-            if (tabName === 'scheduler') {
-                renderSchedMermaid(); 
+            if (tabName === 'models') renderAnimalModels(); 
+            if (tabName === 'scheduler') renderSchedMermaid(); 
+            if (tabName === 'qpcr') {
+                if (QpcrApp.results && QpcrApp.results.length > 0) {
+                    QpcrApp.renderChart();
+                }
             }
         }
 
@@ -1169,9 +1279,7 @@
         function getUnitType(unit) {
              if (!unit) return null;
              for (const type in CONVERSION_FACTORS) {
-                 if (CONVERSION_FACTORS[type][unit]) {
-                     return type;
-                 }
+                 if (CONVERSION_FACTORS[type][unit]) return type;
              }
              if (unit.includes('/')) {
                  const parts = unit.split('/');
@@ -1187,7 +1295,9 @@
             if (!type || isNaN(value)) return NaN;
 
             if (type === 'combined_concentration') {
-                 const [massUnit, volUnit] = fromUnit.split('/');
+                 const parts = fromUnit.split('/');
+                 const massUnit = parts[0];
+                 const volUnit = parts[1];
                  const valueInG = value * (CONVERSION_FACTORS.mass[massUnit] || NaN);
                  const volumeInL = 1 * (CONVERSION_FACTORS.volume[volUnit] || NaN); 
                  if (isNaN(valueInG) || isNaN(volumeInL) || volumeInL === 0) return NaN;
@@ -1203,7 +1313,9 @@
              if (!type || isNaN(value)) return NaN;
 
              if (type === 'combined_concentration') {
-                 const [massUnit, volUnit] = toUnit.split('/');
+                 const parts = toUnit.split('/');
+                 const massUnit = parts[0];
+                 const volUnit = parts[1];
                  const targetMassFactor = CONVERSION_FACTORS.mass[massUnit];
                  const targetVolFactor = CONVERSION_FACTORS.volume[volUnit];
                  if (!targetMassFactor || !targetVolFactor) return NaN;
@@ -1219,19 +1331,12 @@
         function _pureConvertUnits(value, from, to) {
             if (isNaN(value) || !from || !to) return NaN;
             if (from === to) return value;
-
             const fromType = getUnitType(from);
             const toType = getUnitType(to);
-
-             if (!fromType || !toType || fromType !== toType) {
-                 return NaN; 
-             }
-            
+             if (!fromType || !toType || fromType !== toType) return NaN; 
             const baseValue = convertToBaseUnit(value, from);
             if (isNaN(baseValue)) return NaN;
-            const finalValue = convertFromBaseUnit(baseValue, to);
-             
-            return finalValue;
+            return convertFromBaseUnit(baseValue, to);
         }
 
         // --- QUICK CALCULATORS ---
@@ -1240,7 +1345,12 @@
             let match;
             const stack = [{}]; 
             while ((match = regex.exec(formula))) {
-                const [, element, countStr, openParen, closeParen, parenCountStr] = match;
+                const element = match[1];
+                const countStr = match[2];
+                const openParen = match[3];
+                const closeParen = match[4];
+                const parenCountStr = match[5];
+                
                 const count = countStr ? parseInt(countStr) : 1;
                 const parenCount = parenCountStr ? parseInt(parenCountStr) : 1;
 
@@ -1327,7 +1437,7 @@
                  const c2_conv = _pureConvertUnits(fields.c2.val, fields.c2.unit, fields.c1.unit);
                  const v2_conv = _pureConvertUnits(fields.v2.val, fields.v2.unit, fields.v1.unit);
                 
-                if (isNaN(c2_conv) && !isNaN(fields.c2.val)) throw new Error(`No se puede convertir la unidad de C2 (${fields.c2.unit}) a la de C1 (${fields.c1.unit}). Asegúrate que son del mismo tipo (ej. ambas molares o ambas masa/volumen).`);
+                if (isNaN(c2_conv) && !isNaN(fields.c2.val)) throw new Error(`No se puede convertir la unidad de C2 (${fields.c2.unit}) a la de C1 (${fields.c1.unit}). Asegúrate que son del mismo tipo.`);
                 if (isNaN(v2_conv) && !isNaN(fields.v2.val)) throw new Error(`No se puede convertir la unidad de V2 (${fields.v2.unit}) a la de V1 (${fields.v1.unit}).`);
 
                 let c1_val = fields.c1.val;
@@ -1357,9 +1467,7 @@
                 if (isNaN(result) || !isFinite(result)) {
                     throw new Error("El resultado es inválido. Revisa los valores y unidades.");
                 }
-
                 resultDiv.textContent = `Resultado: ${missingVar.toUpperCase()} = ${result.toPrecision(4)} ${resultUnit}`;
-
             } catch (error) {
                  resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
             }
@@ -1399,7 +1507,9 @@
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = () => {
-                    const [mimeTypePart, dataPart] = reader.result.split(',');
+                    const parts = reader.result.split(',');
+                    const mimeTypePart = parts[0];
+                    const dataPart = parts[1];
                     const mimeType = mimeTypePart.match(/:(.*?);/)[1];
                     resolve({ data: dataPart, mimeType: mimeType });
                 };
@@ -1424,7 +1534,7 @@
                 preview.src = URL.createObjectURL(file);
                 try {
                     const result = await getBase64Image(file);
-                    base64Images[slotIndex] = { ...result, slotIndex };
+                    base64Images[slotIndex] = Object.assign({}, result, { slotIndex: slotIndex });
                     clearButton.classList.remove('hidden');
                 } catch (error) {
                     console.error("Error al leer el archivo:", error);
@@ -1455,12 +1565,12 @@
             const analyzeButton = document.getElementById('analyzeButton');
             if (loadedImages.length > 0) {
                 analyzeButton.disabled = false;
-                analyzeButton.classList.replace('bg-gray-400', 'bg-blue-600');
-                analyzeButton.classList.add('hover:bg-blue-700');
+                analyzeButton.classList.remove('bg-gray-400');
+                analyzeButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
             } else {
                 analyzeButton.disabled = true;
-                analyzeButton.classList.replace('bg-blue-600', 'bg-gray-400');
-                analyzeButton.classList.remove('hover:bg-blue-700');
+                analyzeButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                analyzeButton.classList.add('bg-gray-400');
             }
         }
         
@@ -1473,13 +1583,9 @@
         function calculateConcentration(totalCount) {
             const dilutionFactor = DILUTION_FACTOR_FIXED; 
             const numRegions = base64Images.filter(img => img !== null && img !== undefined).length;
-            
             if (totalCount === 0 || numRegions === 0) return 0;
-
             const averageCountPerRegion = totalCount / numRegions; 
-            const concentration = averageCountPerRegion * dilutionFactor * CORRECTION_FACTOR;
-
-            return concentration;
+            return averageCountPerRegion * dilutionFactor * CORRECTION_FACTOR;
         }
 
         async function analyzeImage() {
@@ -1536,28 +1642,31 @@
                         result = JSON.parse(responseText);
                     } catch (e) {
                         if (!response.ok) {
-                            throw new Error(`Error HTTP ${response.status} (${response.statusText}). La respuesta no es JSON válido. Contenido: ${responseText.substring(0, 100)}...`);
+                            throw new Error(`Error HTTP ${response.status}. Respuesta no JSON.`);
                         }
-                        throw new Error(`Error de sintaxis JSON, la respuesta de la API fue inválida. Contenido: ${responseText.substring(0, 100)}...`);
+                        throw new Error(`Error de sintaxis JSON.`);
                     }
 
                     if (!response.ok) {
-                        throw new Error(`Error HTTP ${response.status} (${response.statusText}): ${result.error?.message || 'Fallo en la llamada a la API.'}`);
+                        const errMsg = result.error && result.error.message ? result.error.message : 'Fallo en la API.';
+                        throw new Error(`Error HTTP ${response.status}: ${errMsg}`);
                     }
 
-                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    let text = "";
+                    if (result.candidates && result.candidates[0] && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts[0]) {
+                        text = result.candidates[0].content.parts[0].text;
+                    }
 
                     if (text) {
                         formatAndDisplayResult(text);
                         return; 
                     } else {
-                        throw new Error("La respuesta de la IA no contenía texto generado (candidatos vacíos o estructura inesperada).");
+                        throw new Error("La IA no generó texto.");
                     }
-
                 } catch (error) {
                     console.error(`Intento ${i + 1} fallido:`, error);
                     if (i === MAX_RETRIES - 1) {
-                        displayError(`No se pudo completar el análisis después de ${MAX_RETRIES} intentos. Error: ${error.message}`);
+                        displayError(`No se pudo completar el análisis tras ${MAX_RETRIES} intentos. Error: ${error.message}`);
                     } else {
                         await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
                     }
@@ -1579,11 +1688,8 @@
             
             lines.forEach(line => {
                 const match = line.match(regionStartRegex);
-                
                 if (match) {
-                    if (currentRegion.Region) {
-                        regionData.push(currentRegion);
-                    }
+                    if (currentRegion.Region) regionData.push(currentRegion);
                     
                     let regionText = match[0];
                     let countMatch = regionText.match(/(\d+)/);
@@ -1601,17 +1707,13 @@
                         const innerCountMatch = line.match(/\*\*CONTEO Y DENSIDAD\*\*.*?(\d+)/i);
                         currentRegion.Conteo = innerCountMatch ? parseInt(innerCountMatch[1]) : 0;
                     }
-
                     totalCount += currentRegion.Conteo;
-
                 } else if (currentRegion.Region) {
                     currentRegion.Interpretacion += '\n' + line;
                 }
             });
 
-            if (currentRegion.Region) {
-                regionData.push(currentRegion);
-            }
+            if (currentRegion.Region) regionData.push(currentRegion);
 
             const finalConcentration = calculateConcentration(totalCount);
             const numRegions = base64Images.filter(img => img !== null && img !== undefined).length;
@@ -1619,7 +1721,6 @@
             document.getElementById('totalCountDisplay').textContent = formatNumber(totalCount);
             document.getElementById('finalConcentrationDisplay').textContent = formatNumber(finalConcentration);
             document.getElementById('calcRegions').textContent = numRegions;
-
 
             currentResults = regionData.map(data => {
                 const interpretationHTML = data.Interpretacion
@@ -1634,33 +1735,20 @@
                 };
             });
             
-            let tableHtml = `
-                <div class="table-responsive">
-                    <table id="cell-counter-results-table" class="min-w-full divide-y divide-gray-200">
-                        <thead>
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Región</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Células Contadas</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10/12">Interpretación y Análisis Morfológico</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-            `;
+            let tableHtml = `<div class="table-responsive"><table id="cell-counter-results-table" class="min-w-full divide-y divide-gray-200">
+                <thead><tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Región</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Células Contadas</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10/12">Interpretación y Análisis Morfológico</th>
+                </tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
 
             currentResults.forEach(data => {
-                tableHtml += `
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 align-top">${data['Región']}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 align-top">
-                            <span class="text-xl font-extrabold">${data.Conteo}</span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 interpretation-content">
-                            ${data['Interpretación (HTML)']}
-                        </td>
-                    </tr>
-                `;
+                tableHtml += `<tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 align-top">${data['Región']}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 align-top"><span class="text-xl font-extrabold">${data.Conteo}</span></td>
+                    <td class="px-6 py-4 text-sm text-gray-500 interpretation-content">${data['Interpretación (HTML)']}</td>
+                </tr>`;
             });
-
             tableHtml += `</tbody></table></div>`;
             
             document.getElementById('resultsContent').innerHTML = tableHtml;
@@ -1679,12 +1767,7 @@
         }
 
         function downloadExcel() {
-            if (currentResults.length === 0) {
-                document.getElementById('errorMessage').textContent = "No hay resultados para descargar.";
-                document.getElementById('errorCard').classList.remove('hidden');
-                return;
-            }
-
+            if (currentResults.length === 0) return;
             const totalCount = currentResults.reduce((sum, item) => sum + item['Conteo'], 0);
             const finalConcentration = calculateConcentration(totalCount);
             
@@ -1694,18 +1777,9 @@
                 'Análisis Detallado': data['Interpretación (Texto Simple)']
             }));
             
-            excelData.push(
-                {}, 
-                {
-                    'Región': 'RESUMEN TOTAL',
-                    'Células Contadas': totalCount,
-                    'Análisis Detallado': 'Suma total de células contadas en todas las regiones.'
-                },
-                {
-                    'Región': 'CONCENTRACIÓN FINAL (Células/mL)',
-                    'Células Contadas': finalConcentration,
-                    'Análisis Detallado': `Cálculo: (Conteo Promedio) x 2,500. Se asume Dilución 1:1. Regiones Contadas: ${currentResults.length}.`
-                }
+            excelData.push({}, 
+                { 'Región': 'RESUMEN TOTAL', 'Células Contadas': totalCount, 'Análisis Detallado': 'Suma total de células contadas en todas las regiones.' },
+                { 'Región': 'CONCENTRACIÓN FINAL (Células/mL)', 'Células Contadas': finalConcentration, 'Análisis Detallado': `Cálculo: (Conteo Promedio) x 2,500. Se asume Dilución 1:1. Regiones Contadas: ${currentResults.length}.` }
             );
 
             const worksheet = XLSX.utils.json_to_sheet(excelData);
@@ -1716,14 +1790,13 @@
         
         // --- PLATE PLANNER ---
         function generatePlate(restoringData = null) {
-            const plateType = restoringData ? restoringData.plateType : document.getElementById('plate-type').value;
-            document.getElementById('plate-type').value = plateType; 
+            const plateTypeEl = document.getElementById('plate-type');
+            const plateType = restoringData ? restoringData.plateType : plateTypeEl.value;
+            plateTypeEl.value = plateType; 
             const layout = document.getElementById('plate-layout');
             layout.innerHTML = ''; 
             
-            if (!restoringData) {
-                wellData = {};
-            }
+            if (!restoringData) wellData = {};
             selectedWells.clear(); 
 
             const plateConfigs = {
@@ -1754,12 +1827,10 @@
                     well.addEventListener('click', () => toggleWellSelection(wellId));
                     layout.appendChild(well); 
 
-                    if (restoringData?.wellData?.[wellId]) {
+                    if (restoringData && restoringData.wellData && restoringData.wellData[wellId]) {
                         const data = restoringData.wellData[wellId];
                         well.classList.add('configured'); 
-                        if (data.wellType && data.wellType !== 'default') {
-                            well.classList.add(data.wellType);
-                        }
+                        if (data.wellType && data.wellType !== 'default') well.classList.add(data.wellType);
                     }
                 }
             }
@@ -1804,18 +1875,13 @@
             document.getElementById('well-ids-display').textContent = wellIds.join(', ');
             
             const firstWellId = wellIds[0];
-            if (wellData[firstWellId]) {
-                loadConfigToModal(wellData[firstWellId]); 
-            } else {
-                resetModal(); 
-            }
+            if (wellData[firstWellId]) loadConfigToModal(wellData[firstWellId]); 
+            else resetModal(); 
 
             document.getElementById('well-config-modal').style.display = 'flex';
         }
 
-        function closeWellConfigModal() {
-            document.getElementById('well-config-modal').style.display = 'none'; 
-        }
+        function closeWellConfigModal() { document.getElementById('well-config-modal').style.display = 'none'; }
         
         function resetModal() {
              document.getElementById('well-type').value = 'default';
@@ -1836,26 +1902,20 @@
         }
 
         function loadConfigToModal(data) {
-            resetModal(); 
+             resetModal(); 
              document.getElementById('well-type').value = data.wellType || 'default';
              document.getElementById('well-total-volume').value = data.totalVolume || '';
-             document.getElementById('well-cell-count').value = data.cells?.count || '';
+             document.getElementById('well-cell-count').value = (data.cells && data.cells.count) ? data.cells.count : '';
             
             const variablesContainer = document.getElementById('variables-container');
             variablesContainer.innerHTML = ''; 
-            if (data.variables?.length > 0) {
-                data.variables.forEach(v => addVariable(v)); 
-            } else {
-                addVariable(); 
-            }
+            if (data.variables && data.variables.length > 0) data.variables.forEach(v => addVariable(v)); 
+            else addVariable(); 
             
             const stepsContainer = document.getElementById('protocol-steps-container');
             stepsContainer.innerHTML = ''; 
-            if (data.protocol?.steps?.length > 0) {
-                data.protocol.steps.forEach(s => addProtocolStep(s)); 
-            } else {
-                addProtocolStep(); 
-            }
+            if (data.protocol && data.protocol.steps && data.protocol.steps.length > 0) data.protocol.steps.forEach(s => addProtocolStep(s)); 
+            else addProtocolStep(); 
         }
 
         function saveWellConfig() {
@@ -1871,9 +1931,7 @@
                     finalConc: parseFloat(varDiv.querySelector('.variable-final-conc').value),
                     finalConcUnit: varDiv.querySelector('.variable-final-conc-unit').value,
                 };
-                if (variable.name && !isNaN(variable.finalConc)) {
-                    variables.push(variable);
-                }
+                if (variable.name && !isNaN(variable.finalConc)) variables.push(variable);
             });
             
             const protocolSteps = [];
@@ -1883,29 +1941,23 @@
                     duration: parseFloat(stepDiv.querySelector('.protocol-step-duration').value),
                     unit: parseInt(stepDiv.querySelector('.protocol-step-unit').value) 
                 };
-                if (step.name && !isNaN(step.duration)) {
-                    protocolSteps.push(step);
-                }
+                if (step.name && !isNaN(step.duration)) protocolSteps.push(step);
             });
 
             const configData = {
-                wellType,
+                wellType: wellType,
                 totalVolume: isNaN(totalVolume) ? null : totalVolume, 
                 cells: { count: isNaN(cellCount) ? null : cellCount }, 
-                variables,
-                protocol: {
-                    steps: protocolSteps
-                }
+                variables: variables,
+                protocol: { steps: protocolSteps }
             };
             
             selectedWells.forEach(wellId => {
                 wellData[wellId] = JSON.parse(JSON.stringify(configData)); 
                 const wellEl = document.getElementById(`well-${wellId}`);
                 if (wellEl) {
-                     wellEl.classList.remove('control', 'experimental', 'blanco', 'tratamiento-1', 'tratamiento-2', 'default');
-                    if (wellType !== 'default') {
-                        wellEl.classList.add(wellType); 
-                    }
+                    wellEl.classList.remove('control', 'experimental', 'blanco', 'tratamiento-1', 'tratamiento-2', 'default');
+                    if (wellType !== 'default') wellEl.classList.add(wellType); 
                     wellEl.classList.add('configured'); 
                     wellEl.classList.remove('selected'); 
                 }
@@ -1917,7 +1969,6 @@
             showToast('Configuración guardada para los pozos seleccionados.'); 
         }
 
-        // --- FUNCIONES DE COPIAR Y PEGAR POZOS ---
         function copyWellConfig() {
             if (selectedWells.size !== 1) {
                 showToast("Por favor, selecciona exactamente 1 pozo para copiar su configuración.", "error");
@@ -1929,7 +1980,7 @@
                 return;
             }
             copiedWellData = JSON.parse(JSON.stringify(wellData[wellId]));
-            showToast(`Configuración del pozo ${wellId} copiada al portapapeles.`);
+            showToast(`Configuración del pozo ${wellId} copiada.`);
         }
 
         function pasteWellConfig() {
@@ -1938,26 +1989,22 @@
                 return;
             }
             if (selectedWells.size === 0) {
-                showToast("Selecciona los pozos donde deseas pegar la configuración.", "error");
+                showToast("Selecciona los pozos donde deseas pegar.", "error");
                 return;
             }
-            
             selectedWells.forEach(wellId => {
                 wellData[wellId] = JSON.parse(JSON.stringify(copiedWellData));
                 const wellEl = document.getElementById(`well-${wellId}`);
                 if (wellEl) {
                     wellEl.classList.remove('control', 'experimental', 'blanco', 'tratamiento-1', 'tratamiento-2', 'default');
-                    if (copiedWellData.wellType !== 'default') {
-                        wellEl.classList.add(copiedWellData.wellType);
-                    }
+                    if (copiedWellData.wellType !== 'default') wellEl.classList.add(copiedWellData.wellType);
                     wellEl.classList.add('configured');
                     wellEl.classList.remove('selected');
                 }
             });
-            
             updateProtocolSchedule();
             clearSelection();
-            showToast(`Configuración pegada en ${selectedWells.size} pozo(s) exitosamente.`);
+            showToast(`Configuración pegada en ${selectedWells.size} pozo(s).`);
         }
         
         function addVariable(data = null) {
@@ -1982,7 +2029,6 @@
                  clone.querySelector('.variable-final-conc').value = data.finalConc || '';
                  clone.querySelector('.variable-final-conc-unit').value = data.finalConcUnit || 'µM'; 
             }
-
             document.getElementById('variables-container').appendChild(clone);
         }
 
@@ -2006,69 +2052,58 @@
             const resultEl = document.getElementById('cell-volume-result');
 
             if (isNaN(cellCount) || isNaN(stockConc) || stockConc === 0) {
-                resultEl.textContent = 'Inputs inválidos.';
-                return;
+                resultEl.textContent = 'Inputs inválidos.'; return;
             }
-            
             const stockConcInMl = stockConc * stockUnitFactor;
             const volumeInMicroL = (cellCount / stockConcInMl) * 1000;
             resultEl.textContent = `Tomar: ${volumeInMicroL.toFixed(2)} µL`;
         }
 
         function calculateNeubauer() {
-             const q1 = parseFloat(document.getElementById('neubauer-q1').value) || 0;
+            const q1 = parseFloat(document.getElementById('neubauer-q1').value) || 0;
             const q2 = parseFloat(document.getElementById('neubauer-q2').value) || 0;
             const q3 = parseFloat(document.getElementById('neubauer-q3').value) || 0;
             const q4 = parseFloat(document.getElementById('neubauer-q4').value) || 0;
 
             const sum = q1 + q2 + q3 + q4;
             if (sum === 0) { 
-                showToast("Introduce los conteos de los cuadrantes.", "error");
-                return;
+                showToast("Introduce los conteos de los cuadrantes.", "error"); return;
             }
             const avg = sum / 4; 
             const concentration = avg * 10000; 
             
             document.getElementById('cell-stock-conc-unit').value = "1"; 
             document.getElementById('cell-stock-conc').value = concentration; 
-            showToast(`Concentración calculada: ${concentration.toExponential(2)} células/mL.`); 
+            showToast(`Concentración: ${concentration.toExponential(2)} células/mL.`); 
              calculateCellVolume(); 
         }
 
         function calculateStockVolume(button) {
-             const variableSection = button.closest('.grid.grid-cols-1'); 
-            if (!variableSection) {
-                // Fallback for original variable template structure
-                const altSection = button.closest('.p-4.border.rounded-xl');
-                if (!altSection) return;
+            const variableSection = button.closest('.grid.grid-cols-1') || button.closest('.grid'); 
+            if (!variableSection) return;
                 
-                const finalConc = parseFloat(altSection.querySelector('.variable-final-conc').value);
-                const finalConcUnit = altSection.querySelector('.variable-final-conc-unit').value;
-                const stockConc = parseFloat(altSection.querySelector('.variable-stock-conc').value);
-                const stockConcUnit = altSection.querySelector('.variable-stock-conc-unit').value;
-                const totalVolume = parseFloat(document.getElementById('well-total-volume').value); 
-                const resultEl = altSection.querySelector('.variable-stock-volume-result');
+            const finalConc = parseFloat(variableSection.querySelector('.variable-final-conc').value);
+            const finalConcUnit = variableSection.querySelector('.variable-final-conc-unit').value;
+            const stockConc = parseFloat(variableSection.querySelector('.variable-stock-conc').value);
+            const stockConcUnit = variableSection.querySelector('.variable-stock-conc-unit').value;
+            const totalVolume = parseFloat(document.getElementById('well-total-volume').value); 
+            const resultEl = variableSection.querySelector('.variable-stock-volume-result');
 
-                if (isNaN(finalConc) || isNaN(stockConc) || isNaN(totalVolume) || stockConc === 0) {
-                     resultEl.textContent = 'Inputs inválidos.';
-                     return;
-                }
-                
-                const finalConcConverted = _pureConvertUnits(finalConc, finalConcUnit, stockConcUnit);
-                if (isNaN(finalConcConverted)) { 
-                     resultEl.textContent = 'Error de conversión.';
-                     return;
-                }
-                const V_Stock_in_uL = (finalConcConverted * totalVolume) / stockConc;
-                resultEl.textContent = `Tomar: ${V_Stock_in_uL.toFixed(3)} µL`;
-                return;
+            if (isNaN(finalConc) || isNaN(stockConc) || isNaN(totalVolume) || stockConc === 0) {
+                 resultEl.textContent = 'Inputs inválidos.'; return;
             }
+            
+            const finalConcConverted = _pureConvertUnits(finalConc, finalConcUnit, stockConcUnit);
+            if (isNaN(finalConcConverted)) { 
+                 resultEl.textContent = 'Error de conversión.'; return;
+            }
+            const V_Stock_in_uL = (finalConcConverted * totalVolume) / stockConc;
+            resultEl.textContent = `Tomar: ${V_Stock_in_uL.toFixed(3)} µL`;
         }
         
         function calculateMasterMix() {
             if (selectedWells.size === 0) {
-                showToast("Selecciona los pozos para los que quieres calcular la mezcla.", 'error');
-                return;
+                showToast("Selecciona pozos para calcular mezcla.", 'error'); return;
             }
             
             const numWells = selectedWells.size;
@@ -2080,23 +2115,24 @@
             const baseConfig = wellData[firstWellId];
 
             if (!baseConfig) { 
-                showToast("El primer pozo seleccionado no está configurado.", 'error');
-                return;
+                showToast("El primer pozo seleccionado no está configurado.", 'error'); return;
             }
 
-            if (baseConfig.cells?.count > 0) {
+            if (baseConfig.cells && baseConfig.cells.count > 0) {
                 masterMix['Células'] = { 
                     total: `${(baseConfig.cells.count * totalWellsToPrep).toExponential(2)} células`,
-                    note: 'El volumen depende del stock.'
+                    note: 'Volumen depende del stock.'
                 };
             }
             
-            baseConfig.variables.forEach(v => {
-                 masterMix[v.name] = {
-                     total: `${v.finalConc} ${v.finalConcUnit} final`,
-                     note: 'Calcular volumen individualmente.'
-                 };
-            });
+            if (baseConfig.variables) {
+                baseConfig.variables.forEach(v => {
+                     masterMix[v.name] = {
+                         total: `${v.finalConc} ${v.finalConcUnit} final`,
+                         note: 'Calcular volumen individualmente.'
+                     };
+                });
+            }
             
             let html = `<h3 class="font-bold mb-2">Mezcla para ${numWells} pozos (+${(extraVolFactor-1)*100}% extra):</h3>`;
             html += `<table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-100"><tr><th class="px-4 py-2">Componente</th><th class="px-4 py-2">Cantidad</th><th class="px-4 py-2">Notas</th></tr></thead><tbody class="bg-white">`;
@@ -2104,7 +2140,7 @@
             for(const component in masterMix) { 
                 html += `<tr><td class="px-4 py-2 font-medium">${component}</td><td class="px-4 py-2">${masterMix[component].total}</td><td class="px-4 py-2 text-gray-500">${masterMix[component].note}</td></tr>`;
             }
-             html += `<tr><td class="px-4 py-2 font-bold">Medio de cultivo (completar hasta)</td><td class="px-4 py-2 font-bold">${(baseConfig.totalVolume * totalWellsToPrep).toFixed(2)} µL</td><td></td></tr>`;
+            html += `<tr><td class="px-4 py-2 font-bold">Medio de cultivo (completar)</td><td class="px-4 py-2 font-bold">${(baseConfig.totalVolume * totalWellsToPrep).toFixed(2)} µL</td><td></td></tr>`;
             html += `</tbody></table>`;
             document.getElementById('master-mix-results').innerHTML = html;
         }
@@ -2116,24 +2152,26 @@
 
             for (const wellId in wellData) {
                 const data = wellData[wellId];
-                if (!data.protocol?.steps) continue; 
+                if (!data.protocol || !data.protocol.steps) continue; 
                 data.protocol.steps.forEach((step, index) => {
-                    allSteps.push({ ...step, wellId, stepIndex: index + 1, eventId: `${wellId}-${step.name.replace(/\s/g, '')}-${index}` });
+                    allSteps.push({ ...step, wellId: wellId, stepIndex: index + 1, eventId: `${wellId}-${step.name.replace(/\s/g, '')}-${index}` });
                 });
             }
             
             const uniqueSteps = Object.values(allSteps.reduce((acc, cur) => {
                 const key = `${cur.name}-${cur.duration}-${cur.unit}-${cur.stepIndex}`; 
-                if (!acc[key]) acc[key] = { ...cur, wells: [cur.wellId] }; 
-                else acc[key].wells.push(cur.wellId); 
+                if (!acc[key]) {
+                    acc[key] = Object.assign({}, cur, { wells: [cur.wellId] }); 
+                } else {
+                    acc[key].wells.push(cur.wellId); 
+                }
                 return acc;
             }, {}));
             
             uniqueSteps.sort((a,b) => a.stepIndex - b.stepIndex);
 
             if (uniqueSteps.length === 0) { 
-                scheduleContainer.innerHTML = '<p class="text-gray-500">No hay pasos configurados.</p>';
-                return;
+                scheduleContainer.innerHTML = '<p class="text-gray-500">No hay pasos configurados.</p>'; return;
             }
 
             uniqueSteps.forEach((step) => {
@@ -2167,1208 +2205,4 @@
                         clearInterval(interval); 
                         document.getElementById(displayId).textContent = '00:00:00';
                         showToast(`¡Paso finalizado: ${event.name}!`); 
-                        btn.textContent = 'Finalizado'; 
-                        btn.disabled = true; 
-                        delete runningTimers[timerId]; 
-                    } else { 
-                        const h = String(Math.floor(remaining / 3600000)).padStart(2, '0');
-                        const m = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0');
-                        const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
-                        document.getElementById(displayId).textContent = `${h}:${m}:${s}`; 
-                    }
-                }, 1000);
-                runningTimers[timerId] = { interval, endTime };
-            }
-        }
-        
-        // --- ANIMAL MODELS ---
-        function addAnimalModel() {
-            const id = document.getElementById('new-model-id').value.trim();
-            if (!id || animalModels[id]) return;
-            animalModels[id] = { id, data: [] }; 
-            document.getElementById('new-model-id').value = ''; 
-            renderAnimalModels(); 
-        }
-
-        function duplicateAnimalModel(modelId) {
-            if (!animalModels[modelId]) return;
-            let newId = modelId + "-Copia";
-            let counter = 1;
-            while (animalModels[newId]) {
-                newId = modelId + "-Copia" + counter;
-                counter++;
-            }
-            animalModels[newId] = JSON.parse(JSON.stringify(animalModels[modelId]));
-            animalModels[newId].id = newId;
-            renderAnimalModels();
-            showToast(`Modelo ${modelId} duplicado exitosamente como ${newId}.`);
-        }
-
-        function renderAnimalModels() {
-            const container = document.getElementById('animal-models-container');
-            container.innerHTML = ''; 
-            Object.keys(animalModels).sort().forEach(modelId => {
-                const model = animalModels[modelId];
-                const div = document.createElement('div');
-                div.className = 'p-4 border rounded-lg bg-white shadow';
-                div.innerHTML = `
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-bold text-blue-700">${model.id}</h3>
-                    <div class="flex gap-2">
-                        <button onclick="duplicateAnimalModel('${modelId}')" class="text-xs bg-indigo-500 text-white px-3 py-1 rounded"><i class="fas fa-copy"></i> Duplicar</button>
-                        <button onclick="openModelDataModal('${modelId}')" class="text-xs bg-green-500 text-white px-3 py-1 rounded"><i class="fas fa-plus"></i> Añadir Datos</button>
-                    </div>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm">
-                        <thead><tr><th>Fecha</th><th>Peso</th><th>Notas</th></tr></thead>
-                        <tbody>${model.data.map(e => `<tr><td>${new Date(e.date).toLocaleDateString()}</td><td>${e.weight || ''}</td><td>${e.notes || ''}</td></tr>`).join('')}</tbody>
-                    </table>
-                </div>`;
-                container.appendChild(div);
-            });
-        }
-
-        function openModelDataModal(id) {
-            currentEditingModelId = id; 
-            document.getElementById('modal-model-id').textContent = id; 
-            document.getElementById('model-data-modal').style.display = 'flex';
-        }
-
-        function closeModelDataModal() { document.getElementById('model-data-modal').style.display = 'none'; }
-
-        function saveModelDataEntry() {
-            if (!currentEditingModelId) return;
-            const entry = {
-                date: new Date().toISOString(), 
-                weight: parseFloat(document.getElementById('modal-model-weight').value) || null,
-                notes: document.getElementById('modal-model-notes').value.trim() || null
-            };
-            animalModels[currentEditingModelId].data.push(entry);
-            renderAnimalModels(); 
-            closeModelDataModal(); 
-        }
-
-        function saveModelData() {
-            const blob = new Blob([JSON.stringify(animalModels)], { type: 'application/json' });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'modelos.json'; a.click();
-        }
-
-        function loadModelData(event) {
-            const file = event.target.files[0]; 
-            if (!file) return; 
-            const reader = new FileReader(); 
-            reader.onload = (e) => {
-                try {
-                    const loadedData = JSON.parse(e.target.result);
-                    if (typeof loadedData === 'object' && loadedData !== null) {
-                        animalModels = loadedData; 
-                        renderAnimalModels(); 
-                        showToast('Datos de modelos cargados.');
-                    } else {
-                        throw new Error("El archivo no tiene el formato esperado.");
-                    }
-                } catch (error) {
-                    showToast(`Error al cargar datos de modelos: ${error.message}`, 'error');
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = ''; 
-        }
-
-        function calculateModelDose() {
-            const amount = parseFloat(document.getElementById('dose-amount').value);
-            const weight = parseFloat(document.getElementById('model-weight').value);
-            const stock = parseFloat(document.getElementById('stock-conc-dose').value);
-            const output = document.getElementById('dose-output-unit').value;
-            const resultDiv = document.getElementById('dose-calculation-result');
-            if (isNaN(amount) || isNaN(weight) || isNaN(stock)) return;
-            const dose = (amount * weight) / stock;
-            resultDiv.textContent = `Administrar: ${dose.toFixed(4)} ${output}`;
-        }
-
-        function toggleSubCalc(id) {
-            const el = document.getElementById(id);
-            if(el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
-        }
-        
-        function populateUnitDropdowns(ctx = document) {
-            const m = Object.keys(CONVERSION_FACTORS.mass);
-            const v = Object.keys(CONVERSION_FACTORS.volume);
-            const c = Object.keys(CONVERSION_FACTORS.concentration); 
-            const combined = []; m.forEach(x => v.forEach(y => combined.push(`${x}/${y}`)));
-            const allC = [...c, ...combined];
-            const all = [...m, ...v, ...allC]; 
-
-            const sel = (id, options, def) => {
-                const el = ctx.getElementById ? ctx.getElementById(id) : ctx.querySelector(`#${id}`);
-                if (el) {
-                    el.innerHTML = options.map(o => `<option value="${o}" ${o===def?'selected':''}>${o}</option>`).join('');
-                }
-            };
-            
-            if (ctx === document) {
-                sel('uc-from', all, 'mg'); sel('uc-to', all, 'µg');
-                sel('c1-unit', allC, 'mM'); sel('c2-unit', allC, 'µM');
-                sel('v1-unit', v, 'mL'); sel('v2-unit', v, 'µL');
-                sel('dose-amount-unit', m, 'mg'); sel('stock-conc-dose-unit', allC, 'mg/mL');
-            }
-
-            ctx.querySelectorAll('.variable-final-conc-unit').forEach(s => s.innerHTML = allC.map(o => `<option value="${o}" ${o==='µM'?'selected':''}>${o}</option>`).join(''));
-            ctx.querySelectorAll('.variable-stock-conc-unit').forEach(s => s.innerHTML = allC.map(o => `<option value="${o}" ${o==='mM'?'selected':''}>${o}</option>`).join(''));
-        }
-        
-        function saveExperiment() {
-            const blob = new Blob([JSON.stringify({ wellData, expName: document.getElementById('exp-name').value, plateType: document.getElementById('plate-type').value })], { type: 'application/json' });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'experimento.json'; a.click();
-        }
-
-        function loadExperiment(e) {
-            const file = e.target.files[0]; if (!file) return;
-            const r = new FileReader(); r.onload = (ev) => {
-                const data = JSON.parse(ev.target.result);
-                document.getElementById('exp-name').value = data.expName || '';
-                generatePlate(data);
-            };
-            r.readAsText(file);
-        }
-
-        function generateReport() {
-            let h = '<h3>Reporte</h3><ul>';
-            for (const id in wellData) {
-                h += `<li><b>${id}:</b> ${wellData[id].wellType}, ${wellData[id].totalVolume}uL</li>`;
-            }
-            document.getElementById('report-output').innerHTML = h + '</ul>';
-            document.getElementById('export-csv-btn').classList.remove('hidden');
-        }
-
-        function exportReportCSV() {
-            let csv = "Pozo,Tipo,Volumen\n";
-            for (const id in wellData) csv += `${id},${wellData[id].wellType},${wellData[id].totalVolume}\n`;
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'reporte.csv'; a.click();
-        }
-
-        window.onload = () => {
-            mermaid.initialize({ startOnLoad: false, theme: 'base' });
-            generatePlate(); 
-            populateUnitDropdowns(); 
-            initializeUploadSlots();
-            
-            // Set Schedule Time default
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            const dateStr = now.toISOString().slice(0,16);
-            if (document.getElementById('nav-start-time')) document.getElementById('nav-start-time').value = dateStr;
-            if (document.getElementById('sched-sidebar-start-time')) document.getElementById('sched-sidebar-start-time').value = dateStr;
-            schedStartTime = now;
-            updateSchedUI();
-
-            changeTab('guide');
-            document.getElementById('load-exp-input').addEventListener('change', loadExperiment);
-            document.getElementById('load-model-input').addEventListener('change', loadModelData);
-            
-            // --- Inicializar base de datos ---
-            if (typeof window.initFirebase === 'function') {
-                window.initFirebase();
-            }
-        };
-        
-        // ---- INJECT LAB MANAGER SCHEDULER LOGIC ----
-        function syncSchedStartTime(val) { 
-            if(!val) return; 
-            schedStartTime = new Date(val); 
-            const nInput = document.getElementById('nav-start-time');
-            const sInput = document.getElementById('sched-sidebar-start-time');
-            if (nInput) nInput.value = val;
-            if (sInput) sInput.value = val;
-            updateSchedUI(); 
-        }
-
-        function updateSchedUI() {
-            renderSchedPhaseInputs();
-            renderSchedTable();
-            renderSchedConditionList();
-            renderSchedStats();
-            renderSchedSummaryTiles();
-            renderSchedMermaid();
-            const dateStamp = document.getElementById('sched-current-gen-date');
-            if (dateStamp) dateStamp.innerText = new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
-        }
-
-        function renderSchedPhaseInputs() {
-            const n = document.getElementById('sched-phase-names-container');
-            const v = document.getElementById('sched-phase-values-container');
-            if(!n || !v) return;
-            n.innerHTML = SCHED_CONFIG.phases.map((name, i) => `
-                <div class="flex gap-2 group animate-fadeIn">
-                    <input type="text" value="${name}" onchange="updateSchedPhaseName(${i}, this.value)" class="flex-1 text-[11px] p-2 border rounded-xl outline-none font-bold shadow-sm">
-                    ${SCHED_CONFIG.phases.length > 1 ? `<button onclick="removeSchedPhase(${i})" class="text-red-400"><i class="fas fa-times"></i></button>` : ''}
-                </div>`).join('');
-            v.innerHTML = SCHED_CONFIG.phases.map((name, i) => `
-                <div class="space-y-1"><label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">${name} (h)</label>
-                <input type="number" id="sched-phase-val-${i}" class="w-full text-xs p-3 border rounded-2xl outline-none font-extrabold shadow-inner" placeholder="0"></div>`).join('');
-            document.getElementById('sched-phase-count-badge').innerText = `${SCHED_CONFIG.phases.length} PASOS`;
-        }
-
-        function updateSchedPhaseName(i, val) { SCHED_CONFIG.phases[i] = val || "Fase"; updateSchedUI(); }
-        function addNewSchedPhaseSlot() { SCHED_CONFIG.phases.push("Etapa"); updateSchedUI(); }
-        function removeSchedPhase(i) { SCHED_CONFIG.phases.splice(i,1); SCHED_CONFIG.condiciones.forEach(c => c.steps.splice(i,1)); updateSchedUI(); }
-
-        function addSchedCondition() {
-            const id = document.getElementById('sched-new-id').value;
-            if(!id) return;
-            const steps = SCHED_CONFIG.phases.map((_,i) => parseInt(document.getElementById(`sched-phase-val-${i}`).value) || 0);
-            SCHED_CONFIG.condiciones.push({ id, steps, notes: document.getElementById('sched-new-notes').value });
-            updateSchedUI();
-            
-            document.getElementById('sched-new-id').value = "";
-            document.getElementById('sched-new-notes').value = "";
-            SCHED_CONFIG.phases.forEach((_, i) => { const el = document.getElementById(`sched-phase-val-${i}`); if(el) el.value = ""; });
-        }
-
-        function removeSchedCondition(i) { SCHED_CONFIG.condiciones.splice(i,1); updateSchedUI(); }
-
-        function duplicateSchedCondition(index) {
-            const original = SCHED_CONFIG.condiciones[index];
-            if (!original) return;
-            const newCond = JSON.parse(JSON.stringify(original));
-            newCond.id = original.id + "-Copia";
-            SCHED_CONFIG.condiciones.push(newCond);
-            updateSchedUI();
-            showToast("Muestra del cronograma duplicada exitosamente.");
-        }
-
-        function formatSchedLabDate(base, h, minimal = false) {
-            const d = new Date(base.getTime() + (h * 3600000));
-            const day = d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
-            const time = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-            if(minimal) return `${day} | ${time}`;
-            return `<div class="leading-tight"><span class="capitalize font-extrabold text-slate-800 text-xs">${day}</span><br/><span class="text-[9px] text-slate-400 font-black uppercase tracking-widest">${time}</span></div>`;
-        }
-
-        function renderSchedTable() {
-            const table = document.getElementById('sched-protocol-table');
-            if(!table) return;
-            if(SCHED_CONFIG.condiciones.length === 0) { table.innerHTML = "<tbody><tr><td class='p-10 text-center text-slate-400 uppercase text-xs font-bold tracking-widest'>Sin datos en el cronograma</td></tr></tbody>"; return; }
-            
-            let html = `<thead class='bg-slate-50 border-b border-slate-200'><tr class='text-[9px] font-black text-slate-500 uppercase tracking-widest'><th class='px-10 py-6 border-r border-slate-100'>Muestra</th>${SCHED_CONFIG.phases.map(p => `<th class='px-10 py-6'>Hito: ${p}</th>`).join('')}<th class='px-10 py-6 text-right'>Ciclo Total</th></tr></thead><tbody class='divide-y divide-slate-100'>`;
-            SCHED_CONFIG.condiciones.forEach(c => {
-                const total = c.steps.reduce((a,b)=>a+b,0);
-                const color = total <= 72 ? 'bg-emerald-500' : total <= 144 ? 'bg-amber-500' : 'bg-rose-500';
-                let cum = 0;
-                
-                html += `<tr class='hover:bg-slate-50 transition-all group'><td class='px-10 py-6 border-r border-slate-100'><div class='flex items-center gap-5'><div class='w-2.5 h-12 rounded-full ${color} shadow-sm group-hover:scale-y-110 transition-transform'></div><div><p class='font-extrabold text-slate-800 text-xs uppercase tracking-tight'>${c.id}</p><p class='text-[9px] text-slate-400 font-bold uppercase truncate max-w-[140px] italic'>${c.notes || 'Estándar'}</p></div></div></td>`;
-                
-                html += c.steps.map(h => { cum+=h; return `<td class='px-10 py-6 border-r border-slate-50/50'>${formatSchedLabDate(schedStartTime, cum)}</td>` }).join('');
-                html += `<td class='px-10 py-6 text-right font-black mono text-[12px] text-indigo-700 bg-indigo-50/20'>${total}h</td></tr>`;
-            });
-            table.innerHTML = html + "</tbody>";
-            document.getElementById('sched-total-badge').innerText = `${SCHED_CONFIG.condiciones.length} MUESTRAS ACTIVAS`;
-        }
-
-        async function renderSchedMermaid() {
-            const container = document.getElementById('sched-mermaid-container');
-            const emptyState = document.getElementById('sched-empty-state');
-            if(!container || !emptyState) return;
-
-            if (SCHED_CONFIG.condiciones.length === 0) {
-                emptyState.style.display = 'block';
-                const existing = container.querySelector('.mermaid');
-                if (existing) existing.remove();
-                return;
-            }
-            emptyState.style.display = 'none';
-            const renderId = 'mermaid-chart-' + Date.now();
-            container.innerHTML = `<div id="${renderId}" class="mermaid w-full h-full flex justify-center opacity-0 transition-opacity duration-700"></div>`;
-            const chartDiv = document.getElementById(renderId);
-
-            let code = "graph LR\n Start((INICIO)):::startNode\n";
-            SCHED_CONFIG.condiciones.forEach((c, idx) => {
-                let prev = "Start";
-                let cum = 0;
-                c.steps.forEach((h, si) => {
-                    cum += h;
-                    const node = `S${idx}P${si}`;
-                    const dateStr = formatSchedLabDate(schedStartTime, cum, true);
-                    code += `  ${prev} -- "${h}h" --> ${node}["<b style='color:#4f46e5;font-size:12px'>${SCHED_CONFIG.phases[si]}</b><br/><small style='color:#64748b;font-weight:600'>${dateStr}</small>"]:::phaseNode\n`;
-                    prev = node;
-                });
-                const total = c.steps.reduce((a,b)=>a+b, 0);
-                const finalNode = `End_${idx}`;
-                const color = total <= 72 ? '#10b981' : total <= 144 ? '#f59e0b' : '#ef4444';
-                code += `  ${prev} --> ${finalNode}((${c.id}<br/>${total}h)):::finalNode\n`;
-                code += `  style ${finalNode} fill:${color}11,stroke:${color},stroke-width:4px,color:${color}\n`;
-            });
-            code += `\nclassDef startNode fill:#1e293b,stroke:#0f172a,color:#fff,font-weight:900,padding:20px;\nclassDef phaseNode fill:#fff,stroke:#e2e8f0,color:#1e293b,font-size:11px,padding:15px;\nclassDef finalNode font-weight:900,font-size:13px,padding:20px;`;
-            try { 
-                const { svg } = await mermaid.render('sched-svg', code); 
-                chartDiv.innerHTML = svg; 
-                chartDiv.classList.remove('opacity-0');
-            } catch(e) { console.error(e); }
-        }
-
-        function renderSchedConditionList() {
-            const l = document.getElementById('sched-condition-list');
-            if(l) l.innerHTML = SCHED_CONFIG.condiciones.map((c,i) => `
-                <div class='flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-all shadow-sm'>
-                    <span class='text-[10px] font-black text-slate-700 uppercase tracking-tight'>${c.id}</span>
-                    <div class='flex gap-3'>
-                        <button onclick='duplicateSchedCondition(${i})' class='text-indigo-400 hover:text-indigo-600 transition-colors' title="Duplicar"><i class='fas fa-copy text-xs'></i></button>
-                        <button onclick='removeSchedCondition(${i})' class='text-slate-300 hover:text-rose-500 transition-colors' title="Eliminar"><i class='fas fa-trash-alt text-xs'></i></button>
-                    </div>
-                </div>`).join('');
-        }
-
-        function renderSchedStats() {
-            const grid = document.getElementById('sched-stats-grid');
-            if(!grid || SCHED_CONFIG.condiciones.length === 0) { grid.innerHTML = ""; return; }
-            const max = Math.max(...SCHED_CONFIG.condiciones.map(c => c.steps.reduce((a,b)=>a+b,0)));
-            
-            const stats = [
-                { label: 'Tiempo Máximo', val: `${max}h`, icon: 'fa-stopwatch', color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                { label: 'Muestras Activas', val: SCHED_CONFIG.condiciones.length, icon: 'fa-vials', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                { label: 'Complejidad', val: `${SCHED_CONFIG.phases.length} Pasos`, icon: 'fa-network-wired', color: 'text-amber-600', bg: 'bg-amber-50' },
-                { label: 'Fin de Ciclo', val: new Date(schedStartTime.getTime() + (max * 3600000)).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }), icon: 'fa-flag-checkered', color: 'text-rose-600', bg: 'bg-rose-50' }
-            ];
-
-            grid.innerHTML = stats.map(s => `
-                <div class="bg-white p-6 rounded-[2rem] shadow-sm flex items-center gap-5 border border-slate-100">
-                    <div class="${s.color} ${s.bg} w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner"><i class="fas ${s.icon} text-2xl"></i></div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">${s.label}</p>
-                        <h4 class="text-xl font-extrabold text-slate-800 tracking-tight leading-none">${s.val}</h4>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderSchedSummaryTiles() {
-            const s = document.getElementById('sched-integrated-summary');
-            const container = document.getElementById('sched-summary-tiles');
-            if(!s || !container) return;
-            if(SCHED_CONFIG.condiciones.length === 0) { s.classList.add('hidden'); return; }
-            s.classList.remove('hidden');
-            
-            container.innerHTML = SCHED_CONFIG.condiciones.map(c => {
-                const total = c.steps.reduce((a,b)=>a+b, 0);
-                return `
-                    <div class="bg-white border border-slate-100 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <i class="fas fa-check-double text-4xl text-indigo-900"></i>
-                        </div>
-                        <p class="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-[0.1em]">${c.id}</p>
-                        <p class="text-[12px] font-extrabold text-indigo-700 mono mb-2">${formatSchedLabDate(schedStartTime, total, true)}</p>
-                        <div class="flex justify-between items-center text-[9px] text-slate-500 font-bold uppercase border-t border-slate-50 pt-3">
-                            <span class="tracking-tight">${total}h de ciclo</span>
-                            <i class="fas fa-microscope text-indigo-200"></i>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        async function exportarSchedMapaComoImagen() {
-            const el = document.getElementById('sched-export-container');
-            const originalStyle = el.style.borderRadius;
-            el.style.borderRadius = "0px"; 
-            const canvas = await html2canvas(el, { scale: 2, backgroundColor: "#ffffff" });
-            const link = document.createElement('a');
-            link.download = "MAPA_LICAM_V73.png";
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            el.style.borderRadius = originalStyle;
-        }
-
-        function descargarSchedCSV() {
-            if(SCHED_CONFIG.condiciones.length === 0) return;
-            let csv = "\uFEFFMuestra," + SCHED_CONFIG.phases.map(p => `Hito_${p}`).join(',') + ",Total_h,Notas\n";
-            SCHED_CONFIG.condiciones.forEach(c => {
-                csv += `"${c.id}",`;
-                let cum = 0;
-                csv += c.steps.map(h => {
-                    cum += h;
-                    const d = new Date(schedStartTime.getTime() + (cum * 3600000));
-                    return `"${d.toLocaleString('es-ES')}"`;
-                }).join(',') + `,${c.steps.reduce((a,b)=>a+b,0)},"${c.notes}"\n`;
-            });
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "CRONOGRAMA_LICAM.csv"; link.click();
-        }
-
-        setInterval(() => {
-            const now = new Date();
-            let nextHito = null; let minDiff = Infinity;
-            SCHED_CONFIG.condiciones.forEach(c => {
-                let cum = 0;
-                c.steps.forEach((hours, idx) => {
-                    cum += hours;
-                    const hitoTime = new Date(schedStartTime.getTime() + (cum * 3600000));
-                    const diff = hitoTime - now;
-                    if (diff > 0 && diff < minDiff) { minDiff = diff; nextHito = { name: `${c.id} - ${SCHED_CONFIG.phases[idx]}`, time: hitoTime }; }
-                });
-            });
-
-            const nameEl = document.getElementById('sched-next-milestone-name');
-            const countEl = document.getElementById('sched-next-milestone-countdown');
-            if (nextHito && nameEl && countEl) {
-                nameEl.innerText = nextHito.name;
-                const diffH = Math.floor(minDiff / 3600000);
-                const diffM = Math.floor((minDiff % 3600000) / 60000);
-                const diffS = Math.floor((minDiff % 60000) / 1000);
-                countEl.innerText = `${String(diffH).padStart(2, '0')}:${String(diffM).padStart(2, '0')}:${String(diffS).padStart(2, '0')}`;
-            } else if (nameEl && countEl) {
-                nameEl.innerText = SCHED_CONFIG.condiciones.length > 0 ? "Ciclo finalizado" : "Sin programación";
-                countEl.innerText = "--:--:--";
-            }
-        }, 1000);
-    </script>
-    
-    <!-- SCRIPT DE FIREBASE -->
-    <script type="module">
-        let dbCloud, authCloud, currentUserProfile = null;
-        let providerCloud = null;
-
-        window.initFirebase = async function() {
-            try {
-                // Importación dinámica para no romper tu código global original
-                const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
-                const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
-                const { getFirestore, doc, setDoc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-                
-                // --- TUS LLAVES REALES ---
-                const firebaseConfig = {
-                  apiKey: "AIzaSyC3YoiEtHUv53QHWlL-JAzczEwNZVhUjX8",
-                  authDomain: "licam-ultra.firebaseapp.com",
-                  projectId: "licam-ultra",
-                  storageBucket: "licam-ultra.firebasestorage.app",
-                  messagingSenderId: "856235550817",
-                  appId: "1:856235550817:web:61fc04df8dfe0b36776220",
-                  measurementId: "G-TPFZ0FQLZ1"
-                };
-
-                const app = initializeApp(firebaseConfig);
-                authCloud = getAuth(app);
-                dbCloud = getFirestore(app);
-                providerCloud = new GoogleAuthProvider();
-
-                onAuthStateChanged(authCloud, (user) => {
-                    currentUserProfile = user;
-                    const statusEl = document.getElementById('cloud-status');
-                    const loginSection = document.getElementById('login-section');
-                    const userInfoCard = document.getElementById('user-info-card');
-                    const cloudActions = document.getElementById('cloud-actions');
-
-                    if (user) {
-                        if(statusEl) statusEl.innerHTML = `<span class="text-emerald-600"><i class="fas fa-check-circle"></i> Conectado y Sincronizado</span>`;
-                        if(loginSection) loginSection.classList.add('hidden');
-                        if(userInfoCard) {
-                            userInfoCard.classList.remove('hidden');
-                            userInfoCard.classList.add('flex');
-                        }
-                        
-                        const nameEl = document.getElementById('user-name');
-                        const emailEl = document.getElementById('user-email');
-                        const photoEl = document.getElementById('user-photo');
-                        
-                        if(nameEl) nameEl.textContent = user.displayName || 'Investigador';
-                        if(emailEl) emailEl.textContent = user.email;
-                        if(photoEl) photoEl.src = user.photoURL || 'https://placehold.co/100x100?text=USR';
-
-                        if(cloudActions) {
-                            cloudActions.style.opacity = '1';
-                            cloudActions.style.pointerEvents = 'auto';
-                        }
-                        const btnSave = document.getElementById('cloud-save-btn');
-                        const btnLoad = document.getElementById('cloud-load-btn');
-                        if(btnSave) btnSave.disabled = false;
-                        if(btnLoad) btnLoad.disabled = false;
-                    } else {
-                        if(statusEl) statusEl.innerHTML = `<span class="text-gray-500"><i class="fas fa-cloud-moon"></i> Desconectado</span>`;
-                        if(loginSection) loginSection.classList.remove('hidden');
-                        if(userInfoCard) {
-                            userInfoCard.classList.add('hidden');
-                            userInfoCard.classList.remove('flex');
-                        }
-                        if(cloudActions) {
-                            cloudActions.style.opacity = '0.5';
-                            cloudActions.style.pointerEvents = 'none';
-                        }
-                        const btnSave = document.getElementById('cloud-save-btn');
-                        const btnLoad = document.getElementById('cloud-load-btn');
-                        if(btnSave) btnSave.disabled = true;
-                        if(btnLoad) btnLoad.disabled = true;
-                    }
-                });
-
-                window.loginWithGoogle = async function() {
-                    try {
-                        await signInWithPopup(authCloud, providerCloud);
-                        showToast("Sesión iniciada correctamente.");
-                    } catch (error) {
-                        console.error("Error al iniciar sesión:", error);
-                        showToast("Error al iniciar sesión con Google.", "error");
-                    }
-                };
-
-                window.logoutGoogle = async function() {
-                    try {
-                        await signOut(authCloud);
-                        showToast("Sesión cerrada.");
-                    } catch (error) {
-                        console.error("Error Logout:", error);
-                    }
-                };
-
-                window.saveToCloud = async function() {
-                    if (!currentUserProfile || !dbCloud) {
-                        showToast("Conexión a la nube no establecida.", "error");
-                        return;
-                    }
-                    
-                    const btn = document.getElementById('cloud-save-btn');
-                    const origContent = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-                    
-                    try {
-                        const projectData = {
-                            wellData: typeof wellData !== 'undefined' ? wellData : {},
-                            animalModels: typeof animalModels !== 'undefined' ? animalModels : {},
-                            SCHED_CONFIG: typeof SCHED_CONFIG !== 'undefined' ? SCHED_CONFIG : null,
-                            expName: document.getElementById('exp-name') ? document.getElementById('exp-name').value : '',
-                            plateType: document.getElementById('plate-type') ? document.getElementById('plate-type').value : '',
-                            lastSaved: new Date().toISOString()
-                        };
-                        
-                        const docRef = doc(dbCloud, 'usuarios', currentUserProfile.uid, 'proyectos', 'main_workspace');
-                        await setDoc(docRef, projectData);
-                        
-                        showToast("✅ Espacio de trabajo guardado en la nube.");
-                    } catch (error) {
-                        console.error("Error guardando:", error);
-                        showToast("Error al guardar en la nube.", "error");
-                    } finally {
-                        btn.innerHTML = origContent;
-                    }
-                };
-
-                window.loadFromCloud = async function() {
-                    if (!currentUserProfile || !dbCloud) {
-                        showToast("Conexión a la nube no establecida.", "error");
-                        return;
-                    }
-                    
-                    const btn = document.getElementById('cloud-load-btn');
-                    const origContent = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
-                    
-                    try {
-                        const docRef = doc(dbCloud, 'usuarios', currentUserProfile.uid, 'proyectos', 'main_workspace');
-                        const docSnap = await getDoc(docRef);
-                        
-                        if (docSnap.exists()) {
-                            const data = docSnap.data();
-                            
-                            window.wellData = data.wellData || {};
-                            window.animalModels = data.animalModels || {};
-                            if(data.SCHED_CONFIG) window.SCHED_CONFIG = data.SCHED_CONFIG;
-                            
-                            if(document.getElementById('exp-name')) document.getElementById('exp-name').value = data.expName || '';
-                            if(document.getElementById('plate-type') && data.plateType) document.getElementById('plate-type').value = data.plateType;
-                            
-                            if(typeof generatePlate === 'function') generatePlate({ wellData: window.wellData, plateType: data.plateType });
-                            if(typeof updateSchedUI === 'function') updateSchedUI();
-                            if(typeof renderAnimalModels === 'function') renderAnimalModels();
-                            
-                            showToast("☁️ Datos recuperados exitosamente.");
-                        } else {
-                            showToast("No tienes datos previos en la nube.", "error");
-                        }
-                    } catch (error) {
-                        console.error("Error cargando:", error);
-                        showToast("Error al recuperar datos.", "error");
-                    } finally {
-                        btn.innerHTML = origContent;
-                    }
-                };
-
-            } catch(e) {
-                console.error("Error de importación Firebase:", e);
-                const statusEl = document.getElementById('cloud-status');
-                if(statusEl) statusEl.innerHTML = '<span class="text-red-500"><i class="fas fa-exclamation-triangle"></i> Error cargando librerías</span>';
-            }
-        };
-    </script>
-
-    <!-- REACT COMPONENT PARA qPCR -->
-    <script type="text/babel">
-        // Extraer React de Window
-        const { useState, useMemo } = React;
-        // Extraer Recharts de Window (versión 2.1.9)
-        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ErrorBar, Cell, ReferenceLine } = window.Recharts;
-
-        const QpcrAnalyzer = () => {
-          const [rawData, setRawData] = useState([]);
-          const [pasteText, setPasteText] = useState('');
-          const [controlSample, setControlSample] = useState('');
-          const [referenceGene, setReferenceGene] = useState('');
-          const [activeTab, setActiveTab] = useState('input');
-          const [error, setError] = useState('');
-          const [parseStats, setParseStats] = useState(null);
-
-          // Estados para el Panel de Control de la Gráfica
-          const [scaleType, setScaleType] = useState('linear'); // 'linear' o 'log2'
-          const [showErrors, setShowErrors] = useState(true);
-
-          // 1. LÓGICA DE PARSEO DE DATOS
-          const processDataString = (text) => {
-            const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
-            let headerLineIdx = -1;
-            let delimiter = ',';
-
-            for (let i = 0; i < lines.length; i++) {
-              const lineLower = lines[i].toLowerCase();
-              if ((lineLower.includes('sample') || lineLower.includes('muestra')) && 
-                  (lineLower.includes('target') || lineLower.includes('gen')) && 
-                  (lineLower.includes('ct'))) {
-                headerLineIdx = i;
-                delimiter = lines[i].includes('\t') ? '\t' : ',';
-                break;
-              }
-            }
-
-            if (headerLineIdx === -1) {
-              setError('No se detectaron los encabezados correctos. Asegúrate de subir el archivo "Results" o incluir columnas para Nombre de Muestra, Nombre de Gen y CT.');
-              setParseStats(null);
-              return;
-            }
-
-            const headers = lines[headerLineIdx].split(delimiter).map(h => h.trim().toLowerCase());
-            const sampleIdx = headers.findIndex(h => h.includes('sample') || h.includes('muestra'));
-            const targetIdx = headers.findIndex(h => h.includes('target') || h.includes('gen'));
-            
-            let ctIdx = headers.findIndex(h => h === 'ct');
-            if (ctIdx === -1) ctIdx = headers.findIndex(h => h.includes('ct'));
-
-            if (sampleIdx === -1 || targetIdx === -1 || ctIdx === -1) {
-              setError('Faltan columnas clave. Se requieren: Sample Name, Target Name y CT.');
-              setParseStats(null);
-              return;
-            }
-
-            const parsedData = [];
-            let undeterminedCount = 0;
-            let ignoredEmptyCount = 0;
-            let blankCount = 0;
-
-            for (let i = headerLineIdx + 1; i < lines.length; i++) {
-              const row = lines[i].split(new RegExp(`${delimiter}(?=(?:(?:[^"]*"){2})*[^"]*$)`)).map(cell => cell.replace(/"/g, '').trim());
-              
-              if (row.length > Math.max(sampleIdx, targetIdx, ctIdx)) {
-                const rawCt = row[ctIdx];
-                const sampleName = row[sampleIdx];
-                const targetName = row[targetIdx];
-
-                if (!sampleName || !targetName) {
-                  ignoredEmptyCount++;
-                  continue;
-                }
-
-                const isBlank = /^(bco|blank|blanco|ntc|h2o|agua)$/i.test(sampleName.trim());
-                if (isBlank) {
-                  blankCount++;
-                  continue;
-                }
-
-                if (rawCt.toLowerCase() === 'undetermined' || rawCt === '') {
-                  undeterminedCount++;
-                  continue;
-                }
-
-                const ctValue = parseFloat(rawCt);
-                
-                if (!isNaN(ctValue) && ctValue > 0) {
-                  parsedData.push({
-                    id: i,
-                    sample: sampleName,
-                    target: targetName,
-                    ct: ctValue
-                  });
-                } else {
-                  ignoredEmptyCount++;
-                }
-              }
-            }
-
-            if (parsedData.length === 0) {
-              setError('No se encontraron valores numéricos válidos de Ct. Revisa que tus datos contengan amplificaciones reales y que no sean solo blancos.');
-              setParseStats(null);
-            } else {
-              setRawData(parsedData);
-              setParseStats({
-                totalValidos: parsedData.length,
-                undetermined: undeterminedCount,
-                ignorados: headerLineIdx + ignoredEmptyCount,
-                blancos: blankCount
-              });
-              setError('');
-              setActiveTab('config');
-            }
-          };
-
-          const handleFileUpload = (e) => {
-            const file = e.target.files[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = (evt) => processDataString(evt.target.result);
-              reader.readAsText(file);
-            }
-          };
-
-          const handlePasteSubmit = () => {
-            processDataString(pasteText);
-          };
-
-          // 2. EXTRAER OPCIONES
-          const uniqueSamples = useMemo(() => [...new Set(rawData.map(d => d.sample))], [rawData]);
-          const uniqueTargets = useMemo(() => [...new Set(rawData.map(d => d.target))], [rawData]);
-
-          useMemo(() => {
-            if (!controlSample && uniqueSamples.length > 0) setControlSample(uniqueSamples[0]);
-            if (!referenceGene && uniqueTargets.length > 0) {
-              const probableRef = uniqueTargets.find(t => t.toLowerCase().includes('gapdh') || t.toLowerCase().includes('actin'));
-              setReferenceGene(probableRef || uniqueTargets[0]);
-            }
-          }, [uniqueSamples, uniqueTargets, controlSample, referenceGene]);
-
-          // 3. MOTOR MATEMÁTICO (Livak + Log2)
-          const results = useMemo(() => {
-            if (!controlSample || !referenceGene || rawData.length === 0) return null;
-
-            const stats = {};
-            rawData.forEach(row => {
-              if (!stats[row.sample]) stats[row.sample] = {};
-              if (!stats[row.sample][row.target]) stats[row.sample][row.target] = [];
-              stats[row.sample][row.target].push(row.ct);
-            });
-
-            const calcMean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
-            const calcSD = (arr, mean) => arr.length > 1 ? Math.sqrt(arr.reduce((sq, n) => sq + Math.pow(n - mean, 2), 0) / (arr.length - 1)) : 0;
-
-            const summary = {};
-            Object.keys(stats).forEach(sample => {
-              summary[sample] = {};
-              Object.keys(stats[sample]).forEach(target => {
-                const arr = stats[sample][target];
-                const mean = calcMean(arr);
-                summary[sample][target] = { mean, sd: calcSD(arr, mean), count: arr.length };
-              });
-            });
-
-            const finalData = [];
-            Object.keys(summary).forEach(sample => {
-              const refData = summary[sample][referenceGene];
-              if (!refData) return; 
-
-              Object.keys(summary[sample]).forEach(target => {
-                if (target === referenceGene) return; 
-
-                const targetData = summary[sample][target];
-                const dCt = targetData.mean - refData.mean;
-                const dCt_sd = Math.sqrt(Math.pow(targetData.sd, 2) + Math.pow(refData.sd, 2));
-
-                finalData.push({
-                  id: `${sample}-${target}`,
-                  sample,
-                  target,
-                  ctTargetMean: targetData.mean,
-                  ctTargetSd: targetData.sd,
-                  ctRefMean: refData.mean,
-                  dCt,
-                  dCt_sd
-                });
-              });
-            });
-
-            const controlData = finalData.filter(d => d.sample === controlSample);
-            
-            return finalData.map(row => {
-              const controlTargetRow = controlData.find(c => c.target === row.target);
-              const control_dCt = controlTargetRow ? controlTargetRow.dCt : 0;
-              const control_dCt_sd = controlTargetRow ? controlTargetRow.dCt_sd : 0;
-
-              const ddCt = row.dCt - control_dCt;
-              const ddCt_sd = Math.sqrt(Math.pow(row.dCt_sd, 2) + Math.pow(control_dCt_sd, 2));
-
-              // Escala Lineal
-              const foldChange = Math.pow(2, -ddCt);
-              const fcUpper = Math.pow(2, -(ddCt - ddCt_sd));
-              const fcLower = Math.pow(2, -(ddCt + ddCt_sd));
-              const errorRange = [foldChange - fcLower, fcUpper - foldChange];
-
-              // Escala Logarítmica 2 (Log2 Fold Change es simplemente -ddCt)
-              const log2FoldChange = -ddCt;
-              const log2ErrorRange = [ddCt_sd, ddCt_sd]; // El error logarítmico es simétrico
-
-              return {
-                ...row,
-                ddCt,
-                ddCt_sd,
-                foldChange,
-                errorRange,
-                fcUpper,
-                fcLower,
-                log2FoldChange,
-                log2ErrorRange
-              };
-            });
-          }, [rawData, controlSample, referenceGene]);
-
-          const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
-          const isLog2 = scaleType === 'log2';
-
-          return (
-            <div className="bg-slate-50 text-slate-800 font-sans">
-              <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
-                
-                {/* Cabecera */}
-                <div className="bg-slate-900 text-white p-6 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <i className="fas fa-calculator text-3xl text-blue-400"></i>
-                    <div>
-                      <h1 className="text-2xl font-bold">Asistente qPCR QuantStudio</h1>
-                      <p className="text-slate-400 text-sm">Cálculo de Fold Change (Livak) y limpieza automática de datos</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pestañas de Navegación */}
-                <div className="flex border-b border-slate-200 bg-slate-100 px-4 overflow-x-auto">
-                  <button onClick={() => setActiveTab('input')} className={`py-3 px-6 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap ${activeTab === 'input' ? 'border-blue-500 text-blue-600 bg-white' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
-                    <i className="fas fa-file-excel"></i> 1. Ingresar Datos
-                  </button>
-                  <button onClick={() => setActiveTab('config')} disabled={rawData.length === 0} className={`py-3 px-6 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap ${activeTab === 'config' ? 'border-blue-500 text-blue-600 bg-white' : 'border-transparent text-slate-500 hover:text-slate-700'} disabled:opacity-50`}>
-                    <i className="fas fa-cog"></i> 2. Calibrar Ensayo
-                  </button>
-                  <button onClick={() => setActiveTab('results')} disabled={!results || results.length === 0} className={`py-3 px-6 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap ${activeTab === 'results' ? 'border-blue-500 text-blue-600 bg-white' : 'border-transparent text-slate-500 hover:text-slate-700'} disabled:opacity-50`}>
-                    <i className="fas fa-chart-bar"></i> 3. Resultados
-                  </button>
-                </div>
-
-                {/* Contenido de las Pestañas */}
-                <div className="p-6">
-                  
-                  {error && (
-                    <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 flex gap-3 text-red-700 rounded-r-md">
-                      <i className="fas fa-exclamation-circle text-xl flex-shrink-0"></i>
-                      <p>{error}</p>
-                    </div>
-                  )}
-
-                  {/* TAB 1: INPUT */}
-                  {activeTab === 'input' && (
-                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* MÉTODO 1: ARCHIVO DIRECTO */}
-                        <div className="border border-blue-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col">
-                          <div className="bg-blue-50 p-4 border-b border-blue-100 flex items-center gap-2">
-                            <i className="fas fa-file-alt text-xl text-blue-600"></i>
-                            <h3 className="font-bold text-blue-900">Método 1: Archivo del Equipo (Recomendado)</h3>
-                          </div>
-                          <div className="p-6 flex-grow flex flex-col justify-between">
-                            <div className="space-y-4 text-sm text-slate-600 mb-6">
-                              <p><strong>Paso a Paso:</strong></p>
-                              <ol className="list-decimal pl-5 space-y-2">
-                                <li>El QuantStudio genera 5 archivos por corrida.</li>
-                                <li>Busca e identifica <strong>ÚNICAMENTE</strong> el archivo que contiene la palabra <span className="bg-yellow-100 text-yellow-800 px-1 rounded font-mono">Results.csv</span> o <span className="bg-yellow-100 text-yellow-800 px-1 rounded font-mono">Results.xls</span>.</li>
-                                <li>Súbelo aquí. <span className="text-blue-600 font-semibold">La app es inteligente:</span> ignorará metadatos, descartará Blancos (BCO) y leerá tu tabla.</li>
-                              </ol>
-                            </div>
-                            
-                            <label className="bg-blue-600 text-white px-6 py-4 rounded-xl font-bold cursor-pointer hover:bg-blue-700 transition shadow-md flex justify-center items-center gap-2 w-full text-lg">
-                              <i className="fas fa-upload text-xl"></i>
-                              Subir archivo "Results"
-                              <input type="file" className="hidden" accept=".csv,.txt,.xls" onChange={handleFileUpload} />
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* MÉTODO 2: MANUAL */}
-                        <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col">
-                          <div className="bg-slate-50 p-4 border-b border-slate-200 flex items-center gap-2">
-                            <i className="fas fa-file-excel text-xl text-slate-600"></i>
-                            <h3 className="font-bold text-slate-800">Método 2: Pegado Manual</h3>
-                          </div>
-                          <div className="p-6 flex-grow flex flex-col">
-                            <div className="space-y-2 text-sm text-slate-600 mb-4">
-                              <p><strong>Reglas de uso para pegar:</strong></p>
-                              <ul className="list-disc pl-5 space-y-1">
-                                <li>Debes incluir la fila de títulos. Ej: <span className="font-mono bg-slate-100 px-1">Sample Name | Target Name | CT</span></li>
-                                <li>Copia solo esas 3 columnas directo desde tu Excel.</li>
-                              </ul>
-                            </div>
-                            <textarea 
-                              className="w-full h-32 border border-slate-300 rounded-lg p-3 text-sm font-mono text-slate-600 focus:ring-2 focus:ring-blue-500 outline-none shadow-inner bg-slate-50 mb-4 flex-grow"
-                              placeholder="C-A1&#9;GAPDH&#9;28.442&#10;C-A1&#9;TNF-a&#9;30.486&#10;C2-A1&#9;GAPDH&#9;29.069"
-                              value={pasteText}
-                              onChange={(e) => setPasteText(e.target.value)}
-                            ></textarea>
-                            <button 
-                              onClick={handlePasteSubmit}
-                              disabled={!pasteText.trim()}
-                              className="bg-slate-800 text-white px-4 py-3 rounded-xl font-bold hover:bg-slate-900 disabled:opacity-50 transition w-full shadow-md"
-                            >
-                              Procesar Datos Pegados
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 2: CONFIGURACIÓN */}
-                  {activeTab === 'config' && (
-                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
-                      {parseStats && (
-                        <div className="space-y-4">
-                          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 flex flex-col md:flex-row gap-6 items-center shadow-sm">
-                            <div className="flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full flex-shrink-0">
-                              <i className="fas fa-check-circle text-4xl text-emerald-600"></i>
-                            </div>
-                            <div className="flex-grow">
-                              <h3 className="text-lg font-bold text-emerald-800 mb-1">¡Datos leídos y limpiados con éxito!</h3>
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
-                                <div className="bg-white p-3 rounded border border-emerald-100 shadow-sm">
-                                  <p className="text-2xl font-black text-emerald-600">{parseStats.totalValidos}</p>
-                                  <p className="text-xs text-slate-500 font-semibold uppercase">Pozos Válidos Extraídos</p>
-                                </div>
-                                <div className="bg-white p-3 rounded border border-emerald-100 shadow-sm">
-                                  <p className="text-2xl font-black text-slate-400">{parseStats.ignorados}</p>
-                                  <p className="text-xs text-slate-500 font-semibold uppercase">Filas técnicas ignoradas</p>
-                                </div>
-                                <div className="bg-white p-3 rounded border border-rose-100 shadow-sm relative overflow-hidden">
-                                  <div className="absolute -right-4 -top-4 opacity-10">
-                                      <i className="fas fa-times-circle text-6xl text-rose-500" style={{fontSize: "80px"}}></i>
-                                  </div>
-                                  <p className="text-2xl font-black text-rose-500 relative z-10">{parseStats.undetermined}</p>
-                                  <p className="text-xs text-slate-500 font-semibold uppercase relative z-10">Descartes 'Undetermined'</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {parseStats.blancos > 0 && (
-                            <div className="bg-amber-50 border border-amber-200 p-5 rounded-xl flex items-start gap-4 shadow-sm animate-in zoom-in-95 duration-300">
-                              <i className="fas fa-shield-alt text-3xl text-amber-500 flex-shrink-0 mt-1"></i>
-                              <div>
-                                <h4 className="text-amber-800 font-bold text-lg">Se detectaron y excluyeron Blancos (NTC / BCO)</h4>
-                                <p className="text-amber-700 mt-1">
-                                  El sistema detectó <strong>{parseStats.blancos} pozo(s)</strong> identificados como Blanco. 
-                                  Han sido removidos automáticamente de los cálculos.
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white border border-slate-200 p-6 rounded-xl shadow-sm">
-                        <div className="space-y-3">
-                          <label className="block font-bold text-lg text-slate-800">1. Define tu Control (Calibrador)</label>
-                          <p className="text-sm text-slate-500">¿Qué muestra representa tu estado base (ej. C-A1)?</p>
-                          <select 
-                            value={controlSample} 
-                            onChange={e => setControlSample(e.target.value)}
-                            className="w-full border-2 border-blue-200 rounded-lg p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50 font-semibold text-blue-900 transition-all cursor-pointer"
-                          >
-                            {uniqueSamples.map(s => <option key={s} value={s}>{s}</option>)}
-                          </select>
-                        </div>
-
-                        <div className="space-y-3">
-                          <label className="block font-bold text-lg text-slate-800">2. Define tu Gen de Referencia</label>
-                          <p className="text-sm text-slate-500">¿Qué gen usaste como control endógeno (ej. GAPDH)?</p>
-                          <select 
-                            value={referenceGene} 
-                            onChange={e => setReferenceGene(e.target.value)}
-                            className="w-full border-2 border-emerald-200 rounded-lg p-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 bg-emerald-50 font-semibold text-emerald-900 transition-all cursor-pointer"
-                          >
-                            {uniqueTargets.map(t => <option key={t} value={t}>{t}</option>)}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end">
-                        <button onClick={() => setActiveTab('results')} className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800 shadow-md flex items-center gap-2 text-lg transition-transform hover:scale-105">
-                          Generar Gráficas <i className="fas fa-arrow-right text-lg"></i>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 3: RESULTADOS */}
-                  {activeTab === 'results' && results && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                      
-                      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div className="flex items-center gap-2 text-blue-700 font-bold">
-                          <i className="fas fa-sliders-h text-lg"></i> Controles de Visualización
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-4 items-center">
-                          <div className="flex items-center gap-2 bg-slate-100 p-2 rounded-lg border border-slate-200">
-                            <span className="text-sm font-semibold text-slate-700 ml-1">Escala:</span>
-                            <select 
-                              value={scaleType}
-                              onChange={(e) => setScaleType(e.target.value)}
-                              className="bg-white border border-slate-300 rounded px-3 py-1.5 text-sm font-medium text-slate-800 outline-none cursor-pointer focus:ring-2 focus:ring-blue-500"
-                            >
-                              <option value="linear">Lineal (Clásica 2^-ΔΔCt)</option>
-                              <option value="log2">Logarítmica 2 (Ideal para inhibiciones)</option>
-                            </select>
-                          </div>
-
-                          <label className="flex items-center gap-2 bg-slate-100 p-2.5 rounded-lg border border-slate-200 cursor-pointer select-none hover:bg-slate-200 transition">
-                            <input 
-                              type="checkbox" 
-                              checked={showErrors} 
-                              onChange={(e) => setShowErrors(e.target.checked)}
-                              className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
-                            />
-                            <span className="text-sm font-semibold text-slate-700">Mostrar Barras de Error</span>
-                          </label>
-                        </div>
-                      </div>
-
-                      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-                        <h3 className="text-xl font-bold text-slate-800 mb-2 text-center">
-                          {isLog2 ? 'Expresión Génica (Log2 Fold Change)' : 'Expresión Génica Relativa (Fold Change)'}
-                        </h3>
-                        {isLog2 && <p className="text-center text-sm text-slate-500 mb-6">Valores negativos indican supresión del gen.</p>}
-                        
-                        <div className="h-96 w-full mt-6">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                              data={results}
-                              margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                              <XAxis 
-                                dataKey="sample" 
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: '#64748b', fontSize: 13, fontWeight: 600 }}
-                                angle={-45}
-                                textAnchor="end"
-                              />
-                              <YAxis 
-                                label={{ 
-                                  value: isLog2 ? 'Log2 Fold Change' : 'Fold Change (2^-ΔΔCt)', 
-                                  angle: -90, 
-                                  position: 'insideLeft', 
-                                  style: { fill: '#475569', fontWeight: 600 } 
-                                }} 
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: '#64748b' }}
-                                domain={['auto', 'auto']}
-                              />
-                              <Tooltip 
-                                cursor={{ fill: '#f1f5f9' }}
-                                contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                formatter={(value, name, props) => {
-                                   if(name === (isLog2 ? 'log2FoldChange' : 'foldChange')) {
-                                     return [value.toFixed(3), isLog2 ? `Log2 FC (${props.payload.target})` : `Fold Change (${props.payload.target})`];
-                                   }
-                                   return [value, name];
-                                }}
-                              />
-                              <Legend verticalAlign="top" wrapperStyle={{ paddingBottom: '20px' }} />
-                              
-                              <ReferenceLine y={isLog2 ? 0 : 1} stroke="#94a3b8" strokeDasharray="4 4" strokeWidth={2} />
-
-                              {uniqueTargets.filter(t => t !== referenceGene).map((target, index) => {
-                                const targetData = results.filter(r => r.target === target);
-                                return (
-                                  <Bar 
-                                    key={target} 
-                                    dataKey={isLog2 ? 'log2FoldChange' : 'foldChange'}
-                                    name={target} 
-                                    data={targetData}
-                                    fill={COLORS[index % COLORS.length]} 
-                                    radius={isLog2 ? 0 : [4, 4, 0, 0]}
-                                    maxBarSize={60}
-                                  >
-                                    {showErrors && <ErrorBar dataKey={isLog2 ? 'log2ErrorRange' : 'errorRange'} width={8} strokeWidth={2} stroke="#334155" />}
-                                    {targetData.map((entry, i) => {
-                                      const isNegative = isLog2 && entry.log2FoldChange < 0;
-                                      return <Cell key={`cell-${i}`} fill={COLORS[index % COLORS.length]} radius={isNegative ? [0, 0, 4, 4] : [4, 4, 0, 0]} />;
-                                    })}
-                                  </Bar>
-                                );
-                              })}
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-
-                      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                        <div className="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
-                          <h3 className="font-bold text-slate-800">Tabla de Ecuaciones (Resultados Desglosados)</h3>
-                          {parseStats?.blancos > 0 && (
-                            <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded font-semibold border border-amber-200">Blancos Excluidos</span>
-                          )}
-                        </div>
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left text-sm whitespace-nowrap">
-                            <thead className="bg-slate-100 text-slate-600 border-b border-slate-200">
-                              <tr>
-                                <th className="p-4 font-bold">Muestra</th>
-                                <th className="p-4 font-bold">Gen Evaluado</th>
-                                <th className="p-4 border-l border-slate-200 font-bold">Ct (Gen)</th>
-                                <th className="p-4 border-l border-slate-200 font-bold text-slate-500">Ct ({referenceGene})</th>
-                                <th className="p-4 border-l border-slate-200 font-bold text-blue-600">ΔCt</th>
-                                <th className="p-4 border-l border-slate-200 font-bold text-purple-600">ΔΔCt</th>
-                                <th className="p-4 border-l border-slate-200 font-black text-slate-800">Fold Change</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                              {results.map(row => (
-                                <tr key={row.id} className="hover:bg-blue-50 transition-colors">
-                                  <td className="p-4 font-medium text-slate-900">{row.sample} {row.sample === controlSample && <span className="text-[10px] uppercase tracking-wider bg-blue-100 text-blue-700 px-2 py-1 rounded ml-2 font-bold">Control</span>}</td>
-                                  <td className="p-4 font-medium text-slate-700">{row.target}</td>
-                                  <td className="p-4 border-l border-slate-100">
-                                    {row.ctTargetMean.toFixed(2)} <span className="text-xs text-slate-400">±{row.ctTargetSd.toFixed(2)}</span>
-                                  </td>
-                                  <td className="p-4 border-l border-slate-100 text-slate-500">
-                                    {row.ctRefMean.toFixed(2)}
-                                  </td>
-                                  <td className="p-4 border-l border-slate-100 font-mono text-blue-600 font-medium">
-                                    {row.dCt.toFixed(3)}
-                                  </td>
-                                  <td className="p-4 border-l border-slate-100 font-mono text-purple-600 font-medium">
-                                    {row.ddCt.toFixed(3)}
-                                  </td>
-                                  <td className="p-4 border-l border-slate-100">
-                                    <span className="font-bold text-lg font-mono text-slate-800">{row.foldChange.toFixed(3)}</span> 
-                                    <span className="text-xs text-slate-400 font-normal ml-2 block sm:inline">[{row.fcLower.toFixed(2)} - {row.fcUpper.toFixed(2)}]</span>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('qpcr-root'));
-        root.render(<QpcrAnalyzer />);
-    </script>
-</body>
-</html>
+                        btn.textContent = '
